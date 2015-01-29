@@ -1,0 +1,10 @@
+Mandril is a tool which can automatic check the binary instruction code for the file genereted by cross-compile.
+
+There are 3 purposes for using this tool:
+1. We must check some reserve or functional bit of generated instructions, especially when you change some gcc source code;
+2. We can use this tool to count the number of hazard may happen in assigning bin file;
+3. It is very necessary to check opcode, funct and some other fields encode format just the same as the compiler supported.
+
+Mandrill includes following functions:
+1. insn_format.py: the format of ISA, correcting this file is needed when you assign another ISA;
+2. 
