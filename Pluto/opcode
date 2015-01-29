@@ -1,0 +1,98 @@
+twi	3
+mulli 7
+subfic 8
+cmpli 10
+cmpi 11
+addic 12
+addic. 13
+addi 14
+addis 15
+bc 16
+sc 17
+b 18
+mcrf 19 0
+bclr 19 16
+crnor 19 33
+rfi 19 50
+crxor 19 193
+crand 19 257
+bcctr 19 528
+rlwimi 20
+rlwinm 21
+rlwnm 23
+ori 24
+oris 25
+xori 26
+xoris 27
+andi. 28
+andis. 29
+cmp 31 0
+subfc 31 8
+addc 31 10
+mulhwu 31 11
+mfcr 31 19
+lwarx 31 20
+lwzx 31 23
+slw 31 24
+cntlzw 31 26
+and 31 28
+cmpl 31 32
+subf 31 40
+andc 31 60
+mulhw 31 75
+mfmsr 31 83
+lbzx 31 87
+neg 31 104
+nor 31 124
+subfe 31 136
+adde 31 138
+mtcrf 31 144
+mtmsr 31 146
+stwcx. 31 150
+stwx 31 151
+wrteei 31 163
+subfze 31 200
+addze 31 202
+stbx 31 215
+addme 31 234
+mullw 31 235
+add 31 266
+lhzx 31 279
+xor 31 316
+mfspr 31 339
+lhax 31 343
+sthx 31 407
+orc 31 412
+or 31 444
+divwu 31 459
+mtspr 31 467
+nand 31 476
+divw 31 491
+lwbrx 31 534
+srw 31 536
+sync 31 598
+stwbrx 31 662
+lhbrx 31 790
+sraw 31 792
+srawi 31 824
+sthbrx 31 918
+extsh 31 922
+extsb 31 954
+lwz 32
+lbz 34
+stw 36
+stb 38
+lhz 40
+lha 42
+sth 44
+lmw 46
+stmw 47
+stwu 37
+sthu 45
+stbu 39
+lwzu 33
+lhau 43
+lhzu 41
+lbzu 35
+subfme 31 232
+	

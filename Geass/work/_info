@@ -1,0 +1,382 @@
+m255
+K4
+z2
+13
+cModel Technology
+Z0 dE:/tmp
+!s112 0.1
+!i10d 8192
+!i10e 25
+!i10f 100
+vALU
+Z1 IMb]>V<SCIRhoU9FgF6P2I3
+Z2 V`JN@9S9cnhjKRR_L]QIcM3
+Z3 dE:/project_xxx/ppc_hdl_pipeline/Geass
+Z4 w1417499885
+Z5 8E:\project_xxx\ppc_hdl_pipeline\Geass\ALU.v
+Z6 FE:\project_xxx\ppc_hdl_pipeline\Geass\ALU.v
+L0 3
+Z7 OE;L;10.2c;57
+r1
+31
+Z8 !s90 -reportprogress|300|-work|work|-vopt|E:\project_xxx\ppc_hdl_pipeline\Geass\ALU.v|
+Z9 o-work work -L mtiAvm -L mtiOvm -L mtiUvm -L mtiUPF
+Z10 n@a@l@u
+Z11 !s110 1417499888
+Z12 !s100 F7ic8AIhWFUR=:l1>kkc^1
+Z13 !s108 1417499888.513000
+Z14 !s107 ctrl_encode_def.v|E:\project_xxx\ppc_hdl_pipeline\Geass\ALU.v|
+!i10b 1
+!s85 0
+!i111 0
+vBrCmp
+Z15 !s110 1417499524
+Z16 !s100 AY`LP_C]:;<8fN2ZVDGWQ1
+Z17 Io8GY@7zzW^Sf;nn?:l?KK0
+R2
+R3
+Z18 w1417499500
+Z19 8E:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v
+Z20 FE:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v
+L0 37
+R7
+r1
+31
+Z21 !s108 1417499524.416000
+Z22 !s107 ctrl_encode_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v|
+Z23 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v|
+R9
+Z24 n@br@cmp
+!i10b 1
+!s85 0
+!i111 0
+vcontrol
+Z25 IVf_`nSm9mf]loC3dO:?Y92
+R2
+R3
+Z26 w1417500056
+Z27 8E:/project_xxx/ppc_hdl_pipeline/Geass/control.v
+Z28 FE:/project_xxx/ppc_hdl_pipeline/Geass/control.v
+L0 6
+R7
+r1
+31
+R9
+Z29 !s110 1417500100
+!i10b 1
+Z30 !s100 XEYP[n?@TPFF:0QKHhDMC2
+!s85 0
+Z31 !s108 1417500100.004000
+Z32 !s107 instruction_def.v|default_def.v|ctrl_encode_def.v|arch_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/control.v|
+Z33 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/control.v|
+!i111 0
+vDM
+Z34 !s110 1417499938
+Z35 !s100 >`IVAj:M;aMo124=@zAc62
+Z36 I[NN:gN<TZLD0z4aKQefhl2
+R2
+R3
+Z37 w1417499931
+Z38 8E:/project_xxx/ppc_hdl_pipeline/Geass/DM.v
+Z39 FE:/project_xxx/ppc_hdl_pipeline/Geass/DM.v
+L0 4
+R7
+r1
+31
+Z40 !s108 1417499938.079000
+Z41 !s107 ctrl_encode_def.v|arch_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/DM.v|
+Z42 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/DM.v|
+R9
+n@d@m
+!i10b 1
+!s85 0
+!i111 0
+vDMIn_BE
+R34
+Z43 I:MANBbjV[41Ve7z7kTT:F3
+R2
+R3
+R37
+R38
+R39
+L0 30
+R7
+r1
+31
+R40
+R41
+R42
+R9
+Z44 n@d@m@in_@b@e
+Z45 !s100 2PK9gc_TPEQ5QjZ8gagiG3
+!i10b 1
+!s85 0
+!i111 0
+vDMOut_ME
+R34
+Z46 !s100 zK>RAoM:d]nUfKXHOl0dO2
+Z47 IzVLhncNmP@=SZ[60baZ;32
+R2
+R3
+R37
+R38
+R39
+L0 79
+R7
+r1
+31
+R40
+R41
+R42
+R9
+Z48 n@d@m@out_@m@e
+!i10b 1
+!s85 0
+!i111 0
+vExt
+Z49 !s110 1417499383
+Z50 I6d<A:>YScHC=RYT>IU=R92
+R2
+R3
+Z51 w1417262798
+Z52 8E:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v
+Z53 FE:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v
+L0 3
+R7
+r1
+31
+R9
+n@ext
+Z54 !s100 MKI6d`el7Fm>L^>6F1c_o1
+Z55 !s108 1417499383.972000
+Z56 !s107 ctrl_encode_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v|
+Z57 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v|
+!i10b 1
+!s85 0
+!i111 0
+vFF
+Z58 !s110 1417499384
+Z59 Ij91el@@?XGCNFJP;K>JCQ3
+R2
+R3
+Z60 w1406869032
+Z61 8E:/project_xxx/ppc_hdl_pipeline/Geass/FF.v
+Z62 FE:/project_xxx/ppc_hdl_pipeline/Geass/FF.v
+L0 9
+R7
+r1
+31
+Z63 !s108 1417499384.057000
+Z64 !s107 E:/project_xxx/ppc_hdl_pipeline/Geass/FF.v|
+Z65 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/FF.v|
+R9
+n@f@f
+Z66 !s100 4[Na[E56[^h>2M_XS[6IN3
+!i10b 1
+!s85 0
+!i111 0
+vFFW
+R58
+Z67 I_@4F6NiPd4[ae:4zWJRfT1
+R2
+R3
+R60
+R61
+R62
+L0 33
+R7
+r1
+31
+R63
+R64
+R65
+R9
+Z68 n@f@f@w
+Z69 !s100 hj]oIV6H:YQa<?zK]4]W13
+!i10b 1
+!s85 0
+!i111 0
+vGPR
+Z70 I3Kh6OVFj^Q;EGVW[c3P3G3
+R2
+R3
+Z71 w1417499459
+Z72 8E:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v
+Z73 FE:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v
+L0 1
+R7
+r1
+31
+R9
+Z74 n@g@p@r
+Z75 !s110 1417499461
+Z76 !s100 S6]eiM@jPLk=<[Pc<Z`Zi3
+Z77 !s108 1417499461.596000
+Z78 !s107 E:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v|
+Z79 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v|
+!i10b 1
+!s85 0
+!i111 0
+vIM
+R58
+Z80 I9cdLd?GV6>l<5Dzh^fk273
+R2
+R3
+Z81 w1417263009
+Z82 8E:/project_xxx/ppc_hdl_pipeline/Geass/IM.v
+Z83 FE:/project_xxx/ppc_hdl_pipeline/Geass/IM.v
+L0 3
+R7
+r1
+31
+R9
+n@i@m
+Z84 !s100 HSGH3H7<7jlDcQG9`FKB:1
+Z85 !s108 1417499384.213000
+Z86 !s107 arch_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/IM.v|
+Z87 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/IM.v|
+!i10b 1
+!s85 0
+!i111 0
+vmips
+!s110 1417500102
+!i10b 1
+!s100 I2TgPQ>[>YBO5mfg5^PD82
+I_U1Qn<^OTjdzjYCO5^a0[0
+R2
+R3
+R26
+8E:/project_xxx/ppc_hdl_pipeline/Geass/mips.v
+FE:/project_xxx/ppc_hdl_pipeline/Geass/mips.v
+L0 6
+R7
+r1
+!s85 0
+31
+!s108 1417500102.234000
+!s107 instruction_def.v|default_def.v|ctrl_encode_def.v|arch_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/mips.v|
+!s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/mips.v|
+!i111 0
+R9
+vmux16
+R58
+Z88 ID`EnJ=AOZSnjnQY5zcUVn3
+R2
+R3
+Z89 w1417369821
+Z90 8E:/project_xxx/ppc_hdl_pipeline/Geass/mux.v
+Z91 FE:/project_xxx/ppc_hdl_pipeline/Geass/mux.v
+L0 80
+R7
+r1
+31
+Z92 !s108 1417499384.474000
+Z93 !s107 E:/project_xxx/ppc_hdl_pipeline/Geass/mux.v|
+Z94 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/mux.v|
+R9
+Z95 !s100 d;J5JWA<Xl4i_^d<P:64`3
+!i10b 1
+!s85 0
+!i111 0
+vmux2
+R58
+Z96 I1=;l1JoTWNhz4g2?^kk6l3
+R2
+R3
+R89
+R90
+R91
+L0 2
+R7
+r1
+31
+R92
+R93
+R94
+R9
+Z97 !s100 i:H>X;7HScV0e;[QS9:PF1
+!i10b 1
+!s85 0
+!i111 0
+vmux4
+R58
+Z98 IlN`TV^ZecZ]VGO<[01jC43
+R2
+R3
+R89
+R90
+R91
+L0 18
+R7
+r1
+31
+R92
+R93
+R94
+R9
+Z99 !s100 =4YzCThj1C]k9LJZc5HCn2
+!i10b 1
+!s85 0
+!i111 0
+vmux8
+R58
+Z100 Ih<P>Ja]L60oUfc8JAXcIL3
+R2
+R3
+R89
+R90
+R91
+L0 46
+R7
+r1
+31
+R92
+R93
+R94
+R9
+Z101 !s100 nTcXX<9MCFlg>Q`8_UnHh0
+!i10b 1
+!s85 0
+!i111 0
+vNPC
+R15
+Z102 IZA?c0KHIEDoNkGJnbGz7A0
+R2
+R3
+R18
+R19
+R20
+L0 3
+R7
+r1
+31
+R21
+R22
+R23
+R9
+Z103 n@n@p@c
+Z104 !s100 BQB`6=H>238AJ_fog4fFh0
+!i10b 1
+!s85 0
+!i111 0
+vPC
+Z105 IDeTl7giZnLeghK1b=;^BG3
+R2
+R3
+Z106 w1417499400
+Z107 8E:/project_xxx/ppc_hdl_pipeline/Geass/PC.v
+Z108 FE:/project_xxx/ppc_hdl_pipeline/Geass/PC.v
+L0 3
+R7
+r1
+31
+R9
+n@p@c
+Z109 !s110 1417499406
+Z110 !s100 F14lFQDdCbLc496?UGlXT3
+Z111 !s108 1417499406.062000
+Z112 !s107 arch_def.v|E:/project_xxx/ppc_hdl_pipeline/Geass/PC.v|
+Z113 !s90 -reportprogress|300|-work|work|-vopt|E:/project_xxx/ppc_hdl_pipeline/Geass/PC.v|
+!i10b 1
+!s85 0
+!i111 0

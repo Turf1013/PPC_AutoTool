@@ -1,0 +1,766 @@
+stage = D readPort = GPR.rd2 instrGrp = ['BEQ']
+stage = D readPort = GPR.rd2 instrGrp = ['ADDU', 'SUBU', 'SW']
+rowVector_W = [[set(['LW']), 'Instr[20:16]', 4]]
+rowVector_W = [[set(['ADDU', 'SUBU']), 'Instr[15:11]', 4], [set(['LUI', 'ORI']), 'Instr[20:16]', 4]]
+rowVector_W = [[set(['JAL']), "32'd31", 4]]
+
+Read Array Of D
+0 : [set(['BEQ']), 'Instr[20:16]', 1]
+
+
+
+Read Array Of E
+0 : [set(['ADDU', 'SUBU', 'SW']), 'Instr[20:16]', 2]
+
+
+
+write Array Of GPR.rd2
+wdata: DMOut_ME.dout instr: ['LW']
+vector: [set(['LW']), 'Instr[20:16]', (2, 0)]
+vector: [set(['LW']), 'Instr[20:16]', (3, 0)]
+vector: [set(['LW']), 'Instr[20:16]', (4, 1)]
+
+wdata: ALU.C instr: ['ADDU', 'SUBU', 'ORI', 'LUI']
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (2, 0)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (2, 0)]
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (3, 1)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (3, 1)]
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (4, 1)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (4, 1)]
+
+wdata: NPC.NPC_Laddr instr: ['JAL']
+vector: [set(['JAL']), "32'd31", (2, 1)]
+vector: [set(['JAL']), "32'd31", (3, 1)]
+vector: [set(['JAL']), "32'd31", (4, 1)]
+
+
+
+in Gen_stallHDLCond
+rVector = [set(['BEQ']), 'Instr[20:16]', 1] wVector = [set(['LW']), 'Instr[20:16]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ']), 'Instr[20:16]', 1] wVector = [set(['LW']), 'Instr[20:16]', (3, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ']), 'Instr[20:16]', 1] wVector = [set(['ADDU', 'SUBU']), 'Instr[15:11]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ']), 'Instr[20:16]', 1] wVector = [set(['LUI', 'ORI']), 'Instr[20:16]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['ADDU', 'SUBU', 'SW']), 'Instr[20:16]', 2] wVector = [set(['LW']), 'Instr[20:16]', (3, 0)]
+stage = D readPort = GPR.rd1 instrGrp = ['BEQ', 'JR']
+stage = D readPort = GPR.rd1 instrGrp = ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW']
+rowVector_W = [[set(['LW']), 'Instr[20:16]', 4]]
+rowVector_W = [[set(['ADDU', 'SUBU']), 'Instr[15:11]', 4], [set(['LUI', 'ORI']), 'Instr[20:16]', 4]]
+rowVector_W = [[set(['JAL']), "32'd31", 4]]
+
+Read Array Of D
+0 : [set(['BEQ', 'JR']), 'Instr[25:21]', 1]
+
+
+
+Read Array Of E
+0 : [set(['ADDU', 'SUBU', 'SW', 'LW', 'ORI', 'LUI']), 'Instr[25:21]', 2]
+
+
+
+write Array Of GPR.rd1
+wdata: DMOut_ME.dout instr: ['LW']
+vector: [set(['LW']), 'Instr[20:16]', (2, 0)]
+vector: [set(['LW']), 'Instr[20:16]', (3, 0)]
+vector: [set(['LW']), 'Instr[20:16]', (4, 1)]
+
+wdata: ALU.C instr: ['ADDU', 'SUBU', 'ORI', 'LUI']
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (2, 0)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (2, 0)]
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (3, 1)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (3, 1)]
+vector: [set(['ADDU', 'SUBU']), 'Instr[15:11]', (4, 1)]
+        [set(['LUI', 'ORI']), 'Instr[20:16]', (4, 1)]
+
+wdata: NPC.NPC_Laddr instr: ['JAL']
+vector: [set(['JAL']), "32'd31", (2, 1)]
+vector: [set(['JAL']), "32'd31", (3, 1)]
+vector: [set(['JAL']), "32'd31", (4, 1)]
+
+
+
+in Gen_stallHDLCond
+rVector = [set(['BEQ', 'JR']), 'Instr[25:21]', 1] wVector = [set(['LW']), 'Instr[20:16]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ', 'JR']), 'Instr[25:21]', 1] wVector = [set(['LW']), 'Instr[20:16]', (3, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ', 'JR']), 'Instr[25:21]', 1] wVector = [set(['ADDU', 'SUBU']), 'Instr[15:11]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['BEQ', 'JR']), 'Instr[25:21]', 1] wVector = [set(['LUI', 'ORI']), 'Instr[20:16]', (2, 0)]
+in Gen_stallHDLCond
+rVector = [set(['ADDU', 'SUBU', 'SW', 'LW', 'ORI', 'LUI']), 'Instr[25:21]', 2] wVector = [set(['LW']), 'Instr[20:16]', (3, 0)]
+	output [2:0] GPR_rd2_D_Bp_Sel;
+	output [2:0] GPR_rd1_D_Bp_Sel;
+	output [2:0] GPR_rd1_E_Bp_Sel;
+	output [2:0] GPR_rd2_E_Bp_Sel;
+
+	wire GPR_rd2_D_rGrp_0;
+	wire GPR_rd2_D_rGrp_1;
+	wire GPR_rd2_E_rGrp_1;
+	wire GPR_rd1_D_rGrp_0;
+	wire GPR_rd1_D_rGrp_1;
+	wire GPR_rd1_E_rGrp_1;
+	wire GPRWd_E_wGrp_0;
+	wire GPRWd_M_wGrp_0;
+	wire GPRWd_W_wGrp_0;
+	wire GPRWd_E_wGrp_1;
+	wire GPRWd_M_wGrp_1;
+	wire GPRWd_W_wGrp_1;
+	wire GPRWd_E_wGrp_2;
+	wire GPRWd_M_wGrp_2;
+	wire GPRWd_W_wGrp_2;
+	wire GPRWd_E_wGrp_3;
+	wire GPRWd_M_wGrp_3;
+	wire GPRWd_W_wGrp_3;
+
+	assign GPR_rd2_D_rGrp_0 = ~flush_D && (
+		(Instr_D[`OP] ==  `BEQ_OP)
+	);
+
+	assign GPR_rd2_D_rGrp_1 = ~flush_D && (
+		(Instr_D[`OP] == `ADDU_OP) || 
+		(Instr_D[`OP] == `SUBU_OP) || 
+		(Instr_D[`OP] ==   `SW_OP)
+	);
+
+	assign GPR_rd2_E_rGrp_1 = ~flush_E && (
+		(Instr_E[`OP] == `ADDU_OP) || 
+		(Instr_E[`OP] == `SUBU_OP) || 
+		(Instr_E[`OP] ==   `SW_OP)
+	);
+
+	assign GPR_rd1_D_rGrp_0 = ~flush_D && (
+		(Instr_D[`OP] ==  `BEQ_OP) || 
+		(Instr_D[`OP] ==   `JR_OP)
+	);
+
+	assign GPR_rd1_D_rGrp_1 = ~flush_D && (
+		(Instr_D[`OP] == `ADDU_OP) || 
+		(Instr_D[`OP] == `SUBU_OP) || 
+		(Instr_D[`OP] ==   `SW_OP) || 
+		(Instr_D[`OP] ==   `LW_OP) || 
+		(Instr_D[`OP] ==  `ORI_OP) || 
+		(Instr_D[`OP] ==  `LUI_OP)
+	);
+
+	assign GPR_rd1_E_rGrp_1 = ~flush_E && (
+		(Instr_E[`OP] == `ADDU_OP) || 
+		(Instr_E[`OP] == `SUBU_OP) || 
+		(Instr_E[`OP] ==   `SW_OP) || 
+		(Instr_E[`OP] ==   `LW_OP) || 
+		(Instr_E[`OP] ==  `ORI_OP) || 
+		(Instr_E[`OP] ==  `LUI_OP)
+	);
+
+	assign GPRWd_E_wGrp_0 = ~flush_E && (
+		(Instr_E[`OP] ==   `LW_OP)
+	);
+
+	assign GPRWd_M_wGrp_0 = ~flush_M && (
+		(Instr_M[`OP] ==   `LW_OP)
+	);
+
+	assign GPRWd_W_wGrp_0 = ~flush_W && (
+		(Instr_W[`OP] ==   `LW_OP)
+	);
+
+	assign GPRWd_E_wGrp_1 = ~flush_E && (
+		(Instr_E[`OP] == `ADDU_OP) || 
+		(Instr_E[`OP] == `SUBU_OP)
+	);
+
+	assign GPRWd_M_wGrp_1 = ~flush_M && (
+		(Instr_M[`OP] == `ADDU_OP) || 
+		(Instr_M[`OP] == `SUBU_OP)
+	);
+
+	assign GPRWd_W_wGrp_1 = ~flush_W && (
+		(Instr_W[`OP] == `ADDU_OP) || 
+		(Instr_W[`OP] == `SUBU_OP)
+	);
+
+	assign GPRWd_E_wGrp_2 = ~flush_E && (
+		(Instr_E[`OP] ==  `LUI_OP) || 
+		(Instr_E[`OP] ==  `ORI_OP)
+	);
+
+	assign GPRWd_M_wGrp_2 = ~flush_M && (
+		(Instr_M[`OP] ==  `LUI_OP) || 
+		(Instr_M[`OP] ==  `ORI_OP)
+	);
+
+	assign GPRWd_W_wGrp_2 = ~flush_W && (
+		(Instr_W[`OP] ==  `LUI_OP) || 
+		(Instr_W[`OP] ==  `ORI_OP)
+	);
+
+	assign GPRWd_E_wGrp_3 = ~flush_E && (
+		(Instr_E[`OP] ==  `JAL_OP)
+	);
+
+	assign GPRWd_M_wGrp_3 = ~flush_M && (
+		(Instr_M[`OP] ==  `JAL_OP)
+	);
+
+	assign GPRWd_W_wGrp_3 = ~flush_W && (
+		(Instr_W[`OP] ==  `JAL_OP)
+	);
+
+
+	assign stall_D = 
+		(GPR_rd2_D_rGrp_0 && GPR_rd2_D_wGrp_0 && Instr_D[20:16]==Instr_E[20:16]) || 
+		(GPR_rd2_D_rGrp_0 && GPR_rd2_D_wGrp_0 && Instr_D[20:16]==Instr_M[20:16]) || 
+		(GPR_rd2_D_rGrp_0 && GPR_rd2_D_wGrp_1 && Instr_D[20:16]==Instr_E[15:11]) || 
+		(GPR_rd2_D_rGrp_0 && GPR_rd2_D_wGrp_2 && Instr_D[20:16]==Instr_E[20:16]) || 
+		(GPR_rd2_D_rGrp_1 && GPR_rd2_D_wGrp_0 && Instr_D[20:16]==Instr_E[20:16]) || 
+		(GPR_rd1_D_rGrp_0 && GPR_rd1_D_wGrp_0 && Instr_D[25:21]==Instr_E[20:16]) || 
+		(GPR_rd1_D_rGrp_0 && GPR_rd1_D_wGrp_0 && Instr_D[25:21]==Instr_M[20:16]) || 
+		(GPR_rd1_D_rGrp_0 && GPR_rd1_D_wGrp_1 && Instr_D[25:21]==Instr_E[15:11]) || 
+		(GPR_rd1_D_rGrp_0 && GPR_rd1_D_wGrp_2 && Instr_D[25:21]==Instr_E[20:16]) || 
+		(GPR_rd1_D_rGrp_1 && GPR_rd1_D_wGrp_0 && Instr_D[25:21]==Instr_E[20:16]);
+
+	wire [2:0] GPR_rd2_D_Bp_Sel;
+	wire [2:0] GPR_rd1_D_Bp_Sel;
+	wire [2:0] GPR_rd1_E_Bp_Sel;
+	wire [2:0] GPR_rd2_E_Bp_Sel;
+
+	assign GPR_rd2_D_Bp_Sel = 
+		(        GPR_rd2_D_rGrp_0 && GPRWd_E_wGrp_3 && Instr_D[20:16]==32'd31) ? 4 :
+		(GPR_rd2_D_rGrp_0 && GPRWd_M_wGrp_1 && Instr_D[20:16]==Instr_M[15:11]) ? 2 :
+		(GPR_rd2_D_rGrp_0 && GPRWd_M_wGrp_2 && Instr_D[20:16]==Instr_M[20:16]) ? 2 :
+		(        GPR_rd2_D_rGrp_0 && GPRWd_M_wGrp_3 && Instr_D[20:16]==32'd31) ? 5 :
+		(GPR_rd2_D_rGrp_0 && GPRWd_W_wGrp_0 && Instr_D[20:16]==Instr_W[20:16]) ? 1 :
+		(GPR_rd2_D_rGrp_0 && GPRWd_W_wGrp_1 && Instr_D[20:16]==Instr_W[15:11]) ? 3 :
+		(GPR_rd2_D_rGrp_0 && GPRWd_W_wGrp_2 && Instr_D[20:16]==Instr_W[20:16]) ? 3 :
+		(        GPR_rd2_D_rGrp_0 && GPRWd_W_wGrp_3 && Instr_D[20:16]==32'd31) ? 6 :
+		                                                                         0 ;
+
+	assign GPR_rd1_D_Bp_Sel = 
+		(        GPR_rd1_D_rGrp_0 && GPRWd_E_wGrp_3 && Instr_D[25:21]==32'd31) ? 4 :
+		(GPR_rd1_D_rGrp_0 && GPRWd_M_wGrp_1 && Instr_D[25:21]==Instr_M[15:11]) ? 2 :
+		(GPR_rd1_D_rGrp_0 && GPRWd_M_wGrp_2 && Instr_D[25:21]==Instr_M[20:16]) ? 2 :
+		(        GPR_rd1_D_rGrp_0 && GPRWd_M_wGrp_3 && Instr_D[25:21]==32'd31) ? 5 :
+		(GPR_rd1_D_rGrp_0 && GPRWd_W_wGrp_0 && Instr_D[25:21]==Instr_W[20:16]) ? 1 :
+		(GPR_rd1_D_rGrp_0 && GPRWd_W_wGrp_1 && Instr_D[25:21]==Instr_W[15:11]) ? 3 :
+		(GPR_rd1_D_rGrp_0 && GPRWd_W_wGrp_2 && Instr_D[25:21]==Instr_W[20:16]) ? 3 :
+		(        GPR_rd1_D_rGrp_0 && GPRWd_W_wGrp_3 && Instr_D[25:21]==32'd31) ? 6 :
+		                                                                         0 ;
+
+	assign GPR_rd1_E_Bp_Sel = 
+		(GPR_rd1_D_rGrp_1 && GPRWd_M_wGrp_1 && Instr_E[25:21]==Instr_M[15:11]) ? 2 :
+		(GPR_rd1_D_rGrp_1 && GPRWd_M_wGrp_2 && Instr_E[25:21]==Instr_M[20:16]) ? 2 :
+		(        GPR_rd1_D_rGrp_1 && GPRWd_M_wGrp_3 && Instr_E[25:21]==32'd31) ? 4 :
+		(GPR_rd1_D_rGrp_1 && GPRWd_W_wGrp_0 && Instr_E[25:21]==Instr_W[20:16]) ? 1 :
+		(GPR_rd1_D_rGrp_1 && GPRWd_W_wGrp_1 && Instr_E[25:21]==Instr_W[15:11]) ? 3 :
+		(GPR_rd1_D_rGrp_1 && GPRWd_W_wGrp_2 && Instr_E[25:21]==Instr_W[20:16]) ? 3 :
+		(        GPR_rd1_D_rGrp_1 && GPRWd_W_wGrp_3 && Instr_E[25:21]==32'd31) ? 5 :
+		                                                                         0 ;
+
+	assign GPR_rd2_E_Bp_Sel = 
+		(GPR_rd2_D_rGrp_1 && GPRWd_M_wGrp_1 && Instr_E[20:16]==Instr_M[15:11]) ? 2 :
+		(GPR_rd2_D_rGrp_1 && GPRWd_M_wGrp_2 && Instr_E[20:16]==Instr_M[20:16]) ? 2 :
+		(        GPR_rd2_D_rGrp_1 && GPRWd_M_wGrp_3 && Instr_E[20:16]==32'd31) ? 4 :
+		(GPR_rd2_D_rGrp_1 && GPRWd_W_wGrp_0 && Instr_E[20:16]==Instr_W[20:16]) ? 1 :
+		(GPR_rd2_D_rGrp_1 && GPRWd_W_wGrp_1 && Instr_E[20:16]==Instr_W[15:11]) ? 3 :
+		(GPR_rd2_D_rGrp_1 && GPRWd_W_wGrp_2 && Instr_E[20:16]==Instr_W[20:16]) ? 3 :
+		(        GPR_rd2_D_rGrp_1 && GPRWd_W_wGrp_3 && Instr_E[20:16]==32'd31) ? 5 :
+		                                                                         0 ;
+
+
+	mux8 #((31)-(0)+1) U_GPR_rd2_D_Bp_mux8 (
+		.d0(GPR_rd2_D), .d1(DMOut_ME_dout_W), .d2(ALU_C_M), .d3(ALU_C_W), 
+		.d4(NPC_Laddr_E), .d5(NPC_Laddr_M), .d6(NPC_Laddr_W), .d7(`MUX_D_DEFAULT), 
+		.s(GPR_rd2_D_Bp_Sel), .y(GPR_rd2_D_Bp)
+	);
+
+	mux8 #((31)-(0)+1) U_GPR_rd2_E_Bp_mux8 (
+		.d0(GPR_rd2_E), .d1(DMOut_ME_dout_W), .d2(ALU_C_M), .d3(ALU_C_W), 
+		.d4(NPC_Laddr_M), .d5(NPC_Laddr_W), .d6(`MUX_D_DEFAULT), .d7(`MUX_D_DEFAULT), 
+		.s(GPR_rd2_E_Bp_Sel), .y(GPR_rd2_E_Bp)
+	);
+
+	mux8 #((31)-(0)+1) U_GPR_rd1_D_Bp_mux8 (
+		.d0(GPR_rd1_D), .d1(DMOut_ME_dout_W), .d2(ALU_C_M), .d3(ALU_C_W), 
+		.d4(NPC_Laddr_E), .d5(NPC_Laddr_M), .d6(NPC_Laddr_W), .d7(`MUX_D_DEFAULT), 
+		.s(GPR_rd1_D_Bp_Sel), .y(GPR_rd1_D_Bp)
+	);
+
+	mux8 #((31)-(0)+1) U_GPR_rd1_E_Bp_mux8 (
+		.d0(GPR_rd1_E), .d1(DMOut_ME_dout_W), .d2(ALU_C_M), .d3(ALU_C_W), 
+		.d4(NPC_Laddr_M), .d5(NPC_Laddr_W), .d6(`MUX_D_DEFAULT), .d7(`MUX_D_DEFAULT), 
+		.s(GPR_rd1_E_Bp_Sel), .y(GPR_rd1_E_Bp)
+	);
+
+
+	output [`NPCOp_WIDTH-1:0] NPCOp;
+	output [`BrCmp_Op_WIDTH-1:0] BrCmp_Op;
+	output [`ALUOp_WIDTH-1:0] ALUOp;
+	output [`ExtOp_WIDTH-1:0] ExtOp;
+	output [1:0] ALU_B_Sel;
+	output [`DMWr_WIDTH-1:0] DMWr;
+	output [`DMIn_BEOp_WIDTH-1:0] DMIn_BEOp;
+	output [`DMOut_MEOp_WIDTH-1:0] DMOut_MEOp;
+	output [2:0] GPR_waddr_Sel;
+	output [2:0] GPRWd_Sel;
+	output [`GPRWr_WIDTH-1:0] GPRWr;
+	output PCWr;
+
+	wire [`NPCOp_WIDTH-1:0] NPCOp;
+	wire [`BrCmp_Op_WIDTH-1:0] BrCmp_Op;
+	wire [`ALUOp_WIDTH-1:0] ALUOp;
+	wire [`ExtOp_WIDTH-1:0] ExtOp;
+	wire [1:0] ALU_B_Sel;
+	wire [`DMWr_WIDTH-1:0] DMWr;
+	wire [`DMIn_BEOp_WIDTH-1:0] DMIn_BEOp;
+	wire [`DMOut_MEOp_WIDTH-1:0] DMOut_MEOp;
+	wire [2:0] GPR_waddr_Sel;
+	wire [2:0] GPRWd_Sel;
+	wire [`GPRWr_WIDTH-1:0] GPRWr;
+
+	assign NPCOp = flush_D ? 0 :
+		((Instr_D[`OP] ==  `BEQ_OP)) ? `NPCOp_BRANCH :
+		((Instr_D[`OP] ==  `JAL_OP)) ? `NPCOp_JUMP :
+		((Instr_D[`OP] == `SUBU_OP) || (Instr_D[`OP] ==  `ORI_OP) || 
+		 (Instr_D[`OP] ==  `LUI_OP) || (Instr_D[`OP] ==   `LW_OP) || (Instr_D[`OP] ==   `SW_OP) || (Instr_D[`OP] ==   `SW_OP)) ? `NPCOp_PLUS4 :
+		((Instr_D[`OP] ==   `JR_OP)) ? `NPCOp_JR : 0;
+
+	assign BrCmp_Op = flush_D ? 0 :
+		((Instr_D[`OP] ==  `BEQ_OP)) ? `BEQ_CMP : 0;
+
+	assign ALUOp = flush_E ? 0 :
+		((Instr_E[`OP] == `SUBU_OP)) ? `ALUOp_SUBU :
+		((Instr_E[`OP] ==  `LUI_OP) || (Instr_E[`OP] ==   `LW_OP) || 
+		 (Instr_E[`OP] ==   `SW_OP) || (Instr_E[`OP] ==   `SW_OP)) ? `ALUOp_ADDU :
+		((Instr_E[`OP] ==  `ORI_OP)) ? `ALUOp_OR : 0;
+
+	assign ExtOp = flush_E ? 0 :
+		((Instr_E[`OP] ==  `LUI_OP)) ? `ExtOp_HIGH16 :
+		((Instr_E[`OP] ==   `LW_OP) || (Instr_E[`OP] ==   `SW_OP) || (Instr_E[`OP] ==   `SW_OP)) ? `ExtOp_UNSIGN : 0;
+
+	assign ALU_B_Sel = 
+		((Instr_E[`OP] == `SUBU_OP) || (Instr_E[`OP] == `SUBU_OP)) ? 2'd0 :
+		((Instr_E[`OP] ==  `LUI_OP) || (Instr_E[`OP] ==   `LW_OP) || 
+		 (Instr_E[`OP] ==   `SW_OP) || (Instr_E[`OP] ==   `SW_OP)) ? 2'd1 : 0;
+
+	assign DMWr = flush_M ? 0 :
+		((Instr_M[`OP] ==   `SW_OP)) ? 1'b1 : 0;
+
+	assign DMIn_BEOp = flush_M ? 0 :
+		((Instr_M[`OP] ==   `SW_OP)) ? `DMIn_BEOp_SW : 0;
+
+	assign DMOut_MEOp = flush_M ? 0 :
+		((Instr_M[`OP] ==   `LW_OP)) ? `DMOut_MEOp_LW : 0;
+
+	assign GPR_waddr_Sel = 
+		((Instr_W[`OP] ==  `JAL_OP)) ? 3'd0 :
+		((Instr_W[`OP] == `SUBU_OP) || (Instr_W[`OP] == `SUBU_OP)) ? 3'd1 :
+		((Instr_W[`OP] ==  `LUI_OP) || (Instr_W[`OP] ==   `LW_OP) || (Instr_W[`OP] ==   `LW_OP)) ? 3'd2 : 0;
+
+	assign GPRWd_Sel = 
+		((Instr_W[`OP] ==   `LW_OP)) ? 3'd0 :
+		((Instr_W[`OP] == `SUBU_OP) || (Instr_W[`OP] ==  `ORI_OP) || 
+		 (Instr_W[`OP] ==  `LUI_OP) || (Instr_W[`OP] ==  `LUI_OP)) ? 3'd1 :
+		((Instr_W[`OP] ==  `JAL_OP)) ? 3'd2 : 0;
+
+	assign GPRWr = flush_W ? 0 :
+		((Instr_W[`OP] == `SUBU_OP) || (Instr_W[`OP] ==  `ORI_OP) || 
+		 (Instr_W[`OP] ==  `LUI_OP) || (Instr_W[`OP] ==   `LW_OP) || (Instr_W[`OP] ==  `JAL_OP) || (Instr_W[`OP] ==  `JAL_OP)) ? 1'b1 : 0;
+
+	assign PCWr = ~(stall_D);
+
+	output pipeRegWr_F;
+	output pipeRegWr_D;
+	output pipeRegWr_E;
+	output pipeRegWr_M;
+	output pipeRegWr_W;
+
+	wire stall_D;
+	wire flush_F;
+	wire flush_D;
+	wire flush_E;
+	wire flush_M;
+	wire flush_W;
+	wire pipeRegWr_F;
+	wire pipeRegWr_D;
+	wire pipeRegWr_E;
+	wire pipeRegWr_M;
+	wire pipeRegWr_W;
+
+	reg flush_F_r;
+	reg flush_D_r;
+	reg flush_E_r;
+	reg flush_M_r;
+	reg flush_W_r;
+
+	assign flush_F = flush_F_r;
+	assign flush_D = stall_D || flush_D_r;
+	assign flush_E = flush_E_r;
+	assign flush_M = flush_M_r;
+	assign flush_W = flush_W_r;
+
+	assign pipeRegWr_F = ~(stall_D);
+	assign pipeRegWr_D = ~(stall_D);
+	assign pipeRegWr_E = 1'b1;
+	assign pipeRegWr_M = 1'b1;
+	assign pipeRegWr_W = 1'b1;
+
+
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n ) begin
+			flush_F_r <= 1'b1;
+			flush_D_r <= 1'b1;
+			flush_E_r <= 1'b1;
+			flush_M_r <= 1'b1;
+			flush_W_r <= 1'b1;
+		end
+		else begin
+			flush_F_r <= 1'b0;
+			flush_D_r <= flush_F;
+			flush_E_r <= flush_D;
+			flush_M_r <= flush_E;
+			flush_W_r <= flush_M;
+		end
+	end // end always
+
+	wire [`DM_WIDTH-1:0] DM_dout_M;
+	wire [0:0] BrCmp_Comp_D;
+	wire [31:0] NPC_NPC_D;
+	wire [31:0] NPC_Laddr_D;
+	wire [`DM_WIDTH-1:0] DMIn_BE_dout_M;
+	wire [`DMBE_WIDTH-1:0] DMIn_BE_DMBE_M;
+	wire [`PC_WIDTH-1:0] PC_PC_F;
+	wire [31:0] Ext_Imm32_E;
+	wire [`DM_WIDTH-1:0] DMOut_ME_dout_M;
+	wire [31:0] ALU_C_E;
+	wire [31:0] GPR_rd1_D;
+	wire [31:0] GPR_rd2_D;
+
+	DM U_DM (
+		.DMBE(DMIn_BE_DMBE_M), .dout(DM_dout_M), .addr(ALU_C_M[1+`DM_DEPTH:2]), .clk(clk), 
+		.DMWr(DMWr), .din(DMIn_BE_dout_M)
+	);
+
+	BrCmp U_BrCmp (
+		.A(GPR_rd1_D_Bp), .Comp(BrCmp_Comp_D), .B(GPR_rd2_D_Bp), .Op(BrCmp_Op)
+	);
+
+	NPC U_NPC (
+		.Rs(GPR_rd1_D_Bp), .Comp(BrCmp_Comp_D), .NPCOp(NPCOp), .NPC(NPC_NPC_D), 
+		.PC(PC_PC_F), .Imm26(Instr_D[25:0]), .NPC_Laddr(NPC_Laddr_D)
+	);
+
+	DMIn_BE U_DMIn_BE (
+		.laddr(ALU_C_M[1:0]), .dout(DMIn_BE_dout_M), .din(GPR_rd1_M), .DMIn_BEOp(DMIn_BEOp), 
+		.DMBE(DMIn_BE_DMBE_M)
+	);
+
+	PC U_PC (
+		.rst_n(rst_n), .PCWr(PCWr), .PC(PC_PC_F), .NPC(NPC_NPC_D), 
+		.clk(clk)
+	);
+
+	Ext U_Ext (
+		.ExtOp(ExtOp), .Imm32(Ext_Imm32_E), .Imm16(Instr_E[15:0])
+	);
+
+	IM U_IM (
+		.dout(Instr_F), .addr(PC_PC_F)
+	);
+
+	DMOut_ME U_DMOut_ME (
+		.laddr(ALU_C_M[1:0]), .din(DM_dout_M), .DMOut_MEOp(DMOut_MEOp), .dout(DMOut_ME_dout_M)
+	);
+
+	ALU U_ALU (
+		.A(GPR_rd1_E_Bp), .ALUOp(ALUOp), .C(ALU_C_E), .B(ALU_B_E)
+	);
+
+	GPR U_GPR (
+		.GPRWd(GPRWd_W), .raddr1(Instr_D[25:21]), .waddr(GPR_waddr_W), .rd1(GPR_rd1_D), 
+		.rst_n(rst_n), .clk(clk), .raddr2(Instr_D[20:16]), .GPRWr(GPRWr), 
+		.rd2(GPR_rd2_D)
+	);
+
+
+	wire [`DM_WIDTH-1:0] DM_dout_M;
+	wire [0:0] BrCmp_Comp_D;
+	wire [31:0] NPC_NPC_D;
+	wire [31:0] NPC_Laddr_D;
+	wire [`DM_WIDTH-1:0] DMIn_BE_dout_M;
+	wire [`DMBE_WIDTH-1:0] DMIn_BE_DMBE_M;
+	wire [`PC_WIDTH-1:0] PC_PC_F;
+	wire [31:0] Ext_Imm32_E;
+	wire [`DM_WIDTH-1:0] DMOut_ME_dout_M;
+	wire [31:0] ALU_C_E;
+	wire [31:0] GPR_rd1_D;
+	wire [31:0] GPR_rd2_D;
+
+	DM U_DM (
+		.DMBE(DMIn_BE_DMBE_M), .dout(DM_dout_M), .addr(ALU_C_M[1+`DM_DEPTH:2]), .clk(clk), 
+		.DMWr(DMWr), .din(DMIn_BE_dout_M)
+	);
+
+	BrCmp U_BrCmp (
+		.A(GPR_rd1_D_Bp), .Comp(BrCmp_Comp_D), .B(GPR_rd2_D_Bp), .Op(BrCmp_Op)
+	);
+
+	NPC U_NPC (
+		.Rs(GPR_rd1_D_Bp), .Comp(BrCmp_Comp_D), .NPCOp(NPCOp), .NPC(NPC_NPC_D), 
+		.PC(PC_PC_F), .Imm26(Instr_D[25:0]), .NPC_Laddr(NPC_Laddr_D)
+	);
+
+	DMIn_BE U_DMIn_BE (
+		.laddr(ALU_C_M[1:0]), .dout(DMIn_BE_dout_M), .din(GPR_rd1_M), .DMIn_BEOp(DMIn_BEOp), 
+		.DMBE(DMIn_BE_DMBE_M)
+	);
+
+	PC U_PC (
+		.rst_n(rst_n), .PCWr(PCWr), .PC(PC_PC_F), .NPC(NPC_NPC_D), 
+		.clk(clk)
+	);
+
+	Ext U_Ext (
+		.ExtOp(ExtOp), .Imm32(Ext_Imm32_E), .Imm16(Instr_E[15:0])
+	);
+
+	IM U_IM (
+		.dout(Instr_F), .addr(PC_PC_F)
+	);
+
+	DMOut_ME U_DMOut_ME (
+		.laddr(ALU_C_M[1:0]), .din(DM_dout_M), .DMOut_MEOp(DMOut_MEOp), .dout(DMOut_ME_dout_M)
+	);
+
+	ALU U_ALU (
+		.A(GPR_rd1_E_Bp), .ALUOp(ALUOp), .C(ALU_C_E), .B(ALU_B_E)
+	);
+
+	GPR U_GPR (
+		.GPRWd(GPRWd_W), .raddr1(Instr_D[25:21]), .waddr(GPR_waddr_W), .rd1(GPR_rd1_D), 
+		.rst_n(rst_n), .clk(clk), .raddr2(Instr_D[20:16]), .GPRWr(GPRWr), 
+		.rd2(GPR_rd2_D)
+	);
+
+
+error
+[set(['BLTZ', 'SW', 'BLEZ', 'LUI', 'BEQ', 'LBU', 'ANDI', 'ADDI', 'LH', 'LW', 'JAL', 'ADDIU', 'J', 'BGEZ', 'LHU', 'XORI', 'LB', 'BGTZ', 'BNE', 'SLTIU', 'SLTI', 'SH', 'ORI', 'SB'])]: invalid instr: 
+	
+[module]: still has unconnected ports: 
+	PC.PCWr
+[module]: still has unconnected ports: 
+	PC.PCWr
+print Bypass Data Dict
+readPort = GPR.rd2
+D => [('DMOut_ME.dout', 4), ('ALU.C', 3), ('ALU.C', 4), ('NPC.NPC_Laddr', 2), ('NPC.NPC_Laddr', 3), ('NPC.NPC_Laddr', 4)]
+E => [('DMOut_ME.dout', 4), ('ALU.C', 3), ('ALU.C', 4), ('NPC.NPC_Laddr', 3), ('NPC.NPC_Laddr', 4)]
+readPort = GPR.rd1
+D => [('DMOut_ME.dout', 4), ('ALU.C', 3), ('ALU.C', 4), ('NPC.NPC_Laddr', 2), ('NPC.NPC_Laddr', 3), ('NPC.NPC_Laddr', 4)]
+E => [('DMOut_ME.dout', 4), ('ALU.C', 3), ('ALU.C', 4), ('NPC.NPC_Laddr', 3), ('NPC.NPC_Laddr', 4)]
+
+    Print Pipe Tree    
+stage: F
+Instr => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW', 'JAL', 'BEQ', 'JR']
+
+stage: D
+GPR.rd2 => ['ADDU', 'SUBU', 'SW']
+NPC.NPC_Laddr => ['JAL']
+GPR.rd1 => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW']
+Instr => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW', 'JAL']
+
+stage: E
+NPC.NPC_Laddr => ['JAL']
+ALU.C => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW']
+Instr => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'SW', 'JAL']
+
+stage: M
+NPC.NPC_Laddr => ['JAL']
+DMOut_ME.dout => ['LW']
+ALU.C => ['ADDU', 'SUBU', 'ORI', 'LUI']
+Instr => ['ADDU', 'SUBU', 'ORI', 'LUI', 'LW', 'JAL']
+
+stage: W
+
+control {
+	ExtOp => [`ExtOp_WIDTH-1:0]
+	rst_n => 
+	GPRWr => [`GPRWr_WIDTH-1:0]
+	GPR_waddr_Sel => [2:0]
+	GPRWd_Sel => [2:0]
+	clk => 
+	NPCOp => [`NPCOp_WIDTH-1:0]
+	BrCmp_Op => [`BrCmp_Op_WIDTH-1:0]
+	DMIn_BEOp => [`DMIn_BEOp_WIDTH-1:0]
+	ALUOp => [`ALUOp_WIDTH-1:0]
+	GPR_rd1_E_Bp_Sel => [2:0]
+	ALU_B_Sel => [1:0]
+	Instr_M => [`INSTR_WIDTH-1:0]
+	DMWr => [`DMWr_WIDTH-1:0]
+	DMOut_MEOp => [`DMOut_MEOp_WIDTH-1:0]
+	PCWr => 
+	pipeRegWr_F => 
+	pipeRegWr_E => 
+	pipeRegWr_D => 
+	GPR_rd1_D_Bp_Sel => [2:0]
+	Instr_D => [`INSTR_WIDTH-1:0]
+	Instr_E => [`INSTR_WIDTH-1:0]
+	pipeRegWr_M => 
+	GPR_rd2_E_Bp_Sel => [2:0]
+	pipeRegWr_W => 
+	GPR_rd2_D_Bp_Sel => [2:0]
+	Instr_W => [`INSTR_WIDTH-1:0]
+}
+
+mux16 {
+	d14 => [WIDTH-1:0]
+	d15 => [WIDTH-1:0]
+	d10 => [WIDTH-1:0]
+	d11 => [WIDTH-1:0]
+	d12 => [WIDTH-1:0]
+	d13 => [WIDTH-1:0]
+	y => [WIDTH-1:0]
+	s => [3:0]
+	d8 => [WIDTH-1:0]
+	d9 => [WIDTH-1:0]
+	d6 => [WIDTH-1:0]
+	d7 => [WIDTH-1:0]
+	d4 => [WIDTH-1:0]
+	d5 => [WIDTH-1:0]
+	d2 => [WIDTH-1:0]
+	d3 => [WIDTH-1:0]
+	d0 => [WIDTH-1:0]
+	d1 => [WIDTH-1:0]
+}
+
+DM {
+	DMBE => [`DMBE_WIDTH-1:0]
+	dout => [`DM_WIDTH-1:0]
+	addr => [`DM_DEPTH-1:0]
+	clk => [0:0]
+	DMWr => [0:0]
+	din => [`DM_WIDTH-1:0]
+}
+
+mux8 {
+	y => [WIDTH-1:0]
+	s => [2:0]
+	d6 => [WIDTH-1:0]
+	d7 => [WIDTH-1:0]
+	d4 => [WIDTH-1:0]
+	d5 => [WIDTH-1:0]
+	d2 => [WIDTH-1:0]
+	d3 => [WIDTH-1:0]
+	d0 => [WIDTH-1:0]
+	d1 => [WIDTH-1:0]
+}
+
+FFW {
+	d => [0:WIDTH-1]
+	rst_n => [0:0]
+	q => [0:WIDTH-1]
+	wr => [0:0]
+	clk => [0:0]
+}
+
+NPC {
+	Rs => [31:0]
+	Comp => [0:0]
+	NPCOp => [`NPCOp_WIDTH-1:0]
+	NPC => [31:0]
+	PC => [31:0]
+	Imm26 => [25:0]
+	NPC_Laddr => [31:0]
+}
+
+DMIn_BE {
+	laddr => [1:0]
+	dout => [`DM_WIDTH-1:0]
+	din => [`DM_WIDTH-1:0]
+	DMIn_BEOp => [`DMIn_BEOp_WIDTH-1:0]
+	DMBE => [`DMBE_WIDTH-1:0]
+}
+
+PC {
+	rst_n => [0:0]
+	PCWr => [0:0]
+	PC => [`PC_WIDTH-1:0]
+	NPC => [`PC_WIDTH-1:0]
+	clk => [0:0]
+}
+
+Ext {
+	ExtOp => [`ExtOp_WIDTH-1:0]
+	Imm32 => [31:0]
+	Imm16 => [15:0]
+}
+
+DMOut_ME {
+	laddr => [1:0]
+	din => [`DM_WIDTH-1:0]
+	DMOut_MEOp => [`DMOut_MEOp_WIDTH-1:0]
+	dout => [`DM_WIDTH-1:0]
+}
+
+FF {
+	q => [0:WIDTH-1]
+	rst_n => [0:0]
+	d => [0:WIDTH-1]
+	clk => [0:0]
+}
+
+mips {
+	rst_n => [0:0]
+	clk => [0:0]
+}
+
+IM {
+	dout => [`IM_WIDTH-1:0]
+	addr => [`IM_DEPTH+1:2]
+}
+
+mux4 {
+	s => [1:0]
+	y => [WIDTH-1:0]
+	d2 => [WIDTH-1:0]
+	d3 => [WIDTH-1:0]
+	d0 => [WIDTH-1:0]
+	d1 => [WIDTH-1:0]
+}
+
+ALU {
+	A => [31:0]
+	ALUOp => [4:0]
+	C => [31:0]
+	B => [31:0]
+}
+
+mux2 {
+	y => [WIDTH-1:0]
+	s => [0:0]
+	d0 => [WIDTH-1:0]
+	d1 => [WIDTH-1:0]
+}
+
+GPR {
+	GPRWd => [31:0]
+	raddr1 => [4:0]
+	waddr => [4:0]
+	rd1 => [31:0]
+	rst_n => [0:0]
+	clk => [0:0]
+	raddr2 => [4:0]
+	GPRWr => [0:0]
+	rd2 => [31:0]
+}
+
+BrCmp {
+	A => [31:0]
+	Comp => [0:0]
+	B => [31:0]
+	Op => [`BrCmp_Op_WIDTH-1:0]
+}
+
+
+

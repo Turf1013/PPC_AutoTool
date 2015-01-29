@@ -1,0 +1,104 @@
+E:/project_xxx/ppc_hdl_pipeline/Geass/DM.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/DM.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module DM
+-- Compiling module DMIn_BE
+-- Compiling module DMOut_ME
+
+Top level modules:
+	DM
+	DMIn_BE
+	DMOut_ME
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/GPR.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module GPR
+
+Top level modules:
+	GPR
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/mips.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/mips.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module mips
+
+Top level modules:
+	mips
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/PC.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/PC.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module PC
+
+Top level modules:
+	PC
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/ctrl_encode_def.v {1 {vlog -work work -vopt {E:\project_xxx\ppc_hdl_pipeline\Geass\ctrl_encode_def.v}
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/instruction_def.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/instruction_def.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/NPC.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module NPC
+-- Compiling module BrCmp
+
+Top level modules:
+	NPC
+	BrCmp
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/control.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/control.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module control
+
+Top level modules:
+	control
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/Ext.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module Ext
+
+Top level modules:
+	Ext
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/ALU.v {1 {vlog -work work -vopt {E:\project_xxx\ppc_hdl_pipeline\Geass\ALU.v}
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module ALU
+
+Top level modules:
+	ALU
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/mux.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/mux.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module mux2
+-- Compiling module mux4
+-- Compiling module mux8
+-- Compiling module mux16
+
+Top level modules:
+	mux2
+	mux4
+	mux8
+	mux16
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/default_def.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/default_def.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/FF.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/FF.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module FF
+-- Compiling module FFW
+
+Top level modules:
+	FF
+	FFW
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/arch_def.v {1 {vlog -work work -vopt {E:\project_xxx\ppc_hdl_pipeline\Geass\arch_def.v}
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+
+} {} {}} E:/project_xxx/ppc_hdl_pipeline/Geass/IM.v {1 {vlog -work work -vopt E:/project_xxx/ppc_hdl_pipeline/Geass/IM.v
+Model Technology ModelSim SE vlog 10.2c Compiler 2013.07 Jul 18 2013
+-- Compiling module IM
+
+Top level modules:
+	IM
+
+} {} {}}
