@@ -6,5 +6,13 @@ There are 3 purposes for using this tool:
 3. It is very necessary to check opcode, funct and some other fields encode format just the same as the compiler supported.
 
 Mandrill includes following functions:
-1. insn_format.py: the format of ISA, correcting this file is needed when you assign another ISA;
-2. 
+1. format.py: the format of ISA, if you want to assign another ISA, correct the heading import is necessary;
+	|
+	├── ppc_insnFormat.py: format of PowerPC instruction Format, get the format of insn by mnemonic of insn.
+	├──
+2. overall_check.py: the overall check of bin
+	|
+	├──
+3. condition_check.py: check of bin with assigned condition
+	|
+	├──
