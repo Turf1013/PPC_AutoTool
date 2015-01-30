@@ -5,3 +5,4 @@
 insn_op = 'OPCD'
 insn_xo = 'XO'
 insn_form = 'form'
+insn_MainKey = 'insn'

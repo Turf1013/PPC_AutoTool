@@ -5,6 +5,7 @@ from collections import OrderedDict, defaultdict
 import re
 import os
 import linecache
+import logging
 from linecache_data import *
 
 'This file is overall checking the binary file. This module is based on bin objdumped by GCC.'
@@ -23,6 +24,24 @@ class overall_check(format):
 		self.shiftList = [i*8 for i in range(self.nWord-1, -1, -1)]
 
 
+	def logConfig(self, fname):
+		logging.basicConfig(
+			level=logging.DEBUG,
+			format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+            datefmt='%a, %d %b %Y %H:%M:%S',
+            filename=fname+'.res',
+            filemode='w'
+		)
+
+
+	def saveBaseResult(self, fname, errInsnNameSet, unknownInsnNameSet):
+		self.logConfig(fname)
+		logging.debug(
+			'%s\n errInsnNameSet: %s, unknownInsnNameSet: %s',
+			str(errInsnNameSet)[-4:-1], str(unknownInsnNameSet)[-4:-1]
+		)
+
+
 	def insnBaseCheck(self, fname):
 		'Base Check included opcode & xo check and unknown insn check'
 		lines = self.setSourceFile(fname)
@@ -31,17 +50,17 @@ class overall_check(format):
 		errInsnNameSet = set()
 		unknownInsnNameSet = set()
 		for binCode,insnName in zip(binCodeList, insnNameList):
-			if insnName in insnDict:
-				op, xo = insnDict[insn_op], insnDict[insn_xo]
-				insnFormDict = insnDict[insn_form]
+			if insnName in self.insnDict:
+				op, xo = self.insnDict[insn_op], self.insnDict[insn_xo]
+				insnFormDict = self.insnDict[insn_form]
 				oop, xxo = 0, 0
 				flag = True
 				if insn_op in insnFormDict:
-					beg, end = insnDict[insn_op]
+					beg, end = self.insnDict[insn_op]
 					oop = getValue(binCode, beg, end)
 					flag &= (oop==op)
 				if insn_xo in insnFormDict:
-					beg, end = insnDict[insn_xo]
+					beg, end = self.insnDict[insn_xo]
 					xxo = getValue(binCode, beg, end)
 					flag &= (xxo==xo)
 				if not flag:
