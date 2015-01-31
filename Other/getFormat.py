@@ -29,7 +29,7 @@ def genPyCode(dictName, formatDict, tabn=0):
 	print 'dictName =', dictName
 	ret += '%s%sDict = {\n' % (pre, dictName)
 	for k,v in formatDict.items():
-		ret += "%s\t'%s' = %s,\n" % (pre, k, v)
+		ret += "%s\t'%s' : %s,\n" % (pre, k, v)
 	ret += '%s};\n' % (pre)
 	return ret
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 			fout.write(pyCode+'\n\n')
 	formDictCode = "%sPPC_FormDict = {\n" % ('\t'*tabn)
 	for item in formList:
-		formDictCode += "%s\t'%s' = %sDict,\n" % ('\t'*tabn, item, item)
+		formDictCode += "%s\t'%s' : %sDict,\n" % ('\t'*tabn, item, item)
 	formDictCode += '%s};\n\n' % ('\t'*tabn)
 	fout.write(formDictCode)
 	fout.close()

@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-import ppc_const
-import overall_check
+from ppc_const import *
+from overall_check import *
 from collections import OrderedDict, defaultdict
 import re
 import logging
 import copy
 import os
 import linecache
-from linecache_data import *
 
 'This file is only use for checking some field of insn'
 
@@ -18,13 +17,16 @@ class cond_check(overall_check):
 		self.hasSetCond = False
 
 	def saveCondResult(self, fname, totCnt, errCnt):
-		# foutName = fname + '.res'
-		# fout = fopen(fname, 'w')
-		# fwrite()
-		# fout.close()
-		self.logConfig(fname)
 		errRate = errCnt*100./totCnt if totCnt>0 else 0
-		logging.debug('%s total: %d, error: %d, errRate:%.2f%', fname, totCnt, errCnt, errRate)
+		
+		'generate the title of log'
+		title = 'Result of Cnt Check:\n\t\t' + self.getTimeStamp() + '\n\t\t\t@Turf1013\n\n'
+		resultStr = 'total: %d, error: %d, errRate:%.2f%\n' % (totCnt, errCnt, errRate)
+		fout = open(fname, 'w')
+		fout.write(title)
+		fout.write(resultStr)
+		fout.flush()
+		fout.close()
 
 
 	def insnCondCheck(self, fname):

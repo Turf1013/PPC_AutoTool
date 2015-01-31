@@ -4,52 +4,51 @@ Result of Cnt Check:
 
 find 61 Instructions included:
          and:      3
-       lwarx:     23
+      rlwinm:    214
         cmpw:     40
+         sth:    179
         bgt+:      5
       stwcx.:     23
         bgt-:     18
+         ori:     17
         subf:      8
         xori:      6
       cmplwi:     33
        twnei:     12
-        mflr:     65
-         lmw:      3
+        bge-:     11
          lwz:   2883
         stwu:     83
-        dcbt:      1
-        bge-:     11
+        mflr:     65
          xor:      1
        cmpwi:    451
-         not:      1
        srawi:      8
-        blt-:      9
          twi:      7
           li:    837
-          bl:    323
+       addic:    383
          add:     50
          stw:   1401
         bne+:      2
       clrlwi:    547
          lis:     90
-        oris:      3
        mtctr:      8
        cmplw:     21
         addi:    150
         beq-:    277
-         lbz:    294
+        oris:      3
         bctr:      2
-       addic:    383
+          bl:    323
+         blr:     83
+          mr:   1871
        extsh:      1
+         lmw:      3
         stmw:      3
         sraw:      1
-         ori:     17
-        ble-:     38
-         neg:      2
+        blt-:      9
+         not:      1
         beq+:      1
        addze:      8
          nop:     51
-         blr:     83
+        dcbt:      1
         bne-:    181
        bctrl:      6
            b:    330
@@ -57,10 +56,11 @@ find 61 Instructions included:
          stb:    159
         mtlr:     65
          slw:      3
-         sth:    179
-          or:    102
-      rlwinm:    214
+         lbz:    294
+         lhz:    167
+       lwarx:     23
          srw:      7
         mfcr:     26
-          mr:   1871
-         lhz:    167
+         neg:      2
+        ble-:     38
+          or:    102

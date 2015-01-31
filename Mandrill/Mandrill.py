@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-import chond_check
-import overall_check
+from cond_check import *
 import sys
 import time
 
-class Mandrill(chond_check):
+class Mandrill(cond_check):
 
 	def __init__(self, insnWidth=32, bigEndian=True):
 		super(Mandrill, self).__init__(insnWidth, bigEndian)
@@ -12,11 +11,11 @@ class Mandrill(chond_check):
 
 	def baseCheckFiles(self):
 		errInsnNameSet = set()
-		unknownInsnNameSet= set()
+		unknownInsnNameSet = set()
 		for fileName in self.fileList:
 			errInsnNameSetTmp, unknownInsnNameSetTmp = self.baseCheckOneFile(fileName)
-			errInsnNameSet.add(errInsnNameSetTmp)
-			unknownInsnNameSet.add(unknownInsnNameSetTmp)
+			errInsnNameSet = errInsnNameSet.union(errInsnNameSetTmp)
+			unknownInsnNameSet = unknownInsnNameSet.union(unknownInsnNameSetTmp)
 		self.saveBaseTopResult(errInsnNameSet, unknownInsnNameSet)
 
 
@@ -33,14 +32,35 @@ class Mandrill(chond_check):
 		self.saveCondTopResult(totCnt, errCnt)
 
 
+	def cntCheckFiles(self):
+		insnCntDict = defaultdict(int)
+		for fileName in self.fileList:
+			insnCntDictTmp = self.cntCheckOneFile(fileName)
+			print 'insnCntDictTmp =', insnCntDictTmp
+			for insnName in insnCntDictTmp:
+				insnCntDict[insnName] += insnCntDictTmp[insnName]
+		self.saveCntTopResult(insnCntDict)
+		print insnCntDict
+		logging.error(insnCntDict)
+
+
 	def saveBaseTopResult(self, errInsnNameSet, unknownInsnNameSet):
 		baseTopFileName = 'baseTop_' + self.genTopSuffix()
-		self.saveCondResult(baseTopFileName, errInsnNameSet, unknownInsnNameSet)
+		# print 'baseTopFileName =', baseTopFileName
+		# print 'errInsnNameSet =', errInsnNameSet
+		self.saveBaseResult(baseTopFileName, errInsnNameSet, unknownInsnNameSet)
 
 
 	def saveCondTopResult(self, totCnt, errCnt):
 		condTopFileName = 'condTop_' + self.insnName + self.genTopSuffix()
-		self.saveCondResult(condTopFileName, totCNt, errCnt)
+		self.saveCondResult(condTopFileName, totCnt, errCnt)
+
+
+	def saveCntTopResult(self, insnCntDict):
+		cntTopFileName = 'cntTop_' + self.genTopSuffix()
+		# print 'cntTopFileName =', cntTopFileName
+		# print 'insnCntDict =', insnCntDict
+		self.saveCntResult(cntTopFileName, insnCntDict)
 
 
 	def baseCheckOneFile(self, fname):
@@ -53,6 +73,12 @@ class Mandrill(chond_check):
 		totCnt, errCnt = self.insnCondCheck(self, fname)
 		self.saveCondResult(fname, totCnt, errCnt)
 		return totCnt, errCnt
+
+
+	def cntCheckOneFile(self, fname):
+		insnCntDict = self.insnCntCheck(fname)
+		self.saveCntResult(fname, insnCntDict)
+		return insnCntDict
 
 
 	def setTestFiles(self, fname, suffix='.log'):
@@ -81,7 +107,7 @@ class Mandrill(chond_check):
 
 
 	def genTopSuffix(self):
-		return time.strftime('v%m%d_%H%M', time.localtime())
+		return time.strftime("v%m%d_%H%M.res", time.localtime())
 
 
 	def __str__(self):
@@ -89,3 +115,13 @@ class Mandrill(chond_check):
 
 
 if __name__ == '__main__':
+	mandrill = Mandrill()
+	if len(sys.argv)>1:
+		fname = sys.argv[1:]
+	else:
+		fpath = './'
+		fname = 'a.txt'
+	suffix = '.txt'
+	mandrill.setTestFiles(fname, suffix)
+	mandrill.baseCheckFiles()
+	mandrill.cntCheckFiles()

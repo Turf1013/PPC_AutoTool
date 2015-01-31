@@ -36,12 +36,12 @@ int main() {
 	// subDict includes the 
 	printf("insnDict = {\n");
 	for (int i=0; i<n; ++i) {
-		printf("\t'%s' = {\n", mnemonics[i]);
+		printf("\t'%s' : {\n", mnemonics[i]);
 		// add the attribute of insn
 		printf("\t\t'op': %d,\n", Primary_Op[i]);
 		printf("\t\t'xo': %d,\n", Extend_Op[i]);
 		printf("\t\t'form': %sDict,\n", formBuf[Forms[i]]);
-		printf("\t};\n");
+		printf("\t},\n");
 	}
 	printf("};\n");
 
