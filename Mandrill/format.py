@@ -31,14 +31,25 @@ class format(object):
 		mask = int("1"*length) if length else 0
 		return ret & mask
 
+
+	def trunc(self, line):
+		for i in range(len(line)-1,-1,-1):
+			if line[i] == '.':
+				return line[:i]
+		return line
+
+
 	def getTimeStamp(self):
 		return time.strftime('%a, %d %b %Y %H:%M:%S', time.localtime())
+
 
 	def getFormDict(self):
 		return self.formDict
 
+
 	def getInsnDict(self):
 		return self.insnDict
+
 
 	def testFormDict(self):
 		print 'format of X-Form'

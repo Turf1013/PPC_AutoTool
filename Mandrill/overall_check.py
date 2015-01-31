@@ -20,6 +20,7 @@ class overall_check(format):
 		self.begPos_cache = dict()
 		self.logConfig('ppc_check.log')
 
+
 	def initConst(self):
 		self.nTest = 30
 		self.nWord = self.insnWidth / 8
@@ -46,7 +47,7 @@ class overall_check(format):
 			try:
 				errInsnNameSet += '%12s %8d %8d\t\n' % (insnName, insnOp, insnXo)
 			except TypeError:
-				print insnName
+				logging.error('%12s %12s', 'errInsnName', insnName)
 		errInsnNameStr += '\n\n'
 
 		'unknown Insn'
@@ -57,7 +58,7 @@ class overall_check(format):
 			try:
 				unknownInsnNameStr += '%12s\t' % (insnName)
 			except TypeError:
-				print insnName
+				logging.error('%12s %12s', 'unknownInsnName', insName)
 		unknownInsnNameStr += '\n\n'
 
 		'write in file'
@@ -155,7 +156,7 @@ class overall_check(format):
 			line = wordList[self.nWord]
 			insnName = self.re_binCode.split(line, maxsplit=1)[0]
 			insnNameList.append(insnName)
-		print 'binCodeList =', binCodeList, 'insnNameList =', insnNameList
+		# print 'binCodeList =', binCodeList, 'insnNameList =', insnNameList
 		return binCodeList, insnNameList
 
 

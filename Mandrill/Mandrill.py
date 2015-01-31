@@ -5,9 +5,12 @@ import time
 
 class Mandrill(cond_check):
 
+	resultFileSuffix = '.res'
+
 	def __init__(self, insnWidth=32, bigEndian=True):
 		super(Mandrill, self).__init__(insnWidth, bigEndian)
 		self.isSetCon = False
+
 
 	def baseCheckFiles(self):
 		errInsnNameSet = set()
@@ -36,11 +39,11 @@ class Mandrill(cond_check):
 		insnCntDict = defaultdict(int)
 		for fileName in self.fileList:
 			insnCntDictTmp = self.cntCheckOneFile(fileName)
-			print 'insnCntDictTmp =', insnCntDictTmp
+			# print 'insnCntDictTmp =', insnCntDictTmp
 			for insnName in insnCntDictTmp:
 				insnCntDict[insnName] += insnCntDictTmp[insnName]
 		self.saveCntTopResult(insnCntDict)
-		print insnCntDict
+		# print insnCntDict
 		logging.error(insnCntDict)
 
 
@@ -48,16 +51,19 @@ class Mandrill(cond_check):
 		baseTopFileName = 'baseTop_' + self.genTopSuffix()
 		# print 'baseTopFileName =', baseTopFileName
 		# print 'errInsnNameSet =', errInsnNameSet
+		baseTopFileName = self.genResultFileName(baseTopFileName)
 		self.saveBaseResult(baseTopFileName, errInsnNameSet, unknownInsnNameSet)
 
 
 	def saveCondTopResult(self, totCnt, errCnt):
 		condTopFileName = 'condTop_' + self.insnName + self.genTopSuffix()
+		condTopFileName = self.genResultFileName(condTopFileName)
 		self.saveCondResult(condTopFileName, totCnt, errCnt)
 
 
 	def saveCntTopResult(self, insnCntDict):
 		cntTopFileName = 'cntTop_' + self.genTopSuffix()
+		cntTopFileName = self.genResultFileName(cntTopFileName)
 		# print 'cntTopFileName =', cntTopFileName
 		# print 'insnCntDict =', insnCntDict
 		self.saveCntResult(cntTopFileName, insnCntDict)
@@ -65,18 +71,21 @@ class Mandrill(cond_check):
 
 	def baseCheckOneFile(self, fname):
 		errInsnNameSet, unknownInsnNameSet = self.insnBaseCheck(fname)
+		fname = self.genResultFileName(fname, '_base')
 		self.saveBaseResult(fname, errInsnNameSet, unknownInsnNameSet)
 		return errInsnNameSet, unknownInsnNameSet
 
 
 	def condCheckOneFile(self, fname):
 		totCnt, errCnt = self.insnCondCheck(self, fname)
+		fname = self.genResultFileName(fname, '_cond')
 		self.saveCondResult(fname, totCnt, errCnt)
 		return totCnt, errCnt
 
 
 	def cntCheckOneFile(self, fname):
 		insnCntDict = self.insnCntCheck(fname)
+		fname = self.genResultFileName(fname, '_cnt')
 		self.saveCntResult(fname, insnCntDict)
 		return insnCntDict
 
@@ -107,8 +116,10 @@ class Mandrill(cond_check):
 
 
 	def genTopSuffix(self):
-		return time.strftime("v%m%d_%H%M.res", time.localtime())
+		return time.strftime("v%m%d_%H%M", time.localtime())
 
+	def genResultFileName(self, fname, ftype=''):
+		return self.trunc(fname) + ftype + self.resultFileSuffix
 
 	def __str__(self):
 		return 'Mandrill is a tool to check insn based on GCC compiled bin file'
