@@ -10,7 +10,7 @@ class Mandrill(cond_check):
 	def __init__(self, insnWidth=32, bigEndian=True):
 		super(Mandrill, self).__init__(insnWidth, bigEndian)
 		self.isSetCon = False
-
+		self.desFilePath = ''
 
 	def baseCheckFiles(self):
 		errInsnNameSet = set()
@@ -119,7 +119,10 @@ class Mandrill(cond_check):
 		return time.strftime("v%m%d_%H%M", time.localtime())
 
 	def genResultFileName(self, fname, ftype=''):
-		return self.trunc(fname) + ftype + self.resultFileSuffix
+		return self.desFilePath + self.trunc(fname) + ftype + self.resultFileSuffix
+
+	def setDesFilePath(self, fpath):
+		self.desFilePath = fpath
 
 	def __str__(self):
 		return 'Mandrill is a tool to check insn based on GCC compiled bin file'
