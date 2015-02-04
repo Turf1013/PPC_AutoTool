@@ -27,3 +27,5 @@ Mandrill includes following functions:
 	|
 	├── ppc_insnFormat.py: format of PowerPC instruction Format, get the format of insn by mnemonic of insn.
 	├──
+
+5*. Add the hazard checking function, or assigning checking conditions between multi-insn
