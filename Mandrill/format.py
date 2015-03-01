@@ -9,8 +9,8 @@ class format(object):
 	def __init__(self, insnWidth=32, bigEndian=True):
 		self.bigEndian = bigEndian
 		self.insnWidth = insnWidth
-		self.formDict = ppc_insnFormat.PPC_FormDict
-		self.insnDict = ppc_insnFormat.insnDict
+		self.formDict = ppc_insnFormat.PPC_FormDict.copy()
+		self.insnDict = ppc_insnFormat.insnDict.copy()
 		if bigEndian:
 			self.transToBigEndian()
 
@@ -19,6 +19,7 @@ class format(object):
 		'PPC is a bigEndian, we need to transfer the range of fields in insn to BigEndian'
 		for name,aFormDict in self.formDict.iteritems():
 			for fieldName,boundry in aFormDict.iteritems():
+				# pay attention (fieldBeg, fieldEnd)
 				aFormDict[fieldName] = (self.insnWidth-boundry[0], self.insnWidth-boundry[1])
 
 
@@ -28,7 +29,7 @@ class format(object):
 		if beg < end:
 			beg, end = end, beg
 		ret = insn>>end
-		mask = int("1"*length) if length else 0
+		mask = 2**length-1
 		return ret & mask
 
 

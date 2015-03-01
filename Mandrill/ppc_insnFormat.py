@@ -9,7 +9,7 @@ I_FormDict = {
 	'LI' : (6, 30),
 	'AA' : (30, 31),
 	'LK' : (31, 32),
-};
+}
 
 
 # B-Form: 1 kind
@@ -21,7 +21,7 @@ B_FormDict = {
 	'BD' : (16, 30),
 	'AA' : (30, 31),
 	'LK' : (31, 32),
-};
+}
 
 
 # SC-Form: 1 kind
@@ -31,7 +31,7 @@ SC_FormDict = {
 	'Reserve0' : (6, 20),
 	'LEV' : (20, 27),
 	'Reserve1' : (27, 32),
-};
+}
 
 
 # D-Form: 9 kinds
@@ -41,7 +41,7 @@ D_FormDict = {
 	'RT' : (6, 11),
 	'RA' : (11, 16),
 	'D' : (16, 32),
-};
+}
 
 
 # DS-Form: 2 kinds
@@ -52,7 +52,7 @@ DS_FormDict = {
 	'RA' : (11, 16),
 	'DS' : (16, 30),
 	'XO' : (30, 32),
-};
+}
 
 
 # X-Form: 32 kinds
@@ -64,7 +64,7 @@ X_FormDict = {
 	'RB' : (16, 21),
 	'XO' : (21, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # XL-Form: 4 kinds
@@ -76,7 +76,7 @@ XL_FormDict = {
 	'BB' : (16, 21),
 	'XO' : (21, 31),
 	'LK' : (31, 32),
-};
+}
 
 
 # XFX-Form: 7 kinds
@@ -87,7 +87,7 @@ XFX_FormDict = {
 	'SPR' : (11, 21),
 	'XO' : (21, 31),
 	'Reserve0' : (31, 32),
-};
+}
 
 
 # XFL-Form: 1 kind
@@ -100,7 +100,7 @@ XFL_FormDict = {
 	'FRB' : (16, 21),
 	'XO' : (21, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # XS-Form: 1 kind
@@ -113,7 +113,7 @@ XS_FormDict = {
 	'XO' : (21, 30),
 	'SH1' : (30, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # XO-Form: 3 kinds
@@ -126,7 +126,7 @@ XO_FormDict = {
 	'OE' : (21, 22),
 	'XO' : (22, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # A-Form: 4 kinds
@@ -139,7 +139,7 @@ A_FormDict = {
 	'FRC' : (21, 26),
 	'XO' : (26, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # M-Form: 2 kinds
@@ -152,7 +152,7 @@ M_FormDict = {
 	'MB' : (21, 26),
 	'ME' : (26, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # MD-Form: 2 kinds
@@ -166,7 +166,7 @@ MD_FormDict = {
 	'XO' : (27, 30),
 	'SH1' : (30, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 # MDS-Form: 2 kinds
@@ -179,7 +179,7 @@ MDS_FormDict = {
 	'MB' : (21, 27),
 	'XO' : (27, 31),
 	'RC' : (31, 32),
-};
+}
 
 
 PPC_FormDict = {
@@ -198,7 +198,7 @@ PPC_FormDict = {
 	'M_Form' : M_FormDict,
 	'MD_Form' : MD_FormDict,
 	'MDS_Form' : MDS_FormDict,
-};
+}
 
 insnDict = {
 	'twi' : {
@@ -686,7 +686,7 @@ insnDict = {
 		'XO': 232,
 		'form': XO_FormDict,
 	},
-};
+}
 
 if __name__ == '__main__':
-	print I_Form['OPCD']
+	print XFX_FormDict

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-from cond_check import *
+from cond_check import cond_check
+from collections import OrderedDict, defaultdict
+import logging
 import sys
 import time
 
@@ -21,6 +23,23 @@ class Mandrill(cond_check):
 			unknownInsnNameSet = unknownInsnNameSet.union(unknownInsnNameSetTmp)
 		self.saveBaseTopResult(errInsnNameSet, unknownInsnNameSet)
 
+		
+	def	condCollectFiles(self):
+		if not self.hasSetCond:
+			print 'condition not set'
+			return
+		if not self.hasSetWanted:
+			print 'wanted list not set'
+			return 
+		collectDict = dict(
+			zip(self.wantedList, [[] for i in range(len(self.wantedList))])
+		)
+		for fileName in self.fileList:
+			collectTmp = self.condCollectOneFile(fileName)
+			for key in collectDict:
+				collectDict[key] += collectTmp[key]
+		self.saveCollectTopResult(collectDict)
+			
 
 	def condCheckFiles(self):
 		if not self.hasSetCond:
@@ -44,7 +63,7 @@ class Mandrill(cond_check):
 				insnCntDict[insnName] += insnCntDictTmp[insnName]
 		self.saveCntTopResult(insnCntDict)
 		# print insnCntDict
-		logging.error(insnCntDict)
+		# logging.error(insnCntDict)
 
 
 	def saveBaseTopResult(self, errInsnNameSet, unknownInsnNameSet):
@@ -56,10 +75,16 @@ class Mandrill(cond_check):
 
 
 	def saveCondTopResult(self, totCnt, errCnt):
-		condTopFileName = 'condTop_' + self.insnName + self.genTopSuffix()
+		condTopFileName = 'condTop_' + self.insnName + '_' + self.genTopSuffix()
 		condTopFileName = self.genResultFileName(condTopFileName)
 		self.saveCondResult(condTopFileName, totCnt, errCnt)
 
+		
+	def saveCollectTopResult(self, collectDict):
+		collectTopFileName = 'collectTop_' + self.insnName + '_' + self.genTopSuffix()
+		collectTopFileName = self.genResultFileName(collectTopFileName)
+		self.saveCollectResult(collectTopFileName, collectDict)
+		
 
 	def saveCntTopResult(self, insnCntDict):
 		cntTopFileName = 'cntTop_' + self.genTopSuffix()
@@ -74,7 +99,14 @@ class Mandrill(cond_check):
 		fname = self.genResultFileName(fname, '_base')
 		self.saveBaseResult(fname, errInsnNameSet, unknownInsnNameSet)
 		return errInsnNameSet, unknownInsnNameSet
-
+	
+	
+	def condCollectOneFile(self, fname):
+		collectDict = self.insnCondCollect(fname)
+		fname = self.genResultFileName(fname, '_collect')
+		self.saveCollectResult(fname, collectDict)
+		return collectDict
+		
 
 	def condCheckOneFile(self, fname):
 		totCnt, errCnt = self.insnCondCheck(self, fname)
@@ -128,14 +160,36 @@ class Mandrill(cond_check):
 		return 'Mandrill is a tool to check insn based on GCC compiled bin file'
 
 
-if __name__ == '__main__':
+def testCntCheck():
 	mandrill = Mandrill()
 	if len(sys.argv)>1:
 		fname = sys.argv[1:]
 	else:
 		fpath = './'
-		fname = 'a.txt'
+		fname = 'vmlinux.txt'
 	suffix = '.txt'
 	mandrill.setTestFiles(fname, suffix)
-	mandrill.baseCheckFiles()
+	# mandrill.baseCheckFiles()
 	mandrill.cntCheckFiles()
+	
+def testCollectCheck():
+	if len(sys.argv)>1:
+		fname = sys.argv[1:]
+	else:
+		fpath = './'
+		fname = 'vmlinux.txt'
+	suffix = '.txt'
+	mandrill = Mandrill()
+	condDict = {
+		'insn': 'mfspr',
+	}
+	wantedList = ['SPR']
+	mandrill.setCond(condDict)
+	mandrill.setWanted(wantedList)
+	mandrill.setTestFiles(fname, suffix)
+	mandrill.condCollectFiles()
+	
+if __name__ == '__main__':	
+	# testCollectCheck()
+	testCntCheck()
+	

@@ -1,0 +1,219 @@
+
+/home/bombe/target-project/powerpc-module/kernel/linux-2.6.38/vmlinux.o:     file format elf32-powerpc
+
+
+Disassembly of section .text:
+
+00000000 <__setup_e200_ivors>:
+ * Global functions
+ */
+
+/* Adjust or setup IVORs for e200 */
+_GLOBAL(__setup_e200_ivors)
+	li	r3,DebugDebug@l
+       0:	38 60 14 c0 	li      r3,5312
+	mtspr	SPRN_IVOR15,r3
+       4:	7c 7f 63 a6 	mtspr   415,r3
+	li	r3,SPEUnavailable@l
+       8:	38 60 10 00 	li      r3,4096
+	mtspr	SPRN_IVOR32,r3
+       c:	7c 70 83 a6 	mtibatu 0,r3
+	li	r3,SPEFloatingPointData@l
+      10:	38 60 10 c0 	li      r3,4288
+	mtspr	SPRN_IVOR33,r3
+      14:	7c 71 83 a6 	mtibatl 0,r3
+	li	r3,SPEFloatingPointRound@l
+      18:	38 60 11 80 	li      r3,4480
+	mtspr	SPRN_IVOR34,r3
+      1c:	7c 72 83 a6 	mtibatu 1,r3
+	sync
+      20:	7c 00 04 ac 	sync    
+	blr
+      24:	4e 80 00 20 	blr
+
+00000028 <__setup_e500_ivors>:
+
+/* Adjust or setup IVORs for e500v1/v2 */
+_GLOBAL(__setup_e500_ivors)
+	li	r3,DebugCrit@l
+      28:	38 60 16 40 	li      r3,5696
+	mtspr	SPRN_IVOR15,r3
+      2c:	7c 7f 63 a6 	mtspr   415,r3
+	li	r3,SPEUnavailable@l
+      30:	38 60 10 00 	li      r3,4096
+	mtspr	SPRN_IVOR32,r3
+      34:	7c 70 83 a6 	mtibatu 0,r3
+	li	r3,SPEFloatingPointData@l
+      38:	38 60 10 c0 	li      r3,4288
+	mtspr	SPRN_IVOR33,r3
+      3c:	7c 71 83 a6 	mtibatl 0,r3
+	li	r3,SPEFloatingPointRound@l
+      40:	38 60 11 80 	li      r3,4480
+	mtspr	SPRN_IVOR34,r3
+      44:	7c 72 83 a6 	mtibatu 1,r3
+	li	r3,PerformanceMonitor@l
+      48:	38 60 12 40 	li      r3,4672
+	mtspr	SPRN_IVOR35,r3
+      4c:	7c 73 83 a6 	mtibatl 1,r3
+	sync
+      50:	7c 00 04 ac 	sync    
+	blr
+      54:	4e 80 00 20 	blr
+
+00000058 <__setup_e500mc_ivors>:
+
+/* Adjust or setup IVORs for e500mc */
+_GLOBAL(__setup_e500mc_ivors)
+	li	r3,DebugDebug@l
+      58:	38 60 14 c0 	li      r3,5312
+	mtspr	SPRN_IVOR15,r3
+      5c:	7c 7f 63 a6 	mtspr   415,r3
+	li	r3,PerformanceMonitor@l
+      60:	38 60 12 40 	li      r3,4672
+	mtspr	SPRN_IVOR35,r3
+      64:	7c 73 83 a6 	mtibatl 1,r3
+	li	r3,Doorbell@l
+      68:	38 60 13 00 	li      r3,4864
+	mtspr	SPRN_IVOR36,r3
+      6c:	7c 74 83 a6 	mtibatu 2,r3
+	li	r3,CriticalDoorbell@l
+      70:	38 60 13 c0 	li      r3,5056
+	mtspr	SPRN_IVOR37,r3
+      74:	7c 75 83 a6 	mtibatl 2,r3
+	sync
+      78:	7c 00 04 ac 	sync    
+	blr
+      7c:	4e 80 00 20 	blr
+
+00000080 <giveup_altivec>:
+ * extern void giveup_altivec(struct task_struct *prev)
+ *
+ * The e500 core does not have an AltiVec unit.
+ */
+_GLOBAL(giveup_altivec)
+	blr
+      80:	4e 80 00 20 	blr
+
+00000084 <giveup_spe>:
+/*
+ * extern void giveup_spe(struct task_struct *prev)
+ *
+ */
+_GLOBAL(giveup_spe)
+	mfmsr	r5
+      84:	7c a0 00 a6 	mfmsr   r5
+	oris	r5,r5,MSR_SPE@h
+      88:	64 a5 02 00 	oris    r5,r5,512
+	mtmsr	r5			/* enable use of SPE now */
+      8c:	7c a0 01 24 	mtmsr   r5
+	isync
+      90:	4c 00 01 2c 	isync
+	cmpi	0,r3,0
+      94:	2c 03 00 00 	cmpwi   r3,0
+	beqlr-				/* if no previous owner, done */
+      98:	4d 82 00 20 	beqlr   
+	addi	r3,r3,THREAD		/* want THREAD of task */
+      9c:	38 63 01 c8 	addi    r3,r3,456
+	lwz	r5,PT_REGS(r3)
+      a0:	80 a3 00 08 	lwz     r5,8(r3)
+	cmpi	0,r5,0
+      a4:	2c 05 00 00 	cmpwi   r5,0
+	SAVE_32EVRS(0, r4, r3)
+      a8:	10 84 02 2c 	vsldoi  v4,v4,v0,8
+      ac:	90 83 01 4c 	stw     r4,332(r3)
+      b0:	10 84 0a 2c 	vsldoi  v4,v4,v1,8
+      b4:	90 83 01 50 	stw     r4,336(r3)
+      b8:	10 84 12 2c 	vsldoi  v4,v4,v2,8
+      bc:	90 83 01 54 	stw     r4,340(r3)
+      c0:	10 84 1a 2c 	vsldoi  v4,v4,v3,8
+      c4:	90 83 01 58 	stw     r4,344(r3)
+      c8:	10 84 22 2c 	vsldoi  v4,v4,v4,8
+      cc:	90 83 01 5c 	stw     r4,348(r3)
+      d0:	10 84 2a 2c 	vsldoi  v4,v4,v5,8
+      d4:	90 83 01 60 	stw     r4,352(r3)
+      d8:	10 84 32 2c 	vsldoi  v4,v4,v6,8
+      dc:	90 83 01 64 	stw     r4,356(r3)
+      e0:	10 84 3a 2c 	vsldoi  v4,v4,v7,8
+      e4:	90 83 01 68 	stw     r4,360(r3)
+      e8:	10 84 42 2c 	vsldoi  v4,v4,v8,8
+      ec:	90 83 01 6c 	stw     r4,364(r3)
+      f0:	10 84 4a 2c 	vsldoi  v4,v4,v9,8
+      f4:	90 83 01 70 	stw     r4,368(r3)
+      f8:	10 84 52 2c 	vsldoi  v4,v4,v10,8
+      fc:	90 83 01 74 	stw     r4,372(r3)
+     100:	10 84 5a 2c 	vsldoi  v4,v4,v11,8
+     104:	90 83 01 78 	stw     r4,376(r3)
+     108:	10 84 62 2c 	vsldoi  v4,v4,v12,8
+     10c:	90 83 01 7c 	stw     r4,380(r3)
+     110:	10 84 6a 2c 	vsldoi  v4,v4,v13,8
+     114:	90 83 01 80 	stw     r4,384(r3)
+     118:	10 84 72 2c 	vsldoi  v4,v4,v14,8
+     11c:	90 83 01 84 	stw     r4,388(r3)
+     120:	10 84 7a 2c 	vsldoi  v4,v4,v15,8
+     124:	90 83 01 88 	stw     r4,392(r3)
+     128:	10 84 82 2c 	vsldoi  v4,v4,v16,8
+     12c:	90 83 01 8c 	stw     r4,396(r3)
+     130:	10 84 8a 2c 	vsldoi  v4,v4,v17,8
+     134:	90 83 01 90 	stw     r4,400(r3)
+     138:	10 84 92 2c 	vsldoi  v4,v4,v18,8
+     13c:	90 83 01 94 	stw     r4,404(r3)
+     140:	10 84 9a 2c 	vsldoi  v4,v4,v19,8
+     144:	90 83 01 98 	stw     r4,408(r3)
+     148:	10 84 a2 2c 	vsldoi  v4,v4,v20,8
+     14c:	90 83 01 9c 	stw     r4,412(r3)
+     150:	10 84 aa 2c 	vsldoi  v4,v4,v21,8
+     154:	90 83 01 a0 	stw     r4,416(r3)
+     158:	10 84 b2 2c 	vsldoi  v4,v4,v22,8
+     15c:	90 83 01 a4 	stw     r4,420(r3)
+     160:	10 84 ba 2c 	vsldoi  v4,v4,v23,8
+     164:	90 83 01 a8 	stw     r4,424(r3)
+     168:	10 84 c2 2c 	vsldoi  v4,v4,v24,8
+     16c:	90 83 01 ac 	stw     r4,428(r3)
+     170:	10 84 ca 2c 	vsldoi  v4,v4,v25,8
+     174:	90 83 01 b0 	stw     r4,432(r3)
+     178:	10 84 d2 2c 	vsldoi  v4,v4,v26,8
+     17c:	90 83 01 b4 	stw     r4,436(r3)
+     180:	10 84 da 2c 	vsldoi  v4,v4,v27,8
+     184:	90 83 01 b8 	stw     r4,440(r3)
+     188:	10 84 e2 2c 	vsldoi  v4,v4,v28,8
+     18c:	90 83 01 bc 	stw     r4,444(r3)
+     190:	10 84 ea 2c 	vsldoi  v4,v4,v29,8
+     194:	90 83 01 c0 	stw     r4,448(r3)
+     198:	10 84 f2 2c 	vsldoi  v4,v4,v30,8
+     19c:	90 83 01 c4 	stw     r4,452(r3)
+     1a0:	10 84 fa 2c 	vsldoi  v4,v4,v31,8
+     1a4:	90 83 01 c8 	stw     r4,456(r3)
+	evxor	evr6, evr6, evr6	/* clear out evr6 */
+     1a8:	10 c6 32 16 	.long 0x10c63216
+	evmwumiaa evr6, evr6, evr6	/* evr6 <- ACC = 0 * 0 + ACC */
+     1ac:	10 c6 35 58 	.long 0x10c63558
+	li	r4,THREAD_ACC
+     1b0:	38 80 01 d0 	li      r4,464
+	evstddx	evr6, r4, r3		/* save off accumulator */
+     1b4:	10 c4 1b 20 	vmhaddshs v6,v4,v3,v12
+	mfspr	r6,SPRN_SPEFSCR
+     1b8:	7c c0 82 a6 	mfspr   r6,512
+	stw	r6,THREAD_SPEFSCR(r3)	/* save spefscr register value */
+     1bc:	90 c3 01 d8 	stw     r6,472(r3)
+	beq	1f
+     1c0:	41 82 00 14 	beq-    1d4 <giveup_spe+0x150>
+	lwz	r4,_MSR-STACK_FRAME_OVERHEAD(r5)
+     1c4:	80 85 00 84 	lwz     r4,132(r5)
+	lis	r3,MSR_SPE@h
+     1c8:	3c 60 02 00 	lis     r3,512
+	andc	r4,r4,r3		/* disable SPE for previous task */
+     1cc:	7c 84 18 78 	andc    r4,r4,r3
+	stw	r4,_MSR-STACK_FRAME_OVERHEAD(r5)
+     1d0:	90 85 00 84 	stw     r4,132(r5)
+1:
+#ifndef CONFIG_SMP
+	li	r5,0
+     1d4:	38 a0 00 00 	li      r5,0
+	lis	r4,last_task_used_spe@ha
+     1d8:	3c 80 00 00 	lis     r4,0
+	stw	r5,last_task_used_spe@l(r4)
+     1dc:	90 a4 00 00 	stw     r5,0(r4)
+#endif /* !CONFIG_SMP */
+	blr
+     1e0:	4e 80 00 20 	blr
+	 
