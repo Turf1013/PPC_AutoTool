@@ -1,0 +1,45 @@
+import os
+import sys
+import logging
+
+class pipeLine(object):
+	"""
+	pipeLine is used to describe a model, Included
+	1. stageName & stageCycle
+	2. module & how to connect the module
+	"""
+	
+	# @param:
+	#	stgNameList: stage Name List
+	#	stgCycList: each stage need how many cycles to finish
+	#	rindex:	which stage read the register	(All register read in only one stage)
+	#	windex: which stage write the register	(All register write in only one stage)
+	def __init__(self, stgNameList, stgCyclist, rIndex, wIndex,
+					module, rmodule, wModule):
+		self.stgNameList = stgNameList
+		self.stgCycList = stgCycList
+		self.rIndex = rIndex
+		self.wIndex = wIndex
+		self.rModule = rModule
+		self.wModule = wModule
+		self.module = module
+		
+		
+	def __str__(self):
+		return self.__repr__()
+		
+		
+	def __repr__(self):
+		ret = 'PipeLine definition:\n'
+		ret += '%-5s    %s\n' % ('name', 'cycle')
+		for i,item in enumerate(zip(self.stgNameList, self.stgCycList)):
+			ret += "%-5s    %-2d\n" % (item[0], item[1])
+		return ret
+		
+		
+if __name__ == '__main__':
+	stgNameList = ['F', 'D', 'E', 'M', 'W']
+	stgCycList = [1, 1, 2, 2, 1]
+	ppl = pipeLine(stgNameList, stgCycList)
+	print ppl
+	

@@ -10,6 +10,7 @@ Included
 + Pluto: a powerpc simulater (instead by Qemu)
 + Geass: v1.0 auto tool for solving the hezard, testing only By MIPS ISA
 + Mandrill: a checking tool for specific insn in different ways
++ Gargoyle: a auto tool for generating HDL code for pipeline
 + TestData: a collection of test File
 + Reference: some Reference ebook
 + Other: other Trivial tools
