@@ -3,6 +3,9 @@ import sys
 import logging
 from based_graph import Node
 from gen_portName import *
+from ..utility.portParser import portParser
+from ..utility.RTLParser import  RTLParser
+from ..utility.portRename import portRename
 
 """
 Gargoyle handle the hazard based on Graph Theory.
@@ -34,13 +37,13 @@ class insnCluster(object):
 			raise TypeError, 'using tuple or list construct insnCluster'
 	
 	
-	def add_insn(self, insn):
+	def add_aInsn(self, insn):
 		self.insnSet.add(insn)
 	
 	
 	# @param:
 	#	insnCls: insnCluster
-	def add_insnCls(self, insnCls):
+	def add_aInsnCls(self, insnCls):
 		self.insnSet |= insnCls.insnSet
 	
 	
@@ -80,6 +83,11 @@ class modNode(Node):
 		self.stgn = stgn
 		self.mtype = 
 	
+	# @function:
+	#	add a instruction to insnCls
+	def add_aInsn(self, insnName):
+		self.insnCls.add_aInsn(insnName)
+	
 
 class harzard_Graph(object):
 	
@@ -94,6 +102,9 @@ class harzard_Graph(object):
 		self.pipeRtls = pipeRtls
 		self.nodeList = []
 		self.nodeDict = {}
+		self.rNodeRng = ()	# read modNode Range
+		self.wNodeRng = ()	# write modNode Range
+		
 		
 	# @function: create core Module node (ALU, MDU, etc)
 	def create_allModNode(self):
@@ -108,7 +119,7 @@ class harzard_Graph(object):
 			self.nodeList += tmpList
 			self.nodeDict.update(zip(nameList, tmpList))
 			'add pipeline register module from every stage'
-			pplrName = gen_pplrName(istg)
+			pplrName = portRename.gen_pplrName(istg)
 			self.nodeList.append(
 				modName(pplrName, istg, modNode.typeDict['pplr'], [])
 			)
@@ -136,10 +147,37 @@ class harzard_Graph(object):
 	
 	
 	# @function:
-	def add_OneInstr(self):
+	#	add a complete data flow to the Graph, only the edges between rIndex and wIndex.
+	#	Here I choose to add insnName to the modName, 
+	#	because hazard_graph is used to generate hazard condition and stall condition,
+	#	we only need these items:
+	#	(1) stage info: from self.ppl
+	#	(2) insn info: collect in insnCls
+	#	(3) read or write: rmodule & wmodule
+	#	(4) other info: extremely probability as the hard code.
+	# @param:
+	#	insnName: name of insn
+	def add_aInstr(self, insnName):
 		'readPort in pipeRtls'
-		
-		
+		insnConn = self.connRtls[insnName]
+		insnPipe = self.pipeRtls[insnName]
+		for istg in range(self.rIndex, self.wIndex):
+			conn = insnConn[istg]
+			pipe = insnPipe[istg]
+			
+	
+	# @function:
+	# through connection Rtl add insn to modName
+	# @param:
+	#	conn: connection Rtl
+	#	istg: index of stage
+	def add_connRtl(self, conn, istg):
+		for srcPort,desPort in conn:
+			srcm = portParser.is_aRdPort(srcPort)
+			desm = portParser.is_aWtPort(wtPort)
+			if srcm and desm:
+				
+	
 	
 	# @function: 
 	def create_allEdge(self):
