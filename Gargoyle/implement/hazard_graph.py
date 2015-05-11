@@ -37,9 +37,9 @@ class insnCluster(object):
 			raise TypeError, 'using tuple or list construct insnCluster'
 	
 	
-	def add_aInsn(self, insn):
-		self.insnSet.add(insn)
-	
+	def __iadd__(self, insn):
+		self.insnSet.add(isn)
+		return self
 	
 	# @param:
 	#	insnCls: insnCluster
@@ -64,31 +64,50 @@ class modNode(Node):
 		'read'		:	1,
 		'write'		:	2,
 		'access'	:	3,
-		'func'		: 	4,
+		'core'		: 	4,
 		'pplr'		:	5,
-		'calc'		:	6,
-		'unknown'	: 	7,
+		'unknown'	: 	6,
 	}
+	
 	
 	# @param:
 	#	name: name of the module
 	#	stgn: num of the module need to finish work
 	#	type: type means type of the node, included
 	#			read, write, access(read & write, like memroy)
-	#			function, pipeLine Register, calculate
+	#			core, pipeLine Register
 	#	insnCls: instruction Cluster using this module
 	def __init__(self, name, stgn, mtype, insnCls):
 		Node.__init__(self, name)
 		self.insnCls = insnCls
 		self.stgn = stgn
-		self.mtype = 
+		self.mtype = mtype
+		if mtype == typeDict['core']:
+			self.mout = portRename.gen_modOutPortName(name)
+		self.children = []
 	
 	# @function:
 	#	add a instruction to insnCls
 	def add_aInsn(self, insnName):
 		self.insnCls.add_aInsn(insnName)
 	
-
+	
+	# @function:
+	#	add a Edge to current node
+	def add_aEdge(self, mnode):
+		if mnode not in self.children:
+			self.children.append(mnode)
+	
+	
+	def __contains__(self, mnode):
+		return mnode in self.chidren
+		
+		
+	def __iadd__(self, insn):
+		self.insnCls += insn
+		return self
+	
+	
 class harzard_Graph(object):
 	
 	# @param:
@@ -113,7 +132,7 @@ class harzard_Graph(object):
 			nameList = self.module[istg]
 			stgList  = [istg] * len(nameList)
 			tmpList = map(
-				lambda name, stg: modName(name, stg, modNode.typeDict['unknown'], []),
+				lambda name, stg: modName(name, stg, modNode.typeDict['core'], []),
 				nameList, stgList
 			)
 			self.nodeList += tmpList
@@ -128,22 +147,96 @@ class harzard_Graph(object):
 		
 		'add read module'
 		self.rNodeRng = (len(self.NodeList), len(self.NodeList) + len(self.ppl.rmodule))
-		tmpList += map(
+		rModule = map(portName.gen_rModName, self.ppl.rModule)
+		tmpList = map(
 			lambda name, stg: modName(name, stg, modNode.typeDict['read'], []),
-			self.ppl.rmodule, [rIndex] * len(self.ppl.rmodule)
+			rModule, [rIndex] * len(rModule)
 		)
 		self.nodeList += tmpList
-		self.nodeDict.update(zip(self.ppl.rmodule, tmpList))
+		self.nodeDict.update(zip(rModule, tmpList))
 		
 		
 		'add write module'
 		self.wNodeRng = (len(self.NodeList), len(self.NodeList) + len(self.ppl.wmodule))
-		tmpList += map(
+		wModule = map(portName.gen_wModName, self.ppl.wModule)
+		tmpList = map(
 			lambda name, stg: modName(name, stg, modNode.typeDict['write'], []),
-			self.ppl.wmodule, [rIndex] * len(self.ppl.wmodule)
+			wModule, [rIndex] * len(wModule)
 		)
 		self.nodeList += tmpList
-		self.nodeDict.update(zip(self.ppl.wmodule, tmpList))
+		self.nodeDict.update(zip(wModule, tmpList))
+	
+	
+	# @function:
+	#	generate hazard condition from the graph. There are some lemmas as follows:
+	#	(1) if there exists a edge(name as E_w, w->x) from wModule to module_x(neither rmodule or wModule), 
+	#		means until stg_x(Sx for short) module_x Output can used as bypass.
+	#			the pipeline stage build base on lemma_1
+	#	(2) if there exists a edge(name as E_r, r->y) from rModule to module_y, 
+	#		and wModule here is the same module as rModule but with different stage. (Such as SPR, GPR, CR).
+	#		means @stg_y(Sy for short) module_y must get valid input(come from rModule or bypass).
+	#	(3) Then we can prove
+	#		(a) Sx > Sy,	Sr=S0 Sw=Sk+1
+	#		Stage:						 V
+	#			.. Sr S1 S2 S3 .. Sy .. Sx .. Sk Sw
+	#			   .. Sr S1 S2 S3 .. Sy .. Sx .. Sk Sw
+	#					...... (x-y-1) stage ....	
+	#				  .. Sr S1 S2 S3 .. Sy .. Sx .. Sk Sw
+	#					...... (y-1) stage ....	
+	#				                 .. Sr S1 S2 S3 .. Sy .. Sx .. Sk Sw
+	#		i. for any Stage s in (Sx, Sw]
+	#			if exist Stage ss, And ss < s and is_WAR(Insn_ss & Insn_s)
+	#				add bypass from s send to Sy. (no need to stall)
+	#		ii. for any stage s in [Sr, Sx]
+	#			if exist Stage ss, And ss < min(s,Sy) and is_WAR(Insn_ss & Insn_s)
+	#				if Sx-s < Sy-ss:
+	#					if Sx+sy-ss > Sw:
+	#						no need to add bypass
+	#					elsif Sx+Sy-ss == Sw: 
+	#						add bypass (actually inner bypass, such as GPR, CR, SPR)
+	#					else:
+	#						add bypass from Sx+Sy-ss to Sy. (no need to stall)
+	#				else:
+	#					stall Insn_ss for t cycle, here t=(Sx-Sy)-(s-ss)+1 statisfy
+	#						Sx-(s+t) < Sy-ss (Insn_ss still @ss because of stall)
+	#						t > (Sx-s)-(Sy-ss) = (Sx-Sy) - (s-ss).
+	#						we need stall as short as possible, so t = (Sx-Sy) - (s-ss) + 1
+	#					Indeed we need to stall Insn_ss from rStg, 
+	#						because during the stalling, some bypass-data may write-back and not bypass any-more.
+	#						But when we stall Insn_ss at rStg, we can read from GPR the latest result.
+	#						when the insn starts to pipe, we still can get bypass result if possible.
+	#					In summary, when is_WAR( Insn_@Stage ss-(ss-Sr) & Insn_@Stage s-(ss-Sr) )
+	#						Insn_@Stage ss-(ss-Sr) need to stall (Sx-Sy)-(s-ss)+1 cycle.
+	#
+	#		(b) Sx == Sy, Sr=S0 Sw=Sk+1
+	#		Stage:						 V
+	#			.. Sr S1 S2 S3 .. Sx .. Sk Sw
+	#			   .. Sr S1 S2 S3 .. Sx .. Sk Sw
+	#		i.	for any Stage s in (Sx, Sw]
+	#				if exist Stage ss, And ss < s and is_WAR(Insn_ss & Insn_s)
+	#					add bypass from s send to Sy. (no need to stall)
+	#		ii. for any Stage s in (Sr, Sx]
+	#				if exist Stage ss, And ss < min(s,Sy) and is_WAR(Insn_ss & Insn_s)
+	#					if Sx-s < Sy-ss (always True):
+	#						(It's always early enough to bypass)
+	#						if Sx+sy-ss > Sw:
+	#							no need to add bypass
+	#						elsif Sx+Sy-ss == Sw: 
+	#							add bypass (actually inner bypass, such as GPR, CR, SPR)
+	#						else:
+	#							add bypass from Sx+Sy-ss to Sy. (no need to stall)
+	#				**** because when Sx==Sy, Sx-s<Sy-ss always fits. ****
+	#
+	#		(c) Sx < Sy, Sr=S0 Sw=Sk+1
+	#		Stage:						    V
+	#			.. Sr S1 S2 S3 .. Sx .. Sy .. Sk Sw
+	#			   .. Sr S1 S2 S3 .. Sx .. Sy .. Sk Sw
+	#		i.	It's always early enough to bypass from Insn_s to Insn_ss as long as ss<s
+	#			for any Stage ss in (Sr, Sy] and s>ss
+	#				if is_WAR(Insn_ss, Insn_s)
+	#					add bypass from s to Sy.
+	def gen_hazardCondition(self):
+		pass
 	
 	
 	# @function:
@@ -161,10 +254,124 @@ class harzard_Graph(object):
 		'readPort in pipeRtls'
 		insnConn = self.connRtls[insnName]
 		insnPipe = self.pipeRtls[insnName]
-		for istg in range(self.rIndex, self.wIndex):
-			conn = insnConn[istg]
-			pipe = insnPipe[istg]
+		rdPortList = []
+		for srcPort in insnPipe[self.rIndex]:
+			if portParser.is_aRdPort(srcPort):
+				rdPortList.append(srcPort)
+		
+		for rdPort in rdPortList:
+			self.add_aInstr(insnName, rdPort)
+	
+	
+	def add_allInstr(self):
+		for insnName in self.connRtls.keys():
+			self.add_aInstr(self, insnName)
+	
 			
+	# @function
+	#	add a Instr Path to the graph, path here means multible edges
+	# @algorithm:
+	#	bfs
+	#		 _______
+	#		|		->ALU
+	#	RF_rr1
+	#		|____________->MEM
+	#
+	def add_aInstrPath(self, insn, rdPort):
+		insnConn = self.connRtls[insn]
+		insnPipe = self.pipeRtls[insn]
+		Q = [(rdPort, self.rIndex)]
+		while Q:
+			pipePort, cstg = Q.pop(0)
+			mod_Pipe = self.gen_portModName(pipePort, cstg)
+			if mod_Pipe in self.nodeDict:
+				mod_Pipe_Node = self.nodeDict[mod_Pipe]
+			else:
+				raise KeyError, 'current modName[%s] not in Graph' % (mod_Pipe)
+				return 
+			'only consider next stage'
+			istg = cstg+1
+			conn = insnConn[istg]
+			"""
+			if the src appears in the connection list,
+			then need to add an edge between mod_Pipe and mod_desPort
+			"""
+			for i,val in enumerate(map(lambda src:src==mod_Pipe, zip(*conn))):
+				if val:
+					_, desPort = conn[i]
+					mod_desPort = self.gen_portModName(desPort, cstg)
+					if mod_desPort in self.nodeDict:
+						mod_desPort_Node = self.nodeDict[mod_desPort]
+					else:
+						raise KeyError, 'current modName[%s] not in Graph' % (mod_Pipe)
+						return
+					self.add_aEdge(mod_Pipe_Node, mod_desPort_Node)
+					if istg == self.ppl.wIndex:
+						'add direct inverse edge'
+						self.add_aEdge(mod_desPort_Node, mod_Pipe_Node)
+			
+			if istg < self.ppl.wIndex:
+				'add more port to Q'	
+				pipe = insnPipe[istg]
+				for pipePort in pipe:
+					if portParser.is_aDataPort(pipePort):
+						Q.append((pipePort, istg))
+	
+	
+	# @function:
+	#	add a Edge between u_mname and v_mname
+	#	if the Edge already exists, then just add the insn into v_mname
+	def add_aEdge(u_mname, v_mname, insn):		
+		mod_Pipe_Node.add_aEdge(mod_desPort_Node)
+		mod_desPort_Node.add_aInstr(insn)
+		
+	
+	# @function:
+	#	generate the module Name according the pipeName
+	#	different from generate the portModName,
+	#	because pipeName only use as source
+	def gen_pipeModName(pipeName, istg):
+		mname = portParser.is_aPort(portName)
+		if mname in self.ppl.rModule:
+			return portRename.gen_rModuleName(mname)
+		else:
+			return mname
+	
+	
+	# @function:
+	#	generate the module Name according the portName & istg
+	def get_portModName(portName, istg):
+		mname = portParser.is_aPort(portName)
+		if not mname:
+			return None
+		if istg==self.rIndex and mname in self.ppl.rModule:
+			return portRename.gen_rModuleName(mname)
+		elif istg==self.wIndex and mname in self.ppl.wModule:
+			return portRename.gen_rModuleName(mname)
+		else:
+			return mname
+				
+						
+	# @function
+	#	add the pipe RTL to the graph
+	# @param:
+	#	pipe: pipe RTL
+	def add_pipeRtl(self, pipe, istg, insnName):
+		for srcPort in pipe:
+			srcm = portParser.is_aRdPort(srcPort)
+			if not srcm:
+				continue
+			if istg==self.rIndex and srcm in self.ppl.rModule:
+				srcm = portRename.gen_rModuleName(srcm)
+			elif istg==self.wIndex and srcm in self.ppl.wModule:
+				'this condition may not happend'
+				srcm = portRename.gen_wModuleName(srcm)
+			if srcm in nodeDict:
+				modNode = nodeDict[srcm]
+				modeNode.add_aInsn(in)
+			else:
+				raise KeyError, 'current modName[%s] not in Graph' % (srcm)
+				
 	
 	# @function:
 	# through connection Rtl add insn to modName

@@ -22,8 +22,8 @@ class pipeLine(object):
 		self.rIndex = rIndex
 		self.wIndex = wIndex
 		'need to rename the rModule & wModule, because they may have the same name'
-		self.rModule = map(portName.gen_rModName, rModule)
-		self.wModule = map(portName.gen_wModName, wModule)
+		self.rModule = rModule	#map(portName.gen_rModName, rModule)
+		self.wModule = wModule	#map(portName.gen_wModName, wModule)
 		self.module = module
 		
 		

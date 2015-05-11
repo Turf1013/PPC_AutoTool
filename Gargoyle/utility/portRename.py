@@ -22,3 +22,8 @@ class portRename(object):
 	@staticmethod
 	def gen_wModName(mname):
 		return '%s_w' % (mname)
+		
+		
+	@staticmethod
+	def gen_modOutPortName(mname):
+		return '%s_out' % (mname)
