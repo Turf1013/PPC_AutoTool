@@ -26,6 +26,14 @@ class pipeLine(object):
 		self.wModule = wModule	#map(portName.gen_wModName, wModule)
 		self.module = module
 		
+		self.init_mod_parameter()
+		
+		
+	# @function:
+	#	generator the parameter of the module, such as num of waddr/raddr,
+	#	num of wd/rd
+	def init_mod_parameter(self):
+		
 		
 		
 	def __str__(self):

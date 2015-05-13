@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+from collections import defaultdict
 from based_graph import Node
 from gen_portName import *
 from ..utility.portParser import portParser
@@ -72,15 +73,15 @@ class modNode(Node):
 	
 	# @param:
 	#	name: name of the module
-	#	stgn: num of the module need to finish work
+	#	stg: stage of the module
 	#	type: type means type of the node, included
 	#			read, write, access(read & write, like memroy)
 	#			core, pipeLine Register
 	#	insnCls: instruction Cluster using this module
-	def __init__(self, name, stgn, mtype, insnCls):
+	def __init__(self, name, stg, mtype, insnCls):
 		Node.__init__(self, name)
 		self.insnCls = insnCls
-		self.stgn = stgn
+		self.stg = stg
 		self.mtype = mtype
 		if mtype == typeDict['core']:
 			self.mout = portRename.gen_modOutPortName(name)
@@ -123,7 +124,8 @@ class harzard_Graph(object):
 		self.nodeDict = {}
 		self.rNodeRng = ()	# read modNode Range
 		self.wNodeRng = ()	# write modNode Range
-		
+		self.rInsnCnt = 0
+		self.wInsnCnt = 0
 		
 	# @function: create core Module node (ALU, MDU, etc)
 	def create_allModNode(self):
@@ -147,7 +149,7 @@ class harzard_Graph(object):
 		
 		'add read module'
 		self.rNodeRng = (len(self.NodeList), len(self.NodeList) + len(self.ppl.rmodule))
-		rModule = map(portName.gen_rModName, self.ppl.rModule)
+		self.rModule = map(portName.gen_rModName, self.ppl.rModule)
 		tmpList = map(
 			lambda name, stg: modName(name, stg, modNode.typeDict['read'], []),
 			rModule, [rIndex] * len(rModule)
@@ -158,7 +160,7 @@ class harzard_Graph(object):
 		
 		'add write module'
 		self.wNodeRng = (len(self.NodeList), len(self.NodeList) + len(self.ppl.wmodule))
-		wModule = map(portName.gen_wModName, self.ppl.wModule)
+		self.wModule = map(portName.gen_wModName, self.ppl.wModule)
 		tmpList = map(
 			lambda name, stg: modName(name, stg, modNode.typeDict['write'], []),
 			wModule, [rIndex] * len(wModule)
@@ -235,8 +237,132 @@ class harzard_Graph(object):
 	#			for any Stage ss in (Sr, Sy] and s>ss
 	#				if is_WAR(Insn_ss, Insn_s)
 	#					add bypass from s to Sy.
-	def gen_hazardCondition(self):
+	def gen_WAR_allCondition(self):
+		'iterate all the wModule, from their children we get the module_y'
+		for wModuleName in self.wModule:
+			'1. prepare the W'
+			node_w = self.nodeDict[wModuleName]
+			node_x_List = []
+			for node_x in node_w.children:
+				'check both stg to make sure the connection'
+				if node_x.stg < node_w.stg:
+					'valid output-write connection'
+					node_x_List.append(node_x)
+			'get the raw module name of wModule, we can use it to find the rModule'
+			mname = portParser.is_atPort(wModuleName)
+			
+			'2. prepare the R'
+			rModuleName = portRename.gen_rModName(mname)
+			node_r = self.nodeDict[rModuleName]
+			node_y_List = []
+			for node_y in node_r.children:
+				'check both stg to make sure the connection'
+				if node_y.stg >= node_r.stg:
+					'valid read-input connection'
+					node_y_List.append(node_t)
+			
+			'3. generate WAR condition'
+			self.gen_WAR_aCondition(mname, node_w, node_x_List, node_r, node_y_List)
+		
+		
+	# @function:
+	#	generate the WAR condition between wModule & rModule, bypass data stored into node_y_list
+	# @algorithm:
+	"""
+		_bypass:
+		Any stg_i in [stg_x+1, stg_w]
+			bypass modOut to node_y
+			
+		_stall:
+		Any stg_i in [stg_r+1, stg_x]
+			Any stg_j in [stg_r, min(stg_y, stg_i)]
+				if stg_x-stg_i >= stg_y-stg_j:
+					stall
+				else:
+					will get the right data from bypass later
+		
+		Simplify the _stall, we get:
+		Any stg_i in [stg_r+1, stg_x]
+			if stg_x-stg_i >= stg_y-stg_r:
+				stall at stg_r
+		Simplify more, we get
+		Any stg_i in [stg_r+1, min(stg_x-stg_y+stg_r, stg_x)]:
+			stall 
+	"""
+	def gen_WAR_aCondition(self, mname, node_w, node_x_List, node_r, node_y_List):
+		insn_y_grp_List = []
+		stg_w = self.ppl.wIndex
+		stg_r = self.ppl.rIndex
+		for node_y in node_y_List:
+			insn_y_grp = self.gen_insnGrp(node_y.insnCls, mname, self.ppl.rIndex)
+			insn_y_grp_List.append(insn_grp)
+		for ix,node_x in enumerate(node_x_List):
+			stg_x = node_x.stg
+			insn_x_grp = self.gen_insnGrp(stg_x.insnCls, mname, self.ppl.wIndex)
+			for iy,node_y in enumerate(node_y_List):
+				stg_y = node_y.stg
+				insn_y_grp = insn_y_grp_List[iy]
+				for stg_i in range(stg_x+1, stg_w+1):
+					self.gen_WAR_bypass()
+					
+				for stg_i in range(stg_r+1, min(stg_x-stg_y+stg_r, stg_x)):
+					self.gen_WAR_stall()
+					
+	
+	# @function:
+	#	generate the bypass-necessary-item to handle WAR hazard
+	# @param:
+	#
+	def gen_WAR_bypass():
 		pass
+		
+	
+	# @function:
+	#	generate the stall-necessary-item to handle WAR stall
+	# @param:
+	#
+	def gen_WAR_stall():
+		pass
+		
+	
+	# @function:
+	#	Related to the ISA. may be override later.
+	def gen_rInsnGrp(self, insnCls, mname, istg):
+		conn = self.connRtls[istg]
+		n_rAddr = self.pplr.get_modParameter(mname, 'n_radar')
+		if n_rAddr:
+			name_rAddr_List = map(
+				portRename.gen_modrAddrPortName,
+				zip([mname]*n_rAddr, range(1, n_rAddr+1))
+			)
+		else:
+			name_rAddr_List = [portRename.gen_modrAddrName(mname)]
+		addrDict = dict( zip(name_rAddr_List, [defaultdict(list)]*len(name_rAddr_List)))
+		for insn in insnCls:
+			srcPort, desPort = conn[insn][istg]
+			if desPort in addrDict:
+				addrDict[desPort][srcPort].append(isn)
+		return addrDict
+			
+	
+	
+	def gen_wInsnGrp(self, insnCls, mname, istg):
+		conn = self.connRtls[istg]
+		n_wAddr = self.pplr.get_modParameter(mname, 'n_wAddr')
+		if n_wAddr:
+			name_wAddr_List = map(
+				portRename.gen_modwAddrPortName,
+				zip([mname]*n_wAddr, range(1, n_wAddr+1))
+			)
+		else:
+			name_wAddr_List = [portRename.gen_modwAddrPortName(mname)]
+		addrDict = dict( zip(name_wAddr_List, [defaultdict(list)]*len(name_wAddr_List)) )
+		for insn in insnCls:
+			srcPort, desPort = conn[insn][istg]
+			if desPort in addrDict:
+				addrDict[desPort][srcPort].append(insn)
+		return addrDict
+			
 	
 	
 	# @function:
