@@ -7,6 +7,8 @@ from gen_portName import *
 from ..utility.portParser import portParser
 from ..utility.RTLParser import  RTLParser
 from ..utility.portRename import portRename
+from ..model.pipeline import pipeline
+from ..model.mutexSet import mutex, mutexSet
 
 """
 Gargoyle handle the hazard based on Graph Theory.
@@ -118,14 +120,14 @@ class harzard_Graph(object):
 		self.root = modNode(
 			name='root', stgn=0, type=0, insnCls=None
 		)
+		self.ppl = ppl
 		self.connRtls = connRtls
 		self.pipeRtls = pipeRtls
 		self.nodeList = []
 		self.nodeDict = {}
 		self.rNodeRng = ()	# read modNode Range
 		self.wNodeRng = ()	# write modNode Range
-		self.rInsnCnt = 0
-		self.wInsnCnt = 0
+		
 		
 	# @function: create core Module node (ALU, MDU, etc)
 	def create_allModNode(self):
@@ -263,6 +265,15 @@ class harzard_Graph(object):
 			
 			'3. generate WAR condition'
 			self.gen_WAR_aCondition(mname, node_w, node_x_List, node_r, node_y_List)
+			
+			'4. geneerate WAR bypass mutex'
+			self.gen_WAR_bpmux()
+			
+	
+	# @function:
+	#	generate bypass mutex
+	def gen_WAR_bymux(self):
+		pass
 		
 		
 	# @function:
@@ -289,10 +300,23 @@ class harzard_Graph(object):
 		Any stg_i in [stg_r+1, min(stg_x-stg_y+stg_r, stg_x)]:
 			stall 
 	"""
+	# @param:
+	#	mname: name of the module, use it to generate OutPortName
+	#	node_w: write back node
+	#	node_x_list: node_x directly link to node_w
+	#	node_r: read node
+	#	node_y_list: node_r directly link to node_x
+	# @return:
+	#	ret_stall_List: stall condition list
+	#	ret_bypass_List: bypass condition list
+	#	ret_bpmux_Set: bypass mutex Set	(stg, rModule, rPortIndex, )
 	def gen_WAR_aCondition(self, mname, node_w, node_x_List, node_r, node_y_List):
 		insn_y_grp_List = []
 		stg_w = self.ppl.wIndex
 		stg_r = self.ppl.rIndex
+		ret_stall_List = []
+		ret_bypass_List = []
+		
 		for node_y in node_y_List:
 			insn_y_grp = self.gen_insnGrp(node_y.insnCls, mname, self.ppl.rIndex)
 			insn_y_grp_List.append(insn_grp)
@@ -303,33 +327,74 @@ class harzard_Graph(object):
 				stg_y = node_y.stg
 				insn_y_grp = insn_y_grp_List[iy]
 				for stg_i in range(stg_x+1, stg_w+1):
-					self.gen_WAR_bypass()
+					ret_bypass_List += self.gen_WAR_bypass(stg_i, insn_x_grp, stg_y, insn_y_grp)
 					
 				for stg_i in range(stg_r+1, min(stg_x-stg_y+stg_r, stg_x)):
-					self.gen_WAR_stall()
+					ret_stall_List += self.gen_WAR_stall(stg_i, insn_x_grp, insn_y_grp)
 					
+		return ret_stall_List, ret_bypass_List
+		
 	
 	# @function:
 	#	generate the bypass-necessary-item to handle WAR hazard
+	# @algorithm:
+	#	bypass condition consists of stg_i, stg_y, wAddr, rAddr, Out
+	#
 	# @param:
 	#
-	def gen_WAR_bypass():
-		pass
+	# @return:
+	#	bypass_List:
+	#		[(stg_i, stg_y), (wAddr, rAddr), (wInstrGrp_name, rInstrGrp_name)]
+	#	bpmux_List:
+	#		[]
+	def gen_WAR_bypass(self, stg_i, insn_x_grp, stg_y, insn_y_grp):
+		ret_bypass_List = []
+		
+		for x_desPort, x_srcDict in insn_x_grp.iteritems():
+			for x_srcPort, x_insn in x_srcDict.iteritems():
+				for y_desPort, y_srcDict in insn_y_grp.iteritems():
+					for y_srcPort, y_insn in y_srcDic.iteritems():
+						ret_bypass_List.append(
+							[(stg_i, self.ppl.rIndex), (x_srcPort, y_srcPort), (x_insn, y_insn)]
+						)
+						
+		return ret_bypass_List
 		
 	
 	# @function:
 	#	generate the stall-necessary-item to handle WAR stall
+	# @algorithm:
+	#	stall condition consists of w_stg, r_stg(self.ppl.rIndex), wAddr, rAddr, rInstrGrp_name, wInstrGrp_name
+	#	stall only happens in Decode Stage (which means only use instr_D).
 	# @param:
-	#
-	def gen_WAR_stall():
-		pass
+	#	stg_i: see the prove process
+	#	insn_x_grp: see the prove process
+	#	insn_y_grp: see the prove process
+	# @return:
+	#	[ [(w_stg, r_stg), (wAddr, rAddr), (wInstrGrp_name, rInstrGrp_name)] ]
+	def gen_WAR_stall(self, stg_i, insn_x_grp, insn_y_grp):
+		"""
+		1. because a module may have multiple read port  and multiple write port.
+		So need Orthogonal here.
+		2. Pay attention R_instr only stays at D-Stage.
+		"""
+		retList = []
+		for x_desPort, x_srcDict in insn_x_grp.iteritems():
+			for x_srcPort, x_insn in x_srcDict.iteritems():
+				for y_desPort, y_srcDict in insn_y_grp.iteritems():
+					for y_srcPort, y_insn in y_srcDic.iteritems():
+						retList.append(
+							[(stg_i, self.ppl.rIndex), (x_srcPort, y_srcPort), (x_insn, y_insn)]
+						)
+		return retList
+		
 		
 	
 	# @function:
 	#	Related to the ISA. may be override later.
 	def gen_rInsnGrp(self, insnCls, mname, istg):
 		conn = self.connRtls[istg]
-		n_rAddr = self.pplr.get_modParameter(mname, 'n_radar')
+		n_rAddr = self.ppl.get_modParameter(mname, 'n_rAddr')
 		if n_rAddr:
 			name_rAddr_List = map(
 				portRename.gen_modrAddrPortName,
@@ -341,14 +406,14 @@ class harzard_Graph(object):
 		for insn in insnCls:
 			srcPort, desPort = conn[insn][istg]
 			if desPort in addrDict:
-				addrDict[desPort][srcPort].append(isn)
+				addrDict[desPort][srcPort].append(insn)
 		return addrDict
 			
 	
 	
 	def gen_wInsnGrp(self, insnCls, mname, istg):
 		conn = self.connRtls[istg]
-		n_wAddr = self.pplr.get_modParameter(mname, 'n_wAddr')
+		n_wAddr = self.ppl.get_modParameter(mname, 'n_wAddr')
 		if n_wAddr:
 			name_wAddr_List = map(
 				portRename.gen_modwAddrPortName,
