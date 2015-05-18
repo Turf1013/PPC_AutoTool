@@ -9,6 +9,8 @@ from ..utility.RTLParser import  RTLParser
 from ..utility.portRename import portRename
 from ..model.pipeline import pipeline
 from ..model.mutexSet import mutex, mutexSet
+from ..model.bypass import bypass
+
 
 """
 Gargoyle handle the hazard based on Graph Theory.
@@ -240,6 +242,9 @@ class harzard_Graph(object):
 	#				if is_WAR(Insn_ss, Insn_s)
 	#					add bypass from s to Sy.
 	def gen_WAR_allCondition(self):
+		ret_stall_Dict = {}
+		ret_bypass_Dict = {}
+		ret_mutex_Dict = {}
 		'iterate all the wModule, from their children we get the module_y'
 		for wModuleName in self.wModule:
 			'1. prepare the W'
@@ -261,20 +266,89 @@ class harzard_Graph(object):
 				'check both stg to make sure the connection'
 				if node_y.stg >= node_r.stg:
 					'valid read-input connection'
-					node_y_List.append(node_t)
+					node_y_List.append(node_y)
 			
 			'3. generate WAR condition'
-			self.gen_WAR_aCondition(mname, node_w, node_x_List, node_r, node_y_List)
+			'the order in tmp_stall_List is just the same order we choose send data.'	
+			tmp_stall_List, tmp_bypass_List = self.gen_WAR_aCondition(\
+				mname, node_w, node_x_List, node_r, node_y_List)
+			ret_stall_Dict[mname] = tmp_stall_List
+			ret_bypass_Dict[mname] = tmp_bypass_List
+			
 			
 			'4. geneerate WAR bypass mutex'
-			self.gen_WAR_bpmux()
+			tmp_mutex_Set = self.gen_WAR_bpmux(mname, node_x_List, node_y_List)
+			ret_mutex_Dict[mname] = tmp_mutex_Set
+		
+		return ret_stall_Dict, ret_bypass_Dict, ret_mutex_Dict
 			
 	
 	# @function:
 	#	generate bypass mutex
-	def gen_WAR_bymux(self):
-		pass
+	# @Implement:
+	"""
+	(a) generate mutex unlike generate condition, 
+	(b) bypass mutex only consists of 
+		(1) original_input: use mname & no. generate, such as `GPR_rd1`
+		(2) send_data_input: use node_x generate, such as `ALU_Out`
+		(3) sel_control_input: use mname & no. & stage_name generate, such as `GPR_rd1_bp_STAGE`
+				Encode Strategy: order of tmp_stall_List+1 (0 is for original)
+	(c) Implement Tricks:
+		which means even many modules need a bypass for `GPR.rd1` @Stage_E,
+		we only need insert one mutex here.
+		Buf when  both `GPR.rd1 & GPR.rd2` as src @Stage_E, we need 2 mutex.
+		Even though bypass is global, we still need node_t as key in pipeRtls
+	(d) using find_rdList_by_mname() to generate read port index using mname
+	"""
+	# @return:
+	#	mutexSet
+	def gen_WAR_bymux(self, mname, node_x_List, node_y_List):
+		ret_mutex_Set = mutexSet()
 		
+		'generate the Out List'
+		Out_List = reduce(
+				lambda x,y: x+y, 
+				map(
+					lambda nd: [portRename.gen_modOutPortName(nd.name, stg=istg)\
+						for istg in range(nd.stg+1, self.ppl.wIndex)],
+					node_x_List
+				)
+			)
+		
+		stgSet = set(map(lambda nd: nd.stg, node_y_List))
+		for istg in stgSet:
+			index_Set = self.find_rdList_by_mname(mname, istg,\
+					filter(lambda nd: nd.stg==istg, node_y_List))
+			
+			mutex_List = map(
+				lambda index: mutex(stg=istg,\
+					input=[portRename.gen_modRdPortName(mname, index=index, stg=istg)]+Out_List,\
+					output=portRename.gen_bp_modRdPortName(mname, index=index, stg=istg), type=1)
+			, index_Set)
+			
+			ret_mutex_Set |= mutexSet(mutex_List)
+			
+		return ret_mutex_Set
+		
+	
+	# @function:
+	#	generate read port index list using module name
+	# @Implement:
+	#	find from the pipe and using re.
+	def find_rdList_by_mname(self, mname, istg, node_y_List):
+		indexSet = []
+		'pipe stage is always before need stage'
+		istg -= 1
+		pipe = self.pipeRtls
+		
+		insnCls_List = map(lambda nd: nd.insnCls, node_y_List)
+		insnSet = reduce(lambda x,y: x|y, map(lambda cls: cls.insnSet, insnCls_List))
+		for pipe in map(lambda insn: self.pipeRtls[insn][istg], insnSet):
+			for src in pipe:
+				index = portParser.get_rdindex(src, mname)
+				if index is not None:
+					indexSet.add(index)
+		return indexSet
 		
 	# @function:
 	#	generate the WAR condition between wModule & rModule, bypass data stored into node_y_list
@@ -307,7 +381,7 @@ class harzard_Graph(object):
 	#	node_r: read node
 	#	node_y_list: node_r directly link to node_x
 	# @return:
-	#	ret_stall_List: stall condition list
+	#	ret_stall_List: stall condition list	[base_index, [bypass_List]]
 	#	ret_bypass_List: bypass condition list
 	#	ret_bpmux_Set: bypass mutex Set	(stg, rModule, rPortIndex, )
 	def gen_WAR_aCondition(self, mname, node_w, node_x_List, node_r, node_y_List):
@@ -320,18 +394,24 @@ class harzard_Graph(object):
 		for node_y in node_y_List:
 			insn_y_grp = self.gen_insnGrp(node_y.insnCls, mname, self.ppl.rIndex)
 			insn_y_grp_List.append(insn_grp)
-		for ix,node_x in enumerate(node_x_List):
+		
+		ix = 1
+		for node_x in node_x_List:
 			stg_x = node_x.stg
 			insn_x_grp = self.gen_insnGrp(stg_x.insnCls, mname, self.ppl.wIndex)
 			for iy,node_y in enumerate(node_y_List):
 				stg_y = node_y.stg
 				insn_y_grp = insn_y_grp_List[iy]
 				for stg_i in range(stg_x+1, stg_w+1):
-					ret_bypass_List += self.gen_WAR_bypass(stg_i, insn_x_grp, stg_y, insn_y_grp)
+					ret_bypass_List += [
+						ix, self.gen_WAR_bypass(stg_i, insn_x_grp, stg_y, insn_y_grp)
+					]
 					
 				for stg_i in range(stg_r+1, min(stg_x-stg_y+stg_r, stg_x)):
 					ret_stall_List += self.gen_WAR_stall(stg_i, insn_x_grp, insn_y_grp)
 					
+			ix += self.wIndex-stg_x
+			
 		return ret_stall_List, ret_bypass_List
 		
 	
@@ -344,9 +424,7 @@ class harzard_Graph(object):
 	#
 	# @return:
 	#	bypass_List:
-	#		[(stg_i, stg_y), (wAddr, rAddr), (wInstrGrp_name, rInstrGrp_name)]
-	#	bpmux_List:
-	#		[]
+	#		[((stg_i, stg_y), (wAddr, rAddr), (wInstrGrp_name, rInstrGrp_name))]
 	def gen_WAR_bypass(self, stg_i, insn_x_grp, stg_y, insn_y_grp):
 		ret_bypass_List = []
 		
@@ -355,7 +433,7 @@ class harzard_Graph(object):
 				for y_desPort, y_srcDict in insn_y_grp.iteritems():
 					for y_srcPort, y_insn in y_srcDic.iteritems():
 						ret_bypass_List.append(
-							[(stg_i, self.ppl.rIndex), (x_srcPort, y_srcPort), (x_insn, y_insn)]
+							bypass(stg_i, stg_y, x_srcPort, y_srcPort, x_insn, y_insn)
 						)
 						
 		return ret_bypass_List
@@ -570,11 +648,11 @@ class harzard_Graph(object):
 	#	conn: connection Rtl
 	#	istg: index of stage
 	def add_connRtl(self, conn, istg):
-		for srcPort,desPort in conn:
-			srcm = portParser.is_aRdPort(srcPort)
-			desm = portParser.is_aWtPort(wtPort)
-			if srcm and desm:
-				
+		# for srcPort,desPort in conn:
+			# srcm = portParser.is_aRdPort(srcPort)
+			# desm = portParser.is_aWtPort(wtPort)
+			# if srcm and desm:
+		pass		
 	
 	
 	# @function: 

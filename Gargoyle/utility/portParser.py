@@ -10,14 +10,14 @@ re_instr	= 	re.compile(r"instr", re.I)
 re_port		=	re.compile(r"(?P<mname>\w+)")
 re_wtPort	=	re.compile(r"""
 (?P<mname>\w+)	# module name
-wt				# write
-\d*				# digit or not
+_wt				# write
+(?P<index>\d*)	# digit or not
 $
 """, re.X)
 re_rdPort 	=	re.compile(r"""
 (?P<mname>\w+)	# module name
-rd				# read
-\d*				# digit or not
+_rd				# read
+(?P<index>\d*)	# digit or not
 $
 """, re.X)
 
@@ -63,5 +63,14 @@ class portParser(object):
 	@staticmethod
 	def is_aInstrPort(portName):
 		return re_instr.match(portName)
+
+	@staticmethod
+	def get_rdIndex(portName, mname):
+		mgroup = re_rdPort.match(portName)
+		if mgroup and mgroup.group('mname')==mname:
+			return mgroup.group('mname')
+		else:
+			return None
+
 
 if __name__ == '__main__':

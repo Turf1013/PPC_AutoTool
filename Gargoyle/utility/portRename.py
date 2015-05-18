@@ -26,8 +26,11 @@ class portRename(object):
 		
 		
 	@staticmethod
-	def gen_modOutPortName(mname):
-		return '%s_out' % (mname)
+	def gen_modOutPortName(mname, stg=''):
+		ret = '%s_out' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
+		return stg
 
 	@staticmethod
 	def gen_rInsnGrp(index, stg):
@@ -38,15 +41,49 @@ class portRename(object):
 		return 'w%s_%d_%s' % (ppc_insnGrp, index, stg)
 
 	@staticmethod
-	def gen_modwAddrPortName(mname, index=0):
+	def gen_modwAddrPortName(mname, index='', stg=''):
 		if index:
-			return '%s_waddr_%d' % (mname, index)
+			ret = '%s_waddr_%d' % (mname, index)
 		else:
-			return '%s_waddr' % (mname)
+			ret = '%s_waddr' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
 
 	@staticmethod
-	def gen_modrAddrPortName(mname, index=0):
+	def gen_modrAddrPortName(mname, index='', stg=''):
 		if index:
-			return '%s_raddr_%d' % (mname, index)
+			ret = '%s_raddr_%d' % (mname, index)
 		else:
-			return '%s_raddr' % (mname)
+			ret = '%s_raddr' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
+
+	@staticmethod
+	def gen_modRdPortName(mname, index='', stg=''):
+		if index:
+			ret = '%s_rd_%d' % (mname, index)
+		else:
+			ret = '%s_rd' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
+		return ret
+
+	@staticmethod
+	def gen_bp_modRdPortName(mname, index='', stg=''):
+		if index:
+			ret = '%s_rd_bp_%d' % (mname, index)
+		else:
+			ret = '%s_rd_bp' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
+		return ret
+
+	@staticmethod
+	def gen_modWtPortName(mname, index='', stg=''):
+		if index:
+			ret = '%s_wt_%d' % (mname, index)
+		else:
+			ret = '%s_wt' % (mname)
+		if stg:
+			ret += '_%d' % (stg)
+		return ret
