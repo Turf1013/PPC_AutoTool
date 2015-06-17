@@ -174,6 +174,16 @@ class harzard_Graph(object):
 	
 	
 	# @function:
+	#	generate hazard because of Parallelling Some Functional Module (such as MDU, ALU)
+	# @algorithm:
+	#
+	# @Implement:
+	#	All such hazard can only be handled using stall.
+	def gen_paral_AllCondition(self):
+		pass
+	
+	
+	# @function:
 	#	generate hazard condition from the graph. There are some lemmas as follows:
 	#	(1) if there exists a edge(name as E_w, w->x) from wModule to module_x(neither rmodule or wModule), 
 	#		means until stg_x(Sx for short) module_x Output can used as bypass.
@@ -349,6 +359,7 @@ class harzard_Graph(object):
 				if index is not None:
 					indexSet.add(index)
 		return indexSet
+		
 		
 	# @function:
 	#	generate the WAR condition between wModule & rModule, bypass data stored into node_y_list

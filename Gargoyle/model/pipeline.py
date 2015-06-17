@@ -33,7 +33,7 @@ class pipeLine(object):
 	#	generator the parameter of the module, such as num of waddr/raddr,
 	#	num of wd/rd
 	def init_mod_parameter(self):
-		
+		pass
 		
 		
 	def __str__(self):
