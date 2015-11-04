@@ -10,14 +10,14 @@ class Rtl(object):
 	
 	"""
 	
-	def __init__(self, line):
-		self.line = re_space.sub("", line)
+	def __init__(self, val):
+		self.val = re_space.sub("", val)
 		
 	def __hash__(self):
-		return hash(self.line)
+		return hash(self.val)
 		
 	def __str__(self):
-		return self.line
+		return self.val
 			
 	@classmethod
 	def getMod(cls, wire):
@@ -42,9 +42,9 @@ class LinkRtl(Rtl):
 	
 	"""
 	
-	def __init__(self, line):
-		super(LinkRtl, self).__init__(line)
-		self.src, self.des = self.line.split(linkSymbol)
+	def __init__(self, val):
+		super(LinkRtl, self).__init__(val)
+		self.src, self.des = self.val.split(linkSymbol)
 		if self.isConstLink():
 			self.srcMod = None
 			self.srcPort = self.src
@@ -79,9 +79,9 @@ class PipeRtl(Rtl):
 	"""
 
 	
-	def __init__(self, line):
-		super(PipeRtl, self).__init__(line)
-		self.src = self.line.split(pipeSymbol)
+	def __init__(self, val):
+		super(PipeRtl, self).__init__(val)
+		self.src = self.val.split(pipeSymbol)
 		self.srcMod, self.srcPort = self.getModAndPort(self.src)
 		
 		

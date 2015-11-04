@@ -29,7 +29,7 @@ class CFV(constForVFile):
 class VFile(object):
 	""" Vfile means Access all kinds of *.v file.
 	
-	Vfile includes:
+	Vfile Function includes:
 	1. Generate all the Core Module;
 	2. Generate all the Insn;
 	3. Generate all the define `include head;
