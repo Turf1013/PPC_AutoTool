@@ -141,7 +141,7 @@ class VFile(object):
 					if defName.endswith(CFV.OP):
 						opDict[defName[:-len(CFV.OP)]] = defVal
 						xoDict[defName[:-len(CFV.OP)]] = None
-					elif defName.ednswith(CF.XO):
+					elif defName.endswith(CFV.XO):
 						xoDict[defName[:-len(CFV.XO)]] = defVal
 						
 			for name,op in opDict.iteritems():
