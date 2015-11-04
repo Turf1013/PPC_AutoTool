@@ -9,6 +9,7 @@ Desktop.ini
 *.egg
 *.egg-info
 log*
+tmp*
 dist
 build
 

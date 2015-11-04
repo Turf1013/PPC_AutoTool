@@ -6,9 +6,9 @@ class Port(object):
 	
 	"""
 	
-	def __init__(self, name, width=0):
+	def __init__(self, name, width="[0:0]"):
 		self.name 	= name
-		self.width 	= int(width)
+		self.width 	= width
 			
 			
 	def __hash__(self):
@@ -80,9 +80,9 @@ class Module(object):
 		
 		
 	def __str__(self):
-		ret = "[%s]\n" % (self.name)
+		ret = "*Module* %s\n" % (self.name)
 		for port in self.portList:
-			ret += "%s\n" % (port)
+			ret += "%s %s\n" % (port.width, port.name)
 		return ret	
 		
 		
@@ -105,20 +105,5 @@ class Module(object):
 	
 	
 		
-if __name__ == "__main__":
-	portList = [
-		("clk", 1),
-		("rst", 1),
-		("din", 32),
-		("dout", 32),
-	]
-	ff = Module("FF")
-	for args in portList:
-		ff.add(Port(*args))
-		
-	print ff, len(ff)
-	for port in ff:
-		print port
-		
-	print ff.Instance()
+
 		

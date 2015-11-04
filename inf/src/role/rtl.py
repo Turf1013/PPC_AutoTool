@@ -90,11 +90,5 @@ class PipeRtl(Rtl):
 	
 	
 		
-if __name__ == "__main__":
-	aLinkb = LinkRtl("1'b1   ->  b.y")
-	aPipe  = PipeRtl("a.x >> ")
-	# print aLinkb
-	# print aPipe
-	print aLinkb.isConstLink()
-	
+
 	

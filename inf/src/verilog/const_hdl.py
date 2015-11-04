@@ -1,5 +1,6 @@
 import string
 
+hdl_INCLUDE		= 	'`include'
 hdl_DEFINE		= 	'`define'
 hdl_MODULE 		= 	'module'
 hdl_ENDMODULE 	= 	'endmodule'

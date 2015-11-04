@@ -51,7 +51,3 @@ class BypassMutex(Mutex):
 		
 		
 		
-if __name__ == "__main__":
-	mux2 = Mutex("AlusrcA", 32, ["rs", "rt"])
-	print mux2.Instance()
-	

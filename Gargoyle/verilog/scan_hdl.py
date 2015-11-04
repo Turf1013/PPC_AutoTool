@@ -83,7 +83,7 @@ def scan_insnDef_file(filename):
 	len_op 		= len(arch_OP)
 	len_xo 		= len(arch_XO)
 	with open(filename, 'r') as fin:
-		line in fin:
+		for line in fin:
 			if line.startswith(hdl_DEFINE):
 				defName, def_Val = re_instrDef.findall(line[len_define:])[:2]
 				if defName.endswith(arch_OP):

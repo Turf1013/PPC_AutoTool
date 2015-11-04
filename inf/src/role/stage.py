@@ -28,18 +28,3 @@ class Stage(object):
 		return self.id - other.id
 		
 		
-if __name__ == "__main__":
-	stgList = [
-		(0, "F"),
-		(2, "E"),
-		(1, "D"),
-		(4, "W"),
-		(3, "M"),
-	]
-	stages = []
-	for args in stgList:
-		stages.append(Stage(*args))
-	stages.sort()	
-	for stg in stages:
-		print stg
-		
