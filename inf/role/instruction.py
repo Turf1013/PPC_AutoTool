@@ -14,11 +14,11 @@ class Insn(object):
 		self.xo		= xo
 		
 		
-	def condition(self, opField, opWidth, xoField, xoWidth):
+	def condition(self, opField="[0:5]", opWidth=6, xoField="[21:30]", xoWidth=10, INSTR="Instr"):
 		if self.xo is None:
-			return "(%s == %d'd%d)" % (opField, opWidth, self.op)
-		return "(%s == %d'd%d && %s == %d'd%d)" % (
-					opField, opWidth, self.op, xoField, xoWidth, self.xo
+			return "(%s%s==%d'd%d)" % (INSTR, opField, opWidth, self.op)
+		return "(%s%s==%d'd%d && %s==%d'd%d)" % (
+					INSTR, opField, opWidth, self.op, xoField, xoWidth, self.xo
 				)
 	
 	def __hash__(self):
