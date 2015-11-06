@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+class constForStage:
+	pass
+	
+class CFS(constForStage):
+	pass
 
 class Stage(object):
 

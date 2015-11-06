@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
+class constForInsn:
+	pass
+
+class CFI(constForInsn):
+	pass
+
+
 class Insn(object):
 	"""Insn means Instruction for short just like GNU.
 	
@@ -54,22 +61,5 @@ class InsnSet(set):
 			conds.append(insn.condtion(opField, opWidth, xoField, xoWidth))
 		return " && ".join(conds)
 	
-	
-if __name__ == "__main__":
-	insnList = [
-		("ADD", 1, 2),
-		("SUB", 3, 4),
-		("LOW", 5, 6),
-		("ADD", 1, 2),
-	]
-	
-	insnGrp = InsnSet()
-	for args in insnList:
-		insn = Insn(*args)
-		print "%s: %s" % (insn, insn.condtion("insn[`OP]", 7, "insn[`XO]", 8))
-		insnGrp.add(insn)
-		
-	insnGrp.remove(Insn(*insnList[1]))
-	print insnGrp.condition("insn[`OP]", 7, "insn[`XO]", 8)
-	print len(insnGrp)
+
 	

@@ -2,6 +2,14 @@
 from instruction import Insn
 from stage import Stage
 
+
+class constForHazard:
+	INSTR = "Instr"		
+
+class CFH(constForHazard):
+	pass
+
+
 class BaseHazard(object):
 
 	def __init__(self):
@@ -9,7 +17,6 @@ class BaseHazard(object):
 
 
 		
-INSTR = "Instr"		
 class BaseStgInsn(object):
 	"""	BaseStgInsn means Basic Insn with Stage
 	
@@ -39,7 +46,7 @@ class BaseStgInsn(object):
 	
 	
 	def condition(self):
-		instr = "%s_%s" % (INSTR, self.stg)
+		instr = "%s_%s" % (CFH.INSTR, self.stg)
 		return self.insn.condition(INSTR = instr)
 	
 		

@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 import re
 
-
-re_space = re.compile("\s+")
+class constForRtl:
+	re_space = re.compile("\s+")
+	linkSymbol = "->"
+	pipeSymbol = ">>"
+	ctrlSuffix = [
+		"Op",
+		"Wr"
+	]
+	
+	
+class CFR(constForRtl):
+	pass
 
 class Rtl(object):
 	"""Rtl means a language to describe the execution process of one Insn.
@@ -11,7 +21,7 @@ class Rtl(object):
 	"""
 	
 	def __init__(self, val):
-		self.val = re_space.sub("", val)
+		self.val = CFR.re_space.sub("", val)
 		
 	def __hash__(self):
 		return hash(self.val)
@@ -30,13 +40,22 @@ class Rtl(object):
 	@classmethod
 	def getModAndPort(cls, wire):
 		return wire.split(".")
-
 	
-linkSymbol = "->"
-ctrlSuffix = [
-	"Op",
-	"Wr"
-]
+	@classmethod
+	def isLinkRtl(cls, line):
+		return CFR.linkSymbol in line
+		
+	
+	@classmethod
+	def isPipeRtl(cls, line)
+		return CFR.pipeSymbol in line
+		
+	@classmethod
+	def isConstSrc(cls, src)
+		return "." not in src
+	
+
+
 class LinkRtl(Rtl):
 	"""LinkRtl means rtl which contains "->".
 	
@@ -44,7 +63,7 @@ class LinkRtl(Rtl):
 	
 	def __init__(self, val):
 		super(LinkRtl, self).__init__(val)
-		self.src, self.des = self.val.split(linkSymbol)
+		self.src, self.des = self.val.split(CFR.linkSymbol)
 		if self.isConstLink():
 			self.srcMod = None
 			self.srcPort = self.src
@@ -52,18 +71,22 @@ class LinkRtl(Rtl):
 			self.srcMod, self.srcPort = self.getModAndPort(self.src)
 			
 		self.desMod, self.desPort = self.getModAndPort(self.des)
+	
+	
+	def __hash__(self):
+		return hash(self.des)
 		
 	
 	def __eq__(self, other):
 		return self.src==other.src and self.des==other.des
-		
+	
 		
 	def isConstLink(self):
 		return "." not in self.src
 		
 		
 	def isCtrlLink(self):
-		for suf in ctrlSuffix:
+		for suf in CFR.ctrlSuffix:
 			if self.desPort.endswith(suf):
 				return true
 		return false
@@ -71,8 +94,6 @@ class LinkRtl(Rtl):
 	
 	
 	
-	
-pipeSymbol = ">>"
 class PipeRtl(Rtl):
 	"""PipeRtl means rtl which contains ">>".
 	
@@ -81,7 +102,7 @@ class PipeRtl(Rtl):
 	
 	def __init__(self, val):
 		super(PipeRtl, self).__init__(val)
-		self.src = self.val.split(pipeSymbol)
+		self.src = self.val.split(CFR.pipeSymbol)
 		self.srcMod, self.srcPort = self.getModAndPort(self.src)
 		
 		

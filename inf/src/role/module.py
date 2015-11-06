@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 from itertools import izip
 
+class constForPort:
+	pass
+	
+class CFP(constForPort):
+	pass
+
 class Port(object):
 	""" Port describes the port of the module
 	
@@ -22,7 +28,13 @@ class Port(object):
 	def __str__(self):
 		return self.name
 			
-			
+
+class constForModule:
+	pass
+
+class CFM(constForModule):	
+	pass
+	
 class Module(object):
 	""" Module presents the core module writen in verilog
 	
@@ -105,5 +117,14 @@ class Module(object):
 	
 	
 		
-
+	def find(self, name):
+		for port in self.portList:
+			if port.name == name
+				return port
+		return None
+		
+		
+	def findPortWidth(self, name):
+		p = self.find(name)
+		return p.width if p else None
 		

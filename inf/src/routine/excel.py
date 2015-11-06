@@ -7,25 +7,31 @@ import itertools
 from ..util.Access_Excel import Access_Excel
 from ..role.stage import Stage
 from ..role.pipeline import PipeLine
-from ..role.rtl import LinkRtl, PipeRtl, linkSymbol, pipeSymbol
+from ..role.rtl import Rtl, LinkRtl, PipeRtl
 
 class constForExcel:
-	pass
-	
-class CFE(constForExcel):
-	
 	ReadStageName = "D"
 	WriteStageName = "W"
 	rtlBegRow = 0
 	rtlBegCol = 0
 	
+class CFE(constForExcel):
+	pass
+
 	
+	
+class ExcelRtl:
+
+	def __init__(self, linkDict, pipeDict):
+		self.linkDict = linkDict
+		self.pipeDict = pipeDict
+		self.stgn = len(self.linkDict.items[0])
 
 class Excel(object):
 	""" Excel means Access all kinds of *.xls file.
 	
 	Excel Function includes:
-	1. Generate the PipeLine;
+	1. Generate the PipeLine;	(Must be the first)
 	2. Generate all the Rtls(Link & Pipe);
 	
 	"""
@@ -58,9 +64,9 @@ class Excel(object):
 		retPipeDict = dict()
 		for insnName, bound in insnBound.iteritems():
 			linkList, pipeList = self.__GenOneInsnRtl(*bound)
-			retLinkDict[insnName] = linkName
-			retPipeDict[insnName] = pipeName
-		return retLinkDict, retPipeDict
+			retLinkDict[insnName] = linkList
+			retPipeDict[insnName] = pipeList
+		return ExcelRtl(linkDict=retLinkDict, pipeDict=retPipeDict)
 			
 			
 	# return [2-dimension array] * 2
@@ -72,10 +78,10 @@ class Excel(object):
 			tmpLinkList = []
 			tmpPipeList = []
 			val in cells:
-				if linkSymbol in val:
+				if Rtl.isLinkRtl(val):
 					tmpLinkList.append( LinkRtl(val) )
 					
-				elif pipeSymbol in val:
+				elif Rtl.isPipeRtl(val):
 					tmpPipeList.append( PipeRtl(val) )
 				
 			retLinkList.append(tmpLinkList)

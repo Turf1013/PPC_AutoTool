@@ -7,10 +7,6 @@ from ..role.instruction import Insn
 from ..role.module import Module, Port
 
 class constForVFile:
-	pass
-	
-class CFV(constForVFile):
-	
 	VFILE_SUFFIX = ".v"
 	DEF_SUFFIX = "_def" + VFILE_SUFFIX
 	
@@ -24,6 +20,19 @@ class CFV(constForVFile):
 	OP = "_OP"
 	XO = "_XO"
 	
+class CFV(constForVFile):
+	pass
+	
+
+class VFileModule(object):
+
+	def __init__(self, modList):
+		for mod in modList:
+			self.modDict[mod.name] = mod
+			
+			
+	def find(self, name):
+		return self.modDict[name]
 	
 
 class VFile(object):
