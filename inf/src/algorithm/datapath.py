@@ -27,6 +27,43 @@ class Datapath(object):
 		self.pipeLine = pipeLine
 		self.modMap = modMap
 		self.insnMap = insnMap
+		
+	
+	# Add the link
+	def LinkMod(self):
+		likRtl = self.excepRtl.linkRtl
+		stgn = self.pipeLine.stg
+		for istg in xrange(stgn):
+			rtlSet = set()
+			for insnName, insnRtlList in linkRtls.iteritems():
+				rtlSet.update(insnRtlList[istg])
+			self.__LinkModPerStg(rtlSet, istg)
+			
+			
+	def __LinkModPerStg(self, rtlSet, istg):
+		stgName = self.pipeLine.StgNameAt(istg)
+		d = defaultdict(set)
+		for rtl in rtlSet:
+			d[rtl.des].add(rtl)
+			
+		for des, rtlSet in d.iteritems():
+			rtlList = list(rtlSet)
+			rtl = rtlList[0]
+			if rtl.isCtrlLink():
+				# Control Signal named as itself
+				varName = RP.DesToVar(rtl.des)
+				mod = self.modMap.find(rtl.desMod)
+				mod.addLink(rtl.desPort, varName)
+				
+			elif len(rtlList)>1:
+				# mux.dout link (linked in mux generating)
+				pass
+				
+			else:
+				varName = RP.SrcToVerilog(src=rtl.src, srg="_"+stgName)
+				mod = self.modMap.find(rtl.desMod)
+				mod.addLink(rtl.desPort, varName)
+			
 	
 	
 	# Generate all the Port Mux

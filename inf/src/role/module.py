@@ -71,6 +71,7 @@ class Module(object):
 			raise KeyError, "%s not in [%s]" % (desPort, self.name)
 		elif self.linkDict[desPort] is not None:
 			raise ValueError, "both %s and %s link %s " % (srcPort, self.linkDict[desPort])
+			# pass
 		else:
 			self.linkDict[desPort] = srcPort
 			

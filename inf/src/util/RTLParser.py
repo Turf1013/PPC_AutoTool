@@ -13,7 +13,7 @@ class RtlParser:
 
 	
 	@classmethod
-	def SrcToVerilog(cls, src, stg):
+	def SrcToVerilog(cls, src, stg=""):
 		def repl(matchobj):
 			val = matchobj.group(0)
 			if CFRP.re_rtlConst.match(val):
