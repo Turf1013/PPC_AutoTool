@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import os
-from ..verilog.const_hdl import *
+from ..verilog.const_hdl import constForVerilog as CFVL
 from ..verilog.gen_hdl import GenVerilog
 from ..role.instruction import Insn
 from ..role.module import Module, Port
@@ -11,9 +11,9 @@ class constForVFile:
 	DEF_SUFFIX = "_def" + VFILE_SUFFIX
 	
 	# re using by scan
-	re_moduleName 	= 	re.compile(r'\s*%s\s+(?P<name>[\w_]+)\s*' % (hdl_MODULE))
-	re_endmodule	=	re.compile(r'\s*%s' % (hdl_ENDMODULE))
-	re_portWidth 	= 	re.compile(r'\s*(?P<dir>%s|%s)\s+(?P<width>\[[\w`:_+-]+\])?' % (hdl_INPUT, hdl_OUTPUT))
+	re_moduleName 	= 	re.compile(r'\s*%s\s+(?P<name>[\w_]+)\s*' % (CFVL.MODULE))
+	re_endmodule	=	re.compile(r'\s*%s' % (CFVL.ENDMODULE))
+	re_portWidth 	= 	re.compile(r'\s*(?P<dir>%s|%s)\s+(?P<width>\[[\w`:_+-]+\])?' % (CFVL.INPUT, CFVL.OUTPUT))
 	re_portName 	= 	re.compile(r'\s*[\w_]+\s*[,;]')	
 	re_insnDef		= 	re.compile(r'\S+')
 	
@@ -127,7 +127,7 @@ class VFile(object):
 					mgroup = CFV.re_portWidth.match(line)
 					if mgroup:
 						width = mgroup.group("width")
-						width = width if width else hdl_WIDTHONE
+						width = width if width else CFVL.WIDTHONE
 						portNameList = CFV.re_portName.findall(line[mgroup.end():])
 						# delete ',;' and space
 						portNameList = map(lambda s:s[:-1].lstrip(), portNameList)
@@ -145,7 +145,7 @@ class VFile(object):
 			opDict = dict()
 			xoDict = dict()
 			for line in fin:
-				if line.startswith(hdl_DEFINE):
+				if line.startswith(CFVL.DEFINE):
 					defName, defVal = CFV.re_insnDef.findall(line)[1:3]
 					if defName.endswith(CFV.OP):
 						opDict[defName[:-len(CFV.OP)]] = defVal

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
+from ..util.rtlGenerator import RtlGenerator as RG
 
 
 class constForDatapath:
@@ -42,17 +44,23 @@ class Datapath(object):
 	def __GenPortMuxPerStg(self, rtlSet, istg):
 		portDict = defaultdict(set)
 		for rtl in rtlSet:
-			portDict[rtl].add(rtl.src)
+			portDict[rtl].add(rtl)
 		retList = []
-		for rtl,srcList in portDict.iteritems():
+		retDict = dict()
+		for rtl,rtlSet in portDict.iteritems():
+			srcList = map(lambda x:x.src, rtlSet)
 			if len(srcList) > 1:
+				# Need to Insert a Port MUX
 				name = self.__GenPortMuxIname(rtl, istg)
 				linkedIn = self.__GenPortMuxLinkedIn(srcList, istg)
 				desMod = self.modules.find(rtl.desMod)
 				width = VP.RangeToInt(desMod.find(rtl.desPort))
-				retList.append( PortMutex(name=name, width=width, linkedIn=linedIn) )
+				pmux = PortMutex(name=name, width=width, linkedIn=linedIn)
+				retList.append(pmux)
+				# the rtl need a mux parse to Instance a mux and Encode the select
+				retDict[rtl] = (RG.GenMuxSel(pmux.Iname), srcList)
 				
-		return retList	
+		return retList, retDict	
 		
 		
 	# Generate the link of the Mux

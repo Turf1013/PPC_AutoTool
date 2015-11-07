@@ -32,6 +32,13 @@ class Mutex(Module):
 		self.linkedIn = linkedIn
 		for i, linkPort in enumerate(linkedIn):
 			self.addLink(iterable[i], linkPort)
+			
+	
+	def GenSelName(self):
+		return "%s_%s" % (self.name, CFM.mux_sel)
+		
+	def GenDoutName(self):
+		return "%s_%s" % (self.name, CFM.mux_dout)
 		
 	
 class PortMutex(Mutex):

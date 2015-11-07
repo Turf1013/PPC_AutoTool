@@ -116,10 +116,13 @@ class Module(object):
 		return ret
 	
 	
+	def toVerilog(self, Iname=None, tabn=1):
+		return self.Instance(Iname=Iname, tabn=tabn)
+	
 		
 	def find(self, name):
 		for port in self.portList:
-			if port.name == name
+			if port.name == name:
 				return port
 		return None
 		

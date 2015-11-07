@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from const_hdl import *
+from const_hdl import CFV
 
 
 class GenVerilog:
@@ -10,5 +10,5 @@ class GenVerilog:
 		ret = ''
 		pre = '\t' * tabn
 		for fname in includeList:
-			ret += pre + '%s "%s"\n' % (hdl_INCLUDE, fname)
+			ret += pre + '%s "%s"\n' % (CFV.INCLUDE, fname)
 		return ret
