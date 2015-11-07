@@ -26,5 +26,4 @@ class VerilogParser:
 		else:
 			return str(int(r) + 1)
 			
-			
 		

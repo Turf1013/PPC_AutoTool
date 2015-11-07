@@ -14,7 +14,14 @@ class VerilogGenerator:
 	@classmethod
 	def GenCtrlSignalAlways(cls, name, width, L, default, tabn=1):
 		pre = '\t' * tabn
-		radix = "%s'd" % (str(width))
+		if isinstance(width, int):
+			# width is int
+			radix = "%s'd" % (str(width))
+			
+		else:
+			# width is `define
+			radix = ""
+			
 		ret = pre + "/*********   Logic of %s   *********/\n" % (name)
 		ret += pre + "%s @( * ) %s\n" % (CFV.ALWAYS, CFV.BEGIN)
 		# add if - else if

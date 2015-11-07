@@ -5,6 +5,9 @@ from ..verilog.const_hdl import constForVerilog as CFVL
 from ..verilog.gen_hdl import GenVerilog
 from ..role.instruction import Insn
 from ..role.module import Module, Port
+from ..role.moduleMap import ModuleMap
+from ..role.insnMap import InsnMap
+
 
 class constForVFile:
 	VFILE_SUFFIX = ".v"
@@ -89,7 +92,19 @@ class VFile(object):
 		# fileList = [os.path.join(*item) for item in self.defFileList]
 		fileList = [item[1] for item in self.defFileList]
 		return GenVerilog.genIncludeCode(fileList, tabn)
+	
+	
+	# generate the Module Map
+	def GenModuleMap(self):
+		modList = self.GenAllModule()
+		return ModuleMap(iterable=modList)
 		
+		
+	# generate the Instruction Map
+	def GenInsnMap(self):
+		insnList = self.GenAllInsn()
+		return InsnMap(iterable=insnList)
+	
 	
 	#  generate all the core Module class
 	def GenAllModule(self):

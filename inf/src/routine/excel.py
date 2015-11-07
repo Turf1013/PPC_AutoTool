@@ -9,6 +9,7 @@ from ..role.stage import Stage
 from ..role.pipeline import PipeLine
 from ..role.rtl import Rtl, LinkRtl, PipeRtl
 
+
 class constForExcel:
 	ReadStageName = "D"
 	WriteStageName = "W"

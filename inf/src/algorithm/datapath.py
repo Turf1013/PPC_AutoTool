@@ -17,14 +17,16 @@ class Datapath(object):
 	""" datapath includes all kinds of function about the whole datapath
 	
 	Function:
-	1. Generate the Port MUX;
-	2. Generate the Norm-Control;
+	1. Generate the Port MUX & Constrol Signal related;
+	2. Add the Link to necessary Module;
+	3. 
 	"""
 	
-	def __init__(self, excelRtl, pipeLine, modules):
+	def __init__(self, excelRtl, pipeLine, modMap, insnMap):
 		self.excelRtl = excelRtl
 		self.pipeLine = pipeLine
-		self.modules = modules
+		self.modMap = modMap
+		self.insnMap = insnMap
 	
 	
 	# Generate all the Port Mux
@@ -32,35 +34,59 @@ class Datapath(object):
 		linkRtl = self.excelRtl.linkRtl
 		stgn = self.pipeLine.stgn
 		retMuxList = []
+		retCSList = []
 		for istg in xrange(stgn):
 			rtlSet = set()
 			for insnName, insnRtlList in linkRtl.iteritems();
 				rtlSet.update(insnRtlList[istg])
-			retMuxList += self.__GenPortMuxPerStg(self, rtlSet, istg)
-		return retMuxList
+			muxList, csList = self.__GenPortMuxPerStg(self, rtlSet, istg)
+			retMuxList += muxList
+			retCSList += retCSList
+		return retMuxList, retCSList
 		
 	
-	# Generate the Port Mux @istg
+	# Generate the Port Mux & Control Signal @istg
 	def __GenPortMuxPerStg(self, rtlSet, istg):
 		portDict = defaultdict(set)
 		for rtl in rtlSet:
-			portDict[rtl].add(rtl)
-		retList = []
-		retDict = dict()
-		for rtl,rtlSet in portDict.iteritems():
-			srcList = map(lambda x:x.src, rtlSet)
+			if not rtl.isCtrlLink():
+				portDict[rtl.des].add(rtl)
+		retMuxList = []
+		retCSList = []
+		for des,linkSet in portDict.iteritems():
+			srcList = map(lambda x:x.src, linkSet)
 			if len(srcList) > 1:
+				rtl = list(linkSet)[0]
 				# Need to Insert a Port MUX
 				name = self.__GenPortMuxIname(rtl, istg)
 				linkedIn = self.__GenPortMuxLinkedIn(srcList, istg)
-				desMod = self.modules.find(rtl.desMod)
+				desMod = self.modMap.find(rtl.desMod)
 				width = VP.RangeToInt(desMod.find(rtl.desPort))
-				pmux = PortMutex(name=name, width=width, linkedIn=linedIn)
-				retList.append(pmux)
-				# the rtl need a mux parse to Instance a mux and Encode the select
-				retDict[rtl] = (RG.GenMuxSel(pmux.Iname), srcList)
 				
-		return retList, retDict	
+				### Generate the MUX
+				pmux = PortMutex(name=name, width=width, linkedIn=linedIn)
+				retMuxList.append(pmux)
+				
+				### Link the MUX dout to orginal module
+				doutName = pmux.GenDoutName():
+				mod = self.modMap.find(rtl.desMod)
+				mod.addLink(rtl.dePort, doutName)
+				
+				### Generate the CtrlSignal
+				selName = pmux.GenSelName()
+				selN = pmux.seln
+				tList = []
+				for insnName, insnRtlList in linkRtl.iteritems():
+					for r in insnRtlList[istg]:
+						if r in linkSet:
+							insn = self.insnMap.find(insnName)
+							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
+							op = linkeIn.index(r.src)
+							tList.append( CtrlTriple(cond=cond, op=op) )
+				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
+				retCSList.append(cs)
+				
+		return retMuxList, retCSList
 		
 		
 	# Generate the link of the Mux

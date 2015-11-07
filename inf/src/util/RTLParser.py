@@ -23,4 +23,6 @@ class RtlParser:
 		return re_rtlVariable.sub(repl, src)
 		
 	
-	
+	@classmethod		
+	def DesToVar(cl, des):
+		return des.sub(".", "_") 

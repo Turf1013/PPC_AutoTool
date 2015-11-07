@@ -53,7 +53,11 @@ class CtrlSignal(object):
 	def __hash__(self):
 		return hash(self.name)
 		
+	
+	def __eq__(self, other):
+		return self.name == other.name
 		
+	
 	def __contains__(self, t):
 		if not isinstance(t, CtrlTriple):
 			raise TypeError, "Only CtrlTriple can add into CtrlSignal"

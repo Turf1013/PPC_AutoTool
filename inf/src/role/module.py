@@ -98,7 +98,7 @@ class Module(object):
 		return ret	
 		
 		
-	def Instance(self, Iname=None, tabn=1):
+	def instance(self, Iname=None, tabn=1):
 		if Iname is None:
 			Iname = self.name
 		pre = '\t' * tabn
@@ -117,7 +117,7 @@ class Module(object):
 	
 	
 	def toVerilog(self, Iname=None, tabn=1):
-		return self.Instance(Iname=Iname, tabn=tabn)
+		return self.instance(Iname=Iname, tabn=tabn)
 	
 		
 	def find(self, name):
@@ -130,4 +130,12 @@ class Module(object):
 	def findPortWidth(self, name):
 		p = self.find(name)
 		return p.width if p else None
+		
+		
+	def chkLink(self):
+		retList = []
+		for key, val in self.linkDict.iteritems():
+			if val is None:
+				retList.append(key)
+		return key
 		
