@@ -3,7 +3,9 @@ import re
 from ..verilog.const_hdl import CFV
 
 class constForVerilogGenerator:
-	pass
+	RD 		= "rd"
+	WD		= "wd"
+	BMUX	= "bmux"
 	
 class CFVG:
 	pass
@@ -42,4 +44,9 @@ class VerilogGenerator:
 		# add end always
 		ret += pre + "%s %s\n" % (CFV.END, CFV.ENDALWAYS)
 		return ret
+		
+	
+	@classmethod
+	def GenBypassMuxName(cls, name, suf=""):
+		return "%s_%s_%s" % (name, CFVG.RD, suf)
 		

@@ -1,13 +1,50 @@
 # -*- coding: utf-8 -*-
 from instruction import Insn
 from stage import Stage
-
+from reg import reg
+from mutex import BypassMutex
+from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForHazard:
 	INSTR = "Instr"		
-
+	DATA_WIDTH = 32
+	
 class CFH(constForHazard):
 	pass
+	
+	
+class StgReg(object):
+	
+	def __init__(self, name, index, stgName):
+		self.name = name
+		self.index = index
+		self.stgName = stgName
+		self.m = 0
+		self.dinDict = dict()
+	
+	
+	def __contains__(self, d):
+		return d in self.dinDict
+	
+	
+	def __len__(self):
+		return len(self.dinDict)
+	
+		
+	def add(self, d):
+		if d not in self.dinDict:
+			self.dinDict[d] = self.m
+			self.m += 1
+			
+			
+	def GenBypassMuxname(self):
+		return VG.GenBypassMuxName(name=name, suf="%s_%s" % (str(index), stgName))
+		
+	def toBypassMux(self):
+		name = self.GenBypassMuxName()
+		width = CFH.DATA_WIDTH
+		linkedIn = self.dinDict.keys()
+		return BypassMutex(name=name, width=width, linkedIn=linkedIn)
 
 
 class BaseHazard(object):
@@ -56,10 +93,10 @@ class StgInsn(BaseStgInsn):
 		
 	"""
 	
-	def __init__(self, insn, stg, action, addr):
+	def __init__(self, insn, stg, addr, wd=None):
 		super(StgInsn, self).__init__(insn, stg)
-		self.action = action
 		self.addr = addr
+		self.wd = wd
 	
 		
 		
@@ -84,51 +121,51 @@ class RW_InsnGrp(object):
 	""" RW_InsnGrp means several backInsn VS one frontInsn
 	
 	One RW_InsnGrp includes:
-	1. One Predessor Instruction (Finsn);
-	2. One Succeeded Instruction (BInsn);
+	1. One Succeeded Instruction (BInsn);
+	2. Several Predessor Instruction (Finsn);
 	"""
 	
-	def __init__(self, Finsn):
+	def __init__(self, BInsn):
 		if not isinstance(Finsn, BaseStgInsn):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
-		self.Finsn = Finsn
-		self.BinsnSet = set()
+		self.BInsn = BInsn
+		self.FinsnSet = set()
 
 		
 	
 	def add(self, Binsn):
 		if not isinstance(Binsn, BaseStgInsn):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
-		self.BinsnSet.add(Binsn)
+		self.FinsnSet.add(Binsn)
 	
 	
 	def __eq__(self, other):
-		return self.Finsn == other.Finsn
+		return self.BInsn == other.BInsn
 		
 		
 	def __hash__(self):
-		return hash(self.Finsn)
+		return hash(self.BInsn)
 		
 	
 	
 	def __len__(self):
-		return len(self.BinsnSet)
+		return len(self.FinsnSet)
 	
 	
 	
 	def __contains__(self, Binsn):
-		return Binsn in self.BinsnSet
+		return Binsn in self.FinsnSet
 	
 	
 	
 	def __str__(self):
-		return "%s__RW_InsnGrp" % (self.Finsn)
+		return "%s__RW_InsnGrp" % (self.Binsn)
 		
 		
 		
 	def condition(self):
-		condList = [self.Finsn.condition]
-		condList += [insn.condition() for insn in self.BinsnSet]
+		condList = [self.Binsn.condition]
+		condList += [insn.condition() for insn in self.FinsnSet]
 		return " && ".join(condList)
 		
 	
