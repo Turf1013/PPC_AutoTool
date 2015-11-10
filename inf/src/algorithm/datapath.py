@@ -9,6 +9,10 @@ from ..role.wire import WireSet, Wire
 class constForDatapath:
 	CLK = "clk"
 	RST = "rst_n"
+	WIDTH = "WIDTH"
+	pipeIDict = {
+		"Instr": "[`INSTR_WIDTH-1:0]",
+	}
 	
 class CFD(constForDatapath):
 	pass
@@ -34,7 +38,8 @@ class Datapath(object):
 		# add clr_D to PCWr
 		mod = self.modMap.find("PC")
 		mod.addLink("Wr", "~clr_" % (self.pipeLine.StgNameAt(self.pipeLine.Rstg)))
-		
+	
+	
 		
 	# Add the link
 	def LinkMod(self):
@@ -61,6 +66,8 @@ class Datapath(object):
 				varName = RP.DesToVar(rtl.des)
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.desPort, varName)
+				port = mod.find(rtl.desPort)
+				self.wireSet.add( Wire(name=varName, width=port.width, kind="wire", stg=istg) )
 				
 			elif len(rtlList)>1:
 				# mux.dout link (linked in mux generating)
@@ -71,7 +78,12 @@ class Datapath(object):
 				varName = RP.SrcToVar(src=src, srg=stgName)
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.desPort, varName)
-			
+				port = mod.find(rtl.desPort)
+				width = port.width
+				srcList = RP.SrcToList(src=rtl.src)
+				for src in srcList:
+					varName = SrcToVar(src=src, stg=stgName)
+					self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 	
 	
 	# Generate all the Port Mux
@@ -134,6 +146,9 @@ class Datapath(object):
 				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
 				retCSList.append(cs)
 				
+				### Add the selName to Wire 
+				self.wireSet.add( Wire(name=selName, width=selN, kind="wire", stg=istg) )
+				
 		return retMuxList, retCSList
 		
 		
@@ -160,7 +175,7 @@ class Datapath(object):
 		
 		
 	# Generate Verilog code	
-	def toVerilog(self, tabn=1):
+	def toVerilog(self, ctrlCode, tabn=1):
 		pre = "\t" * tabn
 		ret = ""
 		# module statement
@@ -168,13 +183,17 @@ class Datapath(object):
 		ret += pre + "%s, %s\n" % (CFD.CLK, CFD.RST)
 		ret += ");\n"
 		
-		# wire statement
-		
-		# reg statement
+				
+		# wire & reg statement
+		wireCode = self.wireSet().toVerilog(tabn=tabn)
+		ret += "// wire statement\n" + wireCode + "\n" * 4
 		
 		# instance all modules
-		instanceCode = self.__instanceToVerilog(tabn=tabn)
+		instanceCode = self.__instanceToVerilog(tabn=tabn) + ctrlCode
 		ret += "// Instance Module\n" + instanceCode + "\n" * 4
+		
+		# instance control 
+		ret += 
 		
 		# pipeReg logic
 		pipeCode = self.__pipeToVerilog(tabn = tabn)
@@ -206,7 +225,7 @@ class Datapath(object):
 	def GenPipe(self):
 		stgn = self.pipeLine.stgn
 		self.pipeDictList = [dict()]
-		for istg in range(stgn-1):
+		for istg in range(1, stgn):
 			self.pipeDictList.append( self.__GenPipePerStg(istg) )
 			
 			
@@ -218,9 +237,25 @@ class Datapath(object):
 			rtlSet.add(rtl)
 		for rtl in rtlSet:
 			src = self.__FindInBypass(src=rtl.src, istg=istg)
-			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
+			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg-1))
 			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg))
 			retDict[outVar] = inVar
+			
+			# add source in reg statement
+			if rtl.src in pipeIDict:
+				width = pipeIDict[rtl.src]
+				inVar = rtl.src
+			elif '.' in rtl.src:
+				modName, portName = rtl.src.split('.')[:2]
+				mod = self.modMap.find(modName)
+				port = mod.find(portName)
+				width = port.width
+			else:
+				width = "XXXXXXXXX"
+				inVar = rtl.src
+				
+			self.wireSet.add( wire(name=inVar, width=width, kind="wire", stg=istg-1) )
+			self.wireSet.add( wire(name=outVar, width=width, kind="reg", stg=istg) )
 		return retDict
 			
 		

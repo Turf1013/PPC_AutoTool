@@ -6,9 +6,11 @@ from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
 from ..util.verilogGenerator import VerilogGenerator as VG
 from ..verilog.const_hdl import CFV
+from ..role.wire import WireSet, Wire
 
 class constForControl:
-	pass
+	INSTR = "Instr"
+	INSTR_WIDTH = "[`INSTR_WIDTH-1:0]" 
 	
 	
 class CFC(constForControl):
@@ -29,9 +31,23 @@ class Control(object):
 		self.modMap = modMap
 		self.insnMap = insnMap
 		self.CSList = []
+		self.wireSet = WireSet()
+		self.portList = []	
+		# add clk, rst_n, instr to portList
+		self.portList.append( "clk" )
+		self.portList.append( "rst_n" )
+		self.portList += map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn))
+		# add clr to wireSet
+		for istg in range(self.pipeLine.Rstg, self.pipeLine.stgn):
+			clrName = "clr_" + self.pipeLine.StgNameAt(istg)
+			self.portList.append(clrName)
+			self.wireSet.add( Wire(name=clrName, width=1, kind="reg", stg=istg) )
 		
 		
 	def addCS(self, iterable):
+		for cs in iterable:
+			self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg") )
+			self.portList.add( cs.name )
 		self.CSList += list(iterable)
 		
 	
@@ -85,15 +101,36 @@ class Control(object):
 		ret += "module control (\n"
 		ret += ");\n"
 		
+		# wire & reg statement
+		wireCode = self.wireSet().toVerilog(tabn=tabn)
+		ret += "// wire statement\n" + wireCode + "\n" * 4
+		
 		# control signal
 		csCode = self.__CSToVerilog(tabn=tabn)
 		ret += "// Ctrl Signal\n" + csCode + "\n" * 4
+		
 		# pipe signal
 		clrCode = self.__ClrToVerilog(tabn=tabn)
 		ret += "// Clear Signal\n" + clrCode + "\n" * 4
 		
 		# endmodule
 		ret += "endmodule\n"
+		return ret
+	
+	def __GenInputVerilog(self, tabn):
+		pre = "\t" * tabn
+		ret = ""
+		ret += pre + "input clk, rst_n;\n"
+		instrList = map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn))
+		ret += pre + "input %s %s;\n" % (INSTR_WIDTH, ", ".join(instrList))
+		return ret
+	
+		
+	def __GenOutputVerilog(self, tabn):
+		pre = "\t" * tabn
+		ret = ""
+		for w in self.wireSet:
+			ret += VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
 		return ret
 		
 		
@@ -127,3 +164,15 @@ class Control(object):
 		ret += pre + "end // end always\n\n"
 		return ret
 		
+	def instance(self, tabn):
+		name = "control"
+		pre = "\t" * tabn
+		ret += "%s%s I_%s(\n" % (pre, name, name)
+		last = len(self.portList) - 1
+		for port in self.portList:
+			if i == last:
+				ret += pre + "\t.%s(%s)\n" % (port, port)
+			else:
+				ret += pre + "\t.%s(%s),\n" % (port, port)
+		ret += "%s);\n\n" % (pre)
+		return ret

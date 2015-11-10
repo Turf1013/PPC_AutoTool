@@ -112,7 +112,7 @@ class Module(object):
 				ret += pre + "\t.%s(%s)\n" % (key, value)
 			else:
 				ret += pre + "\t.%s(%s),\n" % (key, value)
-		ret += "%s);\n" % (pre)
+		ret += "%s);\n\n" % (pre)
 		return ret
 	
 	

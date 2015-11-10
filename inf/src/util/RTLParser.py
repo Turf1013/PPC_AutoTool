@@ -26,3 +26,12 @@ class RtlParser:
 	@classmethod		
 	def DesToVar(cl, des):
 		return des.sub(".", "_") 
+		
+	
+	@classmethod
+	def SrcToList(cls, src):
+		m = re_rtlVariable.match(src)
+		if m:
+			return m.group(0)
+		return []
+		

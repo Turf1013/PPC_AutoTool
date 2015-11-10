@@ -12,13 +12,15 @@ class CFW(constForWite):
 	
 class Wire(object):
 
-	def __init__(self, name, width=CFM.DEFAULT_WIDTH, kind):
+	def __init__(self, name, width, kind, stg=0):
 		self.name = name
 		self.width = width
-		self.kind = kind
+		self.kind = 1 if kind==CFW.REG else 0
 		self.stg = stg
 		
 	def __cmp__(self, other):
+		if self.stg == other.stg
+			return other.kind - self.kind
 		return self.stg - other.stg
 	
 	
@@ -31,7 +33,7 @@ class Wire(object):
 	
 	
 	def toVerilog(self, tabn):
-		if self.kind == CFW.Reg:
+		if self.kind:
 			return VG.GenReg(name=self.name, width=self.width, tabn=tabn)
 		else:
 			return VG.GenWire(name=self.name, width=self.width, tabn=tabn)
@@ -41,7 +43,8 @@ class WireSet(set):
 
 	def toVerilog(self):
 		ret = ""
-		for wire in self:
+		L = sorted(self)
+		for wire in L:
 			ret += wire.toVerilog()
 		return ret
 		
