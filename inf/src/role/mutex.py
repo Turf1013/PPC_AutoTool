@@ -7,6 +7,7 @@ class constForMutex:
 	mux_din  = "din"
 	mux_dout = "dout"
 	mux_sel  = "sel"
+	mux_width = "WIDTH"
 	
 class CFM(constForMutex):
 	pass
@@ -40,6 +41,26 @@ class Mutex(Module):
 	def GenDoutName(self):
 		return "%s_%s" % (self.name, CFM.mux_dout)
 		
+		
+	def instance(self, tabn=1):
+		Iname = self.Iname
+		pre = '\t' * tabn
+		ret = ""
+		ret += "%s%s #(%s) %s(\n" % (pre, self.name, self.width, Iname)
+		last = len(self.linkDict) - 1
+		for i,(key, value) in enumerate(self.linkDict.iteritems()):
+			if value is None:
+				value = "0000"
+			if i == last:
+				ret += pre + "\t.%s(%s)\n" % (key, value)
+			else:
+				ret += pre + "\t.%s(%s),\n" % (key, value)
+		ret += "%s);\n" % (pre)
+		return ret
+		
+		
+	def toVerilog(self, tabn=1):
+		return self.instance(tabn=tabn)
 	
 class PortMutex(Mutex):
 	""" Port Mutex is one kind of Mutex

@@ -59,3 +59,32 @@ class VerilogGenerator:
 	@classmethod
 	def GenClr(cls, suf=""):
 		return "%s_%s" % (CFVG.CLR, suf)
+	
+	@classmethod
+	def GenMuxVerilog(cls, muxn):
+		ret = ""
+		ret += "module mux%d (\n" % (muxn)
+		seln = int(math.ceil(math.log(muxn, 2)))
+		dinList = ["din"+str(i) for i in xrange(muxn)]
+		ret += "\t" + ", ".join(dinList) + ",\n"
+		ret += "\t" + "s, y\n"
+		ret += ");\n"
+		
+		ret += "\t" + "parameter WIDTH = 8;\n\n"
+		ret += "\t" + "input [WIDTH-1:0] " + ", ".join(dinList) + ";\n"
+		ret += "\t" + "input [%d:0] sel;\n" % (seln-1)
+		ret += "\t" + "output [WIDTH-1:0] dout;\n\n"
+		
+		ret += "\t" + "reg [WIDTH-1:0] dout_r;\n\n"
+		
+		ret += "\t" + "always @( * ) begin\n"
+		ret += "\t\t" + "case ( sel )\n"
+		for i in xrange(muxn):
+			ret += "\t\t\t" + "%d'd%d: dout_r = din%d;\n" % (seln, i, i)
+		ret += "\t\t" + "endcase\n"
+		ret += "\t" + "end // end always\n\n"
+		
+		ret += "\t" + "assign dout = dour_r;\n\n"
+		
+		ret += "endmodule\n"
+		return ret

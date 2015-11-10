@@ -30,6 +30,9 @@ class RdTriple(object):
 		return "%s->%s @%s" % (self.src, self.des, str(self.stg))
 		
 	
+	def equal(self, src, stg):
+		return self.src==src and self.stg==stg
+	
 class FB(object):
 	""" FB is the most optimized algorithm handled the hazard in PipeLine Compeletely.
 	

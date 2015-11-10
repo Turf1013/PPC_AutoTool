@@ -22,12 +22,12 @@ class Datapath(object):
 	3. 
 	"""
 	
-	def __init__(self, excelRtl, pipeLine, modMap, insnMap):
+	def __init__(self, excelRtl, pipeLine, modMap, insnMap, needBypass):
 		self.excelRtl = excelRtl
 		self.pipeLine = pipeLine
 		self.modMap = modMap
 		self.insnMap = insnMap
-		
+		self.needBypass = needBypass
 	
 	# Add the link
 	def LinkMod(self):
@@ -60,7 +60,8 @@ class Datapath(object):
 				pass
 				
 			else:
-				varName = RP.SrcToVerilog(src=rtl.src, srg="_"+stgName)
+				src = self.__FindInBypass(src=rtl.src, stg=istg)
+				varName = RP.SrcToVerilog(src=src, srg="_"+stgName)
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.desPort, varName)
 			
@@ -92,6 +93,7 @@ class Datapath(object):
 		retCSList = []
 		for des,linkSet in portDict.iteritems():
 			srcList = map(lambda x:x.src, linkSet)
+			srcList = map(self.__FindInBypass(src=src,stg=istg), srcList)
 			if len(srcList) > 1:
 				rtl = list(linkSet)[0]
 				# Need to Insert a Port MUX
@@ -118,7 +120,8 @@ class Datapath(object):
 						if r in linkSet:
 							insn = self.insnMap.find(insnName)
 							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
-							op = linkeIn.index(r.src)
+							src = self.__FindInBypass(src=r.src, stg=istg)
+							op = linkeIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
 				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
 				retCSList.append(cs)
@@ -139,5 +142,11 @@ class Datapath(object):
 	def __GenPortMuxIname(self, rtl, istg):
 		return "%s_%s_%s" % (rtl.desMod, rtl.desPort, self.pipeLine.stgNameAt(istg))
 		
-		
 	
+	# find source in the bypass if source flow through bypass then return rename or return itself
+	def __FindInBypass(self, src, istg):
+		for rt in self.needBypass:
+			if rt.equal(src=src, stg=istg)
+				return rt.des
+		return src
+		
