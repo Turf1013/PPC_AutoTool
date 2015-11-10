@@ -7,6 +7,8 @@ class constForVerilogGenerator:
 	WD		= "wd"
 	BMUX	= "bmux"
 	CLR		= "clr"
+	WIRE	= "wire"
+	REG		= "reg"
 	
 class CFVG:
 	pass
@@ -88,3 +90,14 @@ class VerilogGenerator:
 		
 		ret += "endmodule\n"
 		return ret
+		
+		
+	@classmethod
+	def GenWire(cls, name, width, tabn=1):
+		return "\t" * tabn + "%s %s %s;\n" % (CFVG.WIRE, width, name)
+		
+		
+	@classmethod
+	def GenReg(cls, name, width, tabn=1):
+		return "\t" * tabn + "%s %s %s;\n" % (CFVG.Reg, width, name)	
+		

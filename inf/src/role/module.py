@@ -99,9 +99,8 @@ class Module(object):
 		return ret	
 		
 		
-	def instance(self, Iname=None, tabn=1):
-		if Iname is None:
-			Iname = self.name
+	def instance(self, tabn=1):
+		Iname = self.name
 		pre = '\t' * tabn
 		ret = ""
 		ret += "%s%s I_%s(\n" % (pre, self.name, Iname)
@@ -117,8 +116,8 @@ class Module(object):
 		return ret
 	
 	
-	def toVerilog(self, Iname=None, tabn=1):
-		return self.instance(Iname=Iname, tabn=tabn)
+	def toVerilog(self, tabn=1):
+		return self.instance(tabn=tabn)
 	
 		
 	def find(self, name):

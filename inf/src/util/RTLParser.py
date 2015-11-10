@@ -19,8 +19,8 @@ class RtlParser:
 			if CFRP.re_rtlConst.match(val):
 				return val
 			else:
-				return val + stg
-		return re_rtlVariable.sub(repl, src)
+				return val + "_" + stg
+		return re_rtlVariable.sub(repl, src.replace(".", "_"))
 		
 	
 	@classmethod		

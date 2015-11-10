@@ -4,10 +4,11 @@ from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
-
+from ..role.wire import WireSet, Wire
 
 class constForDatapath:
-	pass
+	CLK = "clk"
+	RST = "rst_n"
 	
 class CFD(constForDatapath):
 	pass
@@ -28,7 +29,13 @@ class Datapath(object):
 		self.modMap = modMap
 		self.insnMap = insnMap
 		self.needBypass = needBypass
-	
+		self.pipeList = []
+		self.wireSet = WireSet()
+		# add clr_D to PCWr
+		mod = self.modMap.find("PC")
+		mod.addLink("Wr", "~clr_" % (self.pipeLine.StgNameAt(self.pipeLine.Rstg)))
+		
+		
 	# Add the link
 	def LinkMod(self):
 		likRtl = self.excepRtl.linkRtl
@@ -61,7 +68,7 @@ class Datapath(object):
 				
 			else:
 				src = self.__FindInBypass(src=rtl.src, stg=istg)
-				varName = RP.SrcToVerilog(src=src, srg="_"+stgName)
+				varName = RP.SrcToVar(src=src, srg=stgName)
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.desPort, varName)
 			
@@ -82,6 +89,7 @@ class Datapath(object):
 			retCSList += retCSList
 		return retMuxList, retCSList
 		
+	
 	
 	# Generate the Port Mux & Control Signal @istg
 	def __GenPortMuxPerStg(self, rtlSet, istg):
@@ -134,7 +142,7 @@ class Datapath(object):
 		retList = []
 		stgName = self.pipeLine.StgNameAt(istg)
 		for src in srcList:
-			retList.append(RP.SrcToVerilog(src, stgName))
+			retList.append(RP.SrcToVar(src, stgName))
 		return retList	
 		
 				
@@ -149,4 +157,102 @@ class Datapath(object):
 			if rt.equal(src=src, stg=istg)
 				return rt.des
 		return src
+		
+		
+	# Generate Verilog code	
+	def toVerilog(self, tabn=1):
+		pre = "\t" * tabn
+		ret = ""
+		# module statement
+		ret += "module ppc (\n"
+		ret += pre + "%s, %s\n" % (CFD.CLK, CFD.RST)
+		ret += ");\n"
+		
+		# wire statement
+		
+		# reg statement
+		
+		# instance all modules
+		instanceCode = self.__instanceToVerilog(tabn=tabn)
+		ret += "// Instance Module\n" + instanceCode + "\n" * 4
+		
+		# pipeReg logic
+		pipeCode = self.__pipeToVerilog(tabn = tabn)
+		ret += "// Pipe Register\n" + pipeCode + "\n" * 4
+		
+		# end module
+		ret += "endmodule\n"
+		return ret
+		
+		
+	def __instanceToVerilog(self, tabn):
+		ret = ""
+		for mod in self.modMap:
+			ret += self.__instanceToVerilogPerMod(mod=mod, tabn=tabn)
+		return ret
+		
+			
+	def __instanceToVerilogPerMod(self, mod, tabn):
+		# add clk & rst_n
+		try:
+			mod.addLink(CFD.CLK, CFD.CLK)
+			mod.addLink(CFD.RST, CFD.RST)
+		except:
+			pass
+		ret = mod.toVerilog(tabn=tabn)
+		return ret
+		
+		
+	def GenPipe(self):
+		stgn = self.pipeLine.stgn
+		self.pipeDictList = [dict()]
+		for istg in range(stgn-1):
+			self.pipeDictList.append( self.__GenPipePerStg(istg) )
+			
+			
+	def __GenPipePerStg(self, istg):
+		pipeRtl = self.excelRtl.pipeRtl[istg]
+		rtlSet = set()
+		retDict = dict()
+		for rtl in pipeRtl
+			rtlSet.add(rtl)
+		for rtl in rtlSet:
+			src = self.__FindInBypass(src=rtl.src, istg=istg)
+			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
+			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg))
+			retDict[outVar] = inVar
+		return retDict
+			
+		
+	def __pipeToVerilog(self, tabn):
+		ret = ""
+		for istg in range(1, stgn):
+			ret += self.__pipeToVerilogPerStg(tabn=tabn, istg=istg)
+		return ret
+		
+	
+	# pay attention clear & lock
+	def __pipeToVerilogPerStg(self, tabn, istg):
+		pre = "\t" * tabn
+		Rstg = self.pipeLine.Rstg
+		stgn = self.pipeLine.stgn
+		pipeDict = self.pipeDict[istg]
+		stgName = self.pipeLine.StgNameAt(istg)
+		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
+		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
+		if istg > Rstg:
+			ret += pre + "\t" + "if ( !rst_n || clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg-1))
+		else:
+			ret += pre + "\t" + "if ( !rst_n ) begin\n" % (self.pipeLine.StgNameAt(istg))
+		for outVar in pipeDict.itekeys():
+			ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
+		ret += pre + "\t" + "end\n"
+		if istg <= Rstg:
+			ret += pre + "\t" + "else if ( !clr_%s )begin\n" % (self.pipeLine.StgNameAt(Rstg))
+		else:
+			ret += pre + "\t" + "else begin\n"
+		for outVar, inVar in pipeDict.iteritems():
+			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
+		ret += pre + "end // end always\n\n"
+		return ret
 		
