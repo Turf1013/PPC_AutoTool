@@ -154,6 +154,10 @@ class InsnGrp(object):
 	def addInsn(self, Finsn):
 		self.add(Finsn)
 		
+		
+	def __iter__(self):
+		return iter(self.Finsn)
+		
 	
 	def __eq__(self, other):
 		return self.BInsn == other.BInsn
@@ -234,22 +238,18 @@ class BaseHazard(object):
 		return iter(self.insnGrpSet)
 	
 	
-class RW_Hazard(object):
+class RW_Hazard(BaseHazard):
 	""" RW_Hazard presents Read and Writer Hazard.
 	
 	One RW_Hazard includes:
 	1. some RW_InsnGrp 
 	"""
 	
-	def __init__(self, name, index, insnGrpIterator=None, linkedIn=None):
+	def __init__(self, name, index, insnGrpIterator=None):
+		super(RW_Hazard, self).__init__(insnGrpIterator=insnGrpIterator)
 		self.name = name
 		self.index = index
-		if isinstance(insnGrpIterator, list):
-			self.insnGrpSet = set(insnGrpIterator)
-		elif isinstance(insnGrpIterator, RW_InsnGrp):
-			self.insnGrpSet = set([insnGrpIterator])
-		else:
-			self.insnGrpSet = set()
+		
 		
 	def add(self, insnGrp):
 		if not isinstance(insnGrp, RW_InsnGrp):
@@ -262,9 +262,7 @@ class RW_Hazard(object):
 			raise TypeError, "RW_InsnGrp used to add into RW_Hazard"
 		return insnGrp in self.insnGrpSet
 		
-		
-	def __len__(self):
-		return len(self.insnGrpSet)
-		
-	def __iter__(self):
-		return iter(self.insnGrpSet)
+
+class Stall_Hazard(BaseHazard):
+	pass
+	

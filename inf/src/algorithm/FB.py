@@ -4,14 +4,32 @@ from ..role.hazard import StgInsn, RWHazard, StallHazard
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..util.RTLParser import RTlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
-
+from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForFB:
 	STALL = "stall"
 	
 class CFFB(constForFB):
 	pass
+	
+	
+class RdTriple(object):
 
+	def __init__(self, src, des, stg):
+		self.src = src
+		self.stg = stg
+		self.des = des
+	
+	def __hash__(self):
+		return hash(self.__str__())
+	
+	def __eq__(self, other):
+		return self.src==other.src and self.des==other.des and self.stg==other.stg
+		
+	def __str__(self):
+		return "%s->%s @%s" % (self.src, self.des, str(self.stg))
+		
+	
 class FB(object):
 	""" FB is the most optimized algorithm handled the hazard in PipeLine Compeletely.
 	
@@ -24,36 +42,73 @@ class FB(object):
 		self.modMap = modMap
 		self.insnMap = insnMap
 		self.stallHazard = StallHazard()
-		
+		self.needBypass = set()
 	
 	def __str__(self):
 		return "Forward and Backward Algorithm"
 		
 		
+	# Handle all the possible hazard pair (stall and bypass)
 	def HandleHazard(self):
+		csRetList = []
+		muxRetList = []
 		for reg in self.pipeLine.regList:
-			self.__HandleHazardPerReg(reg)
-		self.__HandleStall()
+			csList, muxList = self.__HandleHazardPerReg(reg)
+			csRetList += csList
+			muxList += muxList
+		csRetList.append( self.__HandleStall() )
+		return csRetList, muxRetList
 		
+		
+	def __HandleStall(self, reg):
+		Rstg = self.pipeLine.Rstg
+		cs = CtrlSignal(name=CFFB.STALL, width=1)
+		# add clear 
+		clr = VG.GenClr(suf = self.pipeLine.StgNameAt(Rstg))
+		cs.add( CtrlTriple(cond=clr, pri=10**5))
+		for insnGrp in self.stallHazard:
+			Binsn = insnGrp.Binsn
+			for Finsn in insnGrp.FinsnSet:
+				if binsn.addr is None and finsn.addr is None
+					# no addr
+					cond = "%s && %s " % (binsn.condition(), finsn.condition())
+				else:
+					baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
+					faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
+					addrCond = "(%s == %s)" % (baddr, faddr)
+					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+				op = 1
+				pri = stgn - finsn.stg
+				ct = CtrlTriple(cond=cond, op=op, pri=pri)
+				cs.add(ct)
+		return cs
 		
 			
 	def __HandleHazardPerReg(self, reg):
 		regName = reg.name
-		if reg.wn == 1:
 		wInsnList = []
 		rInsnList = []
-		# Generate Write StgInsn
-		for i in range(reg.wn):
-			wStgInsnList = self.__GenWStgInsn(regName, index=i)
-			wInsnList += wStgInsnList
-			
-		# Generate Read StgInsn
-		for j in range(reg.rn):
-			rStgInsnList = self.__GenRStgInsn(regName, index=j)
-			rInsnList.append(rStgInsnList)
 		
+		if reg.wn > 1:
+			# Generate Write StgInsn
+			for i in range(reg.wn):
+				wStgInsnList = self.__GenWStgInsn(regName, index=i)
+				wInsnList += wStgInsnList
+		else:
+			wInsnList.append( self.__GenWStgInsn(regName))
+			
+		if reg.rn > 1:
+			# Generate Read StgInsn
+			for j in range(reg.rn):
+				rStgInsnList = self.__GenRStgInsn(regName, index=j)
+				rInsnList.append(rStgInsnList)
+		else:
+			rInsnList.append( self.__GenRStgInsn(regName) )
+			
 		Rstg = self.pipeLine.Rstg
 		stgn = self.pipeLine.stgn
+		csRetList = []
+		muxRetList = []
 		# iterate every read channels
 		for rIndex in range(reg.rn):
 			rwHazard = RW_Hazard(name=regName, index=rIndex)
@@ -72,31 +127,44 @@ class FB(object):
 					if len(grp) > 0:
 						rwHazard.add(grp)
 			# handle current channel of reg
-			self.__HandleRW(rwHazard)
-	
-	
-	def __HandleStall(self):
+			csList, muxList = self.__HandleRW(rwHazard)
+			csRetList += csList
+			muxRetList += muxList
+		return csRetList, muxRetList
 		
 	
 		
 	def __HandleRW(self, hazard):
 		Rstg = self.pipeLine.Rstg
 		stgn = self.pipeLine.stgn
+		regName = hazard.name
+		index = hazard.index
 		csRetList = []
+		muxRegList = []
 		for istg in range(Rstg, stgn):
 			curGrp = filter(lambda grp: grp.BInsn.stg==istg, hazard.insnGrpSet)
-			if len(curGrp) == 0
+			if len(curGrp) == 0:
 				continue
 			linkedSet = reduce(lambda ast,bst: ast|bst, map(lambda g:g.linkedIn, curGrp))
 			# add raw rd to the first index
+			### Generate the MUX
 			stgName = self.pipeLine.StgNameAt(istg)
 			rd = RG.GenRegRd(name=hazard.name, index=hazard.index)
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux()
+			### Insert Into needBypass
 			selName = mux.GenSelName()
+			src = RG.GenRegRd(name=regName, index=index)
+			doutName = mux.GenDoutName()
+			rt = RDTriple(src=src, des=doutName, stg=istg)
+			self.needBypass.add(rt)
+			### Generate control singla referenced
 			cs = CtrlSignal(name=selName, width=mux.seln)
+			# add clr
+			clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
+			cs.add( CtrlTriple(cond=clr, pri=10**5) )
 			for g in curGrp:
 				binsn = g.Binsn
 				for finsn in g:
@@ -113,8 +181,9 @@ class FB(object):
 					pri = stgn - finsn.stg
 					ct = CtrlTriple(cond=cond, op=op, pri=pri)
 					cs.add(ct)
-			csRetList.append(cs)		
-		return csRetList
+			csRetList.append(cs)
+			muxRetList.append(mux)
+		return csRetList, muxRetList
 		
 				
 	def __HandleInsnPair(self, finsn, binsn, regs, rwGrps, stallGrp):

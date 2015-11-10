@@ -27,7 +27,7 @@ class BasePipeLine(object):
 class PipeLine(BasePipeLine):
 	
 	
-	def __init__(self, stgList, Rstg, Wstg):
+	def __init__(self, stgList, Rstg, Wstg, regList):
 		super(PipeLine, self).__init__(stgList, Rstg, Wstg)
-		
+		self.regList = regList
 	

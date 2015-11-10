@@ -4,7 +4,7 @@ from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
-
+from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForControl:
 	pass
@@ -61,7 +61,10 @@ class Control(object):
 					mod = self.modMap.find(rtl.desMod)
 					port = mod.find(rtl.desPort)
 					width = port.width
-					cs = CS(name=signalName, width=width)
+					cs = CtrlSignal(name=signalName, width=width)
+					# add clr with INF priority to the CtrlSignal
+					clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
+					cs.add( CtrlTriple(cond=clr, pri=10**5) )
 					csDict[signalName] = cs
 				else:
 					cs = csDict[Name]

@@ -15,7 +15,7 @@ class CtrlTriple(object):
 	
 	"""
 	
-	def __init__(self, cond, op, pri=0):
+	def __init__(self, cond, op=0, pri=0):
 		self.cond = cond
 		self.op = op
 		self.pri = pri

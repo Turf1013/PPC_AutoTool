@@ -31,16 +31,16 @@ class RtlGenerator:
 		
 		
 	@classmethod
-	def GenRegWr(cls, name, action, index=""):
+	def GenRegWr(cls, name, index=""):
 		return "%s.%s%s" % (name, CFRG.WR, str(index))
 	
 	
 	@classmethod
-	def GenRegWd(cls, name, action, index=""):
+	def GenRegWd(cls, name, index=""):
 		return "%s.%s%s" % (name, CFRG.WD, str(index))
 		
 		
 	@classmethod
-	def GenRegRd(cls, name, action, index=""):
+	def GenRegRd(cls, name, index=""):
 		return "%s.%s%s" % (name, CFRG.RD, str(index))
 		
