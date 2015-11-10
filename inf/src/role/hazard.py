@@ -2,7 +2,7 @@
 from instruction import Insn
 from stage import Stage
 from reg import reg
-from mutex import BypassMutex
+from mutex import BypassMutex, CFM
 from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForHazard:
@@ -15,14 +15,28 @@ class CFH(constForHazard):
 	
 class StgReg(object):
 	
-	def __init__(self, name, index, stgName):
+	def __init__(self, name, index, stg, stgName, iterable=None):
 		self.name = name
 		self.index = index
+		self.stg = stg
 		self.stgName = stgName
-		self.m = 0
-		self.dinDict = dict()
-	
-	
+		if iterable is None:
+			self.m = 0
+			self.dinDict = dict()
+			
+		elif isinstance(iterable, dict):
+			self.m = len(iterable)
+			self.dinDict = dict(iterable.items())
+			
+		elif isinstance(iterable, (list, set)):
+			self.m = len(iterable)
+			self.dinDict = dict(zip(range(self.m), iterable))
+		
+		else:
+			self.m = 0
+			self.dinDict = dict()
+			
+		
 	def __contains__(self, d):
 		return d in self.dinDict
 	
@@ -36,6 +50,9 @@ class StgReg(object):
 			self.dinDict[d] = self.m
 			self.m += 1
 			
+	def index(self, d)
+		return self.dinDict[d]
+			
 			
 	def GenBypassMuxname(self):
 		return VG.GenBypassMuxName(name=name, suf="%s_%s" % (str(index), stgName))
@@ -45,6 +62,9 @@ class StgReg(object):
 		width = CFH.DATA_WIDTH
 		linkedIn = self.dinDict.keys()
 		return BypassMutex(name=name, width=width, linkedIn=linkedIn)
+			
+	def GenMuxSelName(self):
+		return "%s_%s" % (VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName)), CFM.mux_sel)
 
 
 class BaseHazard(object):
@@ -117,27 +137,23 @@ class InsnPair(object):
 	
 	
 	
-class RW_InsnGrp(object):
-	""" RW_InsnGrp means several backInsn VS one frontInsn
-	
-	One RW_InsnGrp includes:
-	1. One Succeeded Instruction (BInsn);
-	2. Several Predessor Instruction (Finsn);
-	"""
+class InsnGrp(object):
 	
 	def __init__(self, BInsn):
-		if not isinstance(Finsn, BaseStgInsn):
+		if not isinstance(BInsn, BaseStgInsn):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
 		self.BInsn = BInsn
-		self.FinsnSet = set()
-
+		self.FInsn = set()
 		
 	
-	def add(self, Binsn):
-		if not isinstance(Binsn, BaseStgInsn):
+	def add(self, Finsn):
+		if not isinstance(Finsn, BaseStgInsn):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
-		self.FinsnSet.add(Binsn)
+		self.FinsnSet.add(Finsn)
 	
+	def addInsn(self, Finsn):
+		self.add(Finsn)
+		
 	
 	def __eq__(self, other):
 		return self.BInsn == other.BInsn
@@ -159,7 +175,7 @@ class RW_InsnGrp(object):
 	
 	
 	def __str__(self):
-		return "%s__RW_InsnGrp" % (self.Binsn)
+		return "%s_InsnGrp" % (self.Binsn)
 		
 		
 		
@@ -167,8 +183,55 @@ class RW_InsnGrp(object):
 		condList = [self.Binsn.condition]
 		condList += [insn.condition() for insn in self.FinsnSet]
 		return " && ".join(condList)
-		
 	
+	
+class RW_InsnGrp(InsnGrp):
+	""" RW_InsnGrp means several backInsn VS one frontInsn
+	
+	One RW_InsnGrp includes:
+	1. One Succeeded Instruction (BInsn);
+	2. Several Predessor Instruction (Finsn);
+	"""
+	
+	def __init__(self. BInsn):
+		super(InsnGrp, self).__init__(Binsn=Binsn)
+		linkeIn = set()
+		
+	def addLink(self, data):
+		linkedIn.add(data)
+		
+	def __str__(self):
+		return "%s__RW_InsnGrp" % (self.Binsn)
+		
+		
+
+class BaseHazard(object):
+
+	def __init__(self, insnGrpIterator=None):
+		if isinstance(insnGrpIterator, list):
+			self.insnGrpSet = set(insnGrpIterator)
+		elif isinstance(insnGrpIterator, RW_InsnGrp):
+			self.insnGrpSet = set([insnGrpIterator])
+		else:
+			self.insnGrpSet = set()
+		
+	def add(self, insnGrp):
+		if not isinstance(insnGrp, RW_InsnGrp):
+			raise TypeError, "InsnGrp used to add into Hazard"
+		self.insnGrpSet.add(insnGrp)
+		
+		
+	def __contains__(self, insnGrp):
+		if not isinstance(insnGrp, RW_InsnGrp):
+			raise TypeError, "InsnGrp used to add into Hazard"
+		return insnGrp in self.insnGrpSet
+		
+		
+	def __len__(self):
+		return len(self.insnGrpSet)
+		
+	def __iter__(self):
+		return iter(self.insnGrpSet)
 	
 	
 class RW_Hazard(object):
@@ -178,14 +241,15 @@ class RW_Hazard(object):
 	1. some RW_InsnGrp 
 	"""
 	
-	def __init__(self, insnGrpIterator=None):
+	def __init__(self, name, index, insnGrpIterator=None, linkedIn=None):
+		self.name = name
+		self.index = index
 		if isinstance(insnGrpIterator, list):
 			self.insnGrpSet = set(insnGrpIterator)
 		elif isinstance(insnGrpIterator, RW_InsnGrp):
 			self.insnGrpSet = set([insnGrpIterator])
 		else:
 			self.insnGrpSet = set()
-		
 		
 	def add(self, insnGrp):
 		if not isinstance(insnGrp, RW_InsnGrp):
@@ -201,7 +265,6 @@ class RW_Hazard(object):
 		
 	def __len__(self):
 		return len(self.insnGrpSet)
-		
 		
 	def __iter__(self):
 		return iter(self.insnGrpSet)

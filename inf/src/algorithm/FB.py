@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from tree import WTree
-from ..role.hazard import StgInsn
+from ..role.hazard import StgInsn, RWHazard, StallHazard
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..util.RTLParser import RTlParser as RP
+from ..util.rtlGenerator import RtlGenerator as RG
+
 
 class constForFB:
 	STALL = "stall"
@@ -21,8 +23,7 @@ class FB(object):
 		self.pipeLine = pipeLine
 		self.modMap = modMap
 		self.insnMap = insnMap
-		self.bmuxList = []
-		self.stall = CtrlSignal(name=CFFB.STALL, width=1)
+		self.stallHazard = StallHazard()
 		
 	
 	def __str__(self):
@@ -32,7 +33,9 @@ class FB(object):
 	def HandleHazard(self):
 		for reg in self.pipeLine.regList:
 			self.__HandleHazardPerReg(reg)
-
+		self.__HandleStall()
+		
+		
 			
 	def __HandleHazardPerReg(self, reg):
 		regName = reg.name
@@ -51,24 +54,95 @@ class FB(object):
 		
 		Rstg = self.pipeLine.Rstg
 		stgn = self.pipeLine.stgn
+		# iterate every read channels
 		for rIndex in range(reg.rn):
-			regs = map(
-				lambda i: StgReg(name=regName, index=rIndex, stgName=self.pipeLine.StgNameAt(i)), range(Rstg, stgn)
-			)
+			rwHazard = RW_Hazard(name=regName, index=rIndex)
 			for binsn in rInsnList:
+				insnGrps = map(
+					lambda istg: RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=istg, addr=binsn.addr)), range(Rstg, binsn.stg+1)
+				)
+				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=Rtg, addr=binsn.addr)
 				for finsn in wInsnList:
-					self.__HandleInsnPair(finsn, binsn, regs)
-					
+					self.__HandleInsnPair(finsn, binsn, regs, grps, hazard)
+				# if has valid stall condition
+				if len(stallGrp) > 0:
+					stallHazard.add(stallGrp)
+				# if has valid send condtion
+				for grp in insnGrps:
+					if len(grp) > 0:
+						rwHazard.add(grp)
+			# handle current channel of reg
+			self.__HandleRW(rwHazard)
+	
+	
+	def __HandleStall(self):
+		
+	
+		
+	def __HandleRW(self, hazard):
+		Rstg = self.pipeLine.Rstg
+		stgn = self.pipeLine.stgn
+		csRetList = []
+		for istg in range(Rstg, stgn):
+			curGrp = filter(lambda grp: grp.BInsn.stg==istg, hazard.insnGrpSet)
+			if len(curGrp) == 0
+				continue
+			linkedSet = reduce(lambda ast,bst: ast|bst, map(lambda g:g.linkedIn, curGrp))
+			# add raw rd to the first index
+			stgName = self.pipeLine.StgNameAt(istg)
+			rd = RG.GenRegRd(name=hazard.name, index=hazard.index)
+			rdName = RP.SrcToVar(src=rd, stg=stgName)
+			linkedIn = [rdName] + list(linkedSet)
+			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
+			mux = stgReg.toBypassMux()
+			selName = mux.GenSelName()
+			cs = CtrlSignal(name=selName, width=mux.seln)
+			for g in curGrp:
+				binsn = g.Binsn
+				for finsn in g:
+					if binsn.addr is None and finsn.addr is None
+						# no addr
+						cond = "%s && %s " % (binsn.condition(), finsn.condition())
+					else:
+						baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
+						faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
+						addrCond = "(%s == %s)" % (baddr, faddr)
+						cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+					data = RP.SrcToVar(src=finsn.wd, srg=self.pipeLine.StgNameAt(finsn.stg))
+					op = linkedIn.index(data)
+					pri = stgn - finsn.stg
+					ct = CtrlTriple(cond=cond, op=op, pri=pri)
+					cs.add(ct)
+			csRetList.append(cs)		
+		return csRetList
+		
 				
-	def __HandleInsnPair(self, finsn, binsn, regs):
+	def __HandleInsnPair(self, finsn, binsn, regs, rwGrps, stallGrp):
 		Wstg = self.pipeLine.Wstg
 		Rstg = self.pipeLine.Rstg
 		# the condition of send
-		for pw in range(finsn.stg+1, Wstg):
-			# link the send-wd into bmux
-			sendData = RP.SrcToVerilog(src=finsn.wd, stg=self.pipeLine.StgNameAt(pw))
-			regs[Rstg].add(sendData)
-			# add the condition to csMap
+		for w in range(finsn.stg+1, Wstg+1):
+			# add the predessor insn to insn groups
+			wInsn = StgInsn(insn=finsn.insn, stg=w, addr=finsn.addr, wd=finsn.wd)
+			rwGrps[Rstg].addInsn(wInsn)
+			# add the sendData to hazard's linkedIn
+			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
+			rwGrps[Rstg].addLink(sendData)
+		
+		w = finsn.stg + 1
+		wInsn = StgInsn(insn=finsn.insn, stg=w, addr=finsn.addr, wd=finsn.wd)
+		for r in range(Rstg+1, binsn.stg+1):
+			rwGrps[r].addInsn(wInsn)
+			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
+			rwGrps[r].addLink(sendData)
+			
+		# the condition of stall
+		delta = fisn.stg - binsn.stg
+		if delta > 0:
+			for d in range(1, delta+1):
+				wInsn = StgInsn(insn=finsn.insn, stg=binsn.stg+d, addr=finsn.addr)
+				stallGrp.addInsn(wInsn)
+			
 			
 		
 	def __GenWStgInsn(self, regName, index=""):
