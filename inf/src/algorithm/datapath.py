@@ -99,7 +99,7 @@ class Datapath(object):
 			muxList, csList = self.__GenPortMuxPerStg(self, rtlSet, istg)
 			retMuxList += muxList
 			retCSList += retCSList
-		return retMuxList, retCSList
+		return retCSList, retMuxList
 		
 	
 	

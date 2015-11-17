@@ -93,7 +93,7 @@ class Control(object):
 		return csDict.items()
 		
 		
-	def toVerilog(self, tabn):
+	def toVerilog(self, tabn=1):
 		pre = "\t" * tabn
 		ret = ""
 		
@@ -164,7 +164,7 @@ class Control(object):
 		ret += pre + "end // end always\n\n"
 		return ret
 		
-	def instance(self, tabn):
+	def instance(self, tabn = 1):
 		name = "control"
 		pre = "\t" * tabn
 		ret += "%s%s I_%s(\n" % (pre, name, name)

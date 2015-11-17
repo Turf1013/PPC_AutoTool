@@ -23,6 +23,9 @@ class constForVFile:
 	OP = "_OP"
 	XO = "_XO"
 	
+	controlFileName = "control.v"
+	ppcFileName = "ppc.v"
+	
 class CFV(constForVFile):
 	pass
 	
@@ -62,13 +65,13 @@ class VFile(object):
 		self.__scanAllDir(workDirectory)
 	
 	
-	def chkFileType(self, fileList):
+	def __chkFileType(self, fileList):
 		return filter(lambda x:x.endswith(CFV.VFILE_SUFFIX), fileList)
 	
 		
 	# scan all VFile not include directory
 	def __scanAllFile(self, path):
-		fileList = self.chkFileType(os.listdir(path))
+		fileList = self.__chkFileType(os.listdir(path))
 		for fname in fileList:
 			if fname.endswith(CFV.DEF_SUFFIX):
 				self.defFileList.append((path, fname))
@@ -101,8 +104,8 @@ class VFile(object):
 		
 		
 	# generate the Instruction Map
-	def GenInsnMap(self):
-		insnList = self.GenAllInsn()
+	def GenInsnMap(self, fileName):
+		insnList = self.GenAllInsn(fileName)
 		return InsnMap(iterable=insnList)
 	
 	
@@ -174,7 +177,22 @@ class VFile(object):
 				
 		return retInsnList	
 		
+	def __WriteVFile(self, path, header="", code=""):
+		with open(path, "w") as fout:
+			fout.write(header)
+			fout.write("\n")
+			fout.write(code)
+			fout.write("\n")
+			
 		
-
+	def GenCtrlVFile(self, header, code):
+		path = os.path.join(self.workDirectory, CFV.controlFileName)
+		self.__WriteVFile(path=path, header=header, code=code)
+		
+		
+	def GenPPCVFile(self, header, code):
+		path = os.path.join(self.workDirectory, CFV.ppcFileName)
+		self.__WriteVFile(path=path, header=header, code=code)
+		
 
 	
