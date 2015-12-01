@@ -79,12 +79,20 @@ class FB(object):
 			for finsn in insnGrp.FinsnSet:
 				if binsn.addr is None and finsn.addr is None:
 					# no addr
-					cond = "%s && %s " % (binsn.condition(), finsn.condition())
+					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl)
+					# if finsn.ctrl=="1'b1":
+						# cond = "%s && %s" % (binsn.condition(), finsn.condition())
+					# else:
+						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl)
 				else:
 					baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 					faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
 					addrCond = "(%s == %s)" % (baddr, faddr)
-					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+					cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl, addrCond)
+					# if finsn.ctrl=="1'b1":
+						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+					# else:
+						# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl, addrCond)
 				op = 1
 				pri = stgn - finsn.stg.id
 				ct = CtrlTriple(cond=cond, op=op, pri=pri)
@@ -184,18 +192,20 @@ class FB(object):
 					if binsn.addr is None and finsn.addr is None:
 						# no addr
 						# check if finsn wr is 1'b1
-						if finsn.ctrl == "1'b1":
-							cond = "%s && %s" % (binsn.condition(), finsn.condition())
-						else:
-							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
+						cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
+						# if finsn.ctrl=="1'b1":
+							# cond = "%s && %s" % (binsn.condition(), finsn.condition())
+						# else:
+							# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
 					else:
 						baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 						faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
 						addrCond = "(%s == %s)" % (baddr, faddr)
-						if finsn.ctrl == "1'b1":
-							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
-						else:
-							cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
+						cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
+						# if finsn.ctrl=="1'b1":
+							# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+						# else:
+							# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
 					data = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(finsn.stg))
 					op = linkedIn.index(data)
 					pri = stgn - finsn.stg.id

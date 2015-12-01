@@ -41,16 +41,16 @@ class VerilogGenerator:
 				else:
 					ret += pre + "\t" + "%s ( %s ) %s\n" % (CFV.IF, t.cond, CFV.BEGIN)
 				#	add op
-				ret += pre + "\t\t" + "%s = %s%s\n" % (name, radix, str(t.op))
+				ret += pre + "\t\t" + "%s = %s%s;\n" % (name, radix, str(t.op))
 				# add end
 				ret += pre + "\t" + "%s\n" % (CFV.END)
 			# add else
 			ret += pre + "\t" + "%s %s\n" % (CFV.ELSE, CFV.BEGIN)
-			ret += pre + "\t\t" + "%s = %s%s\n" % (name, radix, str(default))
+			ret += pre + "\t\t" + "%s = %s%s;\n" % (name, radix, str(default))
 			ret += pre + "\t" + "%s\n" % (CFV.END)
 		else:
 			# add default directly
-			ret += pre + "\t\t" + "%s = %s%s\n" % (name, radix, str(default))
+			ret += pre + "\t\t" + "%s = %s%s;\n" % (name, radix, str(default))
 		# add end always
 		ret += pre + "%s %s\n" % (CFV.END, CFV.ENDALWAYS)
 		return ret

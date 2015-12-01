@@ -158,7 +158,7 @@ class Control(object):
 		pre = "\t" * tabn
 		ret = ""
 		for w in self.wireSet:
-			ret += pre + VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
+			ret += VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
 		return ret
 		
 		
@@ -179,10 +179,10 @@ class Control(object):
 		for istg in range(rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))
 		ret += pre + "\t" + "end\n"
-		ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg+1))
-		for istg in range(rstg+2, stgn):
-			ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
 		ret += pre + "\t" + "else begin\n"
+		# ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg+1))
+		for istg in range(rstg+1, stgn):
+			ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
 		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
 		

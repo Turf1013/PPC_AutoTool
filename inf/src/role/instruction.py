@@ -21,12 +21,12 @@ class Insn(object):
 		self.xo		= xo
 		
 		
-	def condition(self, opField="[0:5]", opWidth=6, xoField="[21:30]", xoWidth=10, INSTR="Instr", suf=""):
+	def condition(self, opField="[0:5]", xoField="[21:30]", INSTR="Instr", suf=""):
 		instr = INSTR + "_" + suf if suf else INSTR
 		if self.xo is None:
-			return "(%s%s==%s'd%s)" % (instr, opField, opWidth, self.op)
-		return "(%s%s==%s'd%s && %s==%s'd%s)" % (
-					instr, opField, opWidth, self.op, xoField, xoWidth, self.xo
+			return "(%s%s==%s)" % (instr, opField, self.op)
+		return "(%s%s==%s && %s==%s)" % (
+					instr, opField, self.op, xoField, self.xo
 				)
 	
 	def __hash__(self):
