@@ -117,27 +117,29 @@ class FB(object):
 		# iterate every read channels
 		for rIndex in range(reg.rn):
 			rwHazard = RW_Hazard(name=regName, index=rIndex)
-			for binsn in rInsnList:
-				insnGrps = []
-				for istg in xrange(rstg, binsn.stg+1):
-					stg = Stage(istg, self.pipeLine.StgNameAt(istg))
-					insnGrps.append(
-						RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
-					)
-				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=self.pipeLine.Rstg, addr=binsn.addr))
-				for finsn in wInsnList:
-					self.__HandleInsnPair(finsn, binsn, insnGrps, stallGrp)
-				# if has valid stall condition
-				if len(stallGrp) > 0:
-					self.stallHazard.add(stallGrp)
-				# if has valid send condtion
-				for grp in insnGrps:
-					if len(grp) > 0:
-						rwHazard.add(grp)
-			# handle current channel of reg
-			csList, muxList = self.__HandleRW(rwHazard)
-			retCsList += csList
-			retMuxList += muxList
+			for rStgInsnList in rInsnList:
+				for binsn in rStgInsnList:
+					insnGrps = []
+					for istg in xrange(rstg, binsn.stg.id+1):
+						stg = Stage(istg, self.pipeLine.StgNameAt(istg))
+						insnGrps.append(
+							RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
+						)
+					stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=self.pipeLine.Rstg, addr=binsn.addr))
+					for wStgInsnList in wInsnList:
+						for finsn in wStgInsnList:
+							self.__HandleInsnPair(finsn, binsn, insnGrps, stallGrp)
+					# if has valid stall condition
+					if len(stallGrp) > 0:
+						self.stallHazard.add(stallGrp)
+					# if has valid send condtion
+					for grp in insnGrps:
+						if len(grp) > 0:
+							rwHazard.add(grp)
+				# handle current channel of reg
+				csList, muxList = self.__HandleRW(rwHazard)
+				retCsList += csList
+				retMuxList += muxList
 		return retCsList, retMuxList
 		
 	
@@ -205,7 +207,7 @@ class FB(object):
 		wstg = self.pipeLine.Wstg.id
 		rstg = self.pipeLine.Rstg.id
 		# the condition of send
-		for w in range(finsn.stg+1, wstg+1):
+		for w in range(finsn.stg.id+1, wstg+1):
 			# add the predessor insn to insn groups
 			wInsn = StgInsn(insn=finsn.insn, stg=w, addr=finsn.addr, wd=finsn.wd)
 			rwGrps[rstg].addInsn(wInsn)
@@ -214,17 +216,18 @@ class FB(object):
 			rwGrps[rstg].addLink(sendData)
 		
 		w = finsn.stg + 1
-		wInsn = StgInsn(insn=finsn.insn, stg=w, addr=finsn.addr, wd=finsn.wd)
-		for r in range(rstg+1, binsn.stg+1):
+		stg = Stage(w, self.pipeLine.StgNameAt(w))
+		wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, wd=finsn.wd)
+		for r in range(rstg+1, binsn.stg.id+1):
 			rwGrps[r].addInsn(wInsn)
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
 			rwGrps[r].addLink(sendData)
 			
 		# the condition of stall
-		delta = finsn.stg - binsn.stg
+		delta = finsn.stg.id - binsn.stg.id
 		if delta > 0:
 			for d in range(1, delta+1):
-				wInsn = StgInsn(insn=finsn.insn, stg=binsn.stg+d, addr=finsn.addr)
+				wInsn = StgInsn(insn=finsn.insn, stg=binsn.stg.id+d, addr=finsn.addr)
 				stallGrp.addInsn(wInsn)
 			
 			

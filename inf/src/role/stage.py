@@ -13,6 +13,24 @@ class Stage(object):
 		self.name = name
 	
 	
+	def __add__(self, other):
+		if isinstance(other, int):
+			return self.id + other
+		elif isinstance(other, Stage):
+			return self.id + other.id
+		else:
+			raise TypeError, "Stage +/- Error"
+			
+			
+	def __sub__(self, other):
+		if isinstance(other, int):
+			return self.id - other
+		elif isinstance(other, Stage):
+			return self.id - other.id
+		else:
+			raise TypeError, "Stage +/- Error"
+	
+	
 	def __str__(self):
 		return self.name
 		

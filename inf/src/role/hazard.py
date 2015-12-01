@@ -4,7 +4,7 @@ from stage import Stage
 from reg import Reg
 from mutex import BypassMutex, CFM
 from ..util.verilogGenerator import VerilogGenerator as VG
-from ..util.RTLParser import RtlParser as RP
+from ..util.rtlParser import RtlParser as RP
 
 class constForHazard:
 	INSTR = "Instr"		
@@ -196,7 +196,7 @@ class RW_InsnGrp(InsnGrp):
 	"""
 	
 	def __init__(self, Binsn):
-		super(InsnGrp, self).__init__(Binsn=Binsn)
+		super(RW_InsnGrp, self).__init__(Binsn=Binsn)
 		self.linkedIn = set()
 		
 	def addLink(self, data):
