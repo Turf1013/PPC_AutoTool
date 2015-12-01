@@ -1,4 +1,5 @@
 # Python:
 test*.py
 test*.py[cod]
+*.log
 

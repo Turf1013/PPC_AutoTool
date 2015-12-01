@@ -98,7 +98,7 @@ class VerilogGenerator:
 	@classmethod
 	def GenWire(cls, name, width, tabn=1):
 		if isinstance(width, int):
-			retturn "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.WIRE, width-1, name)
+			return "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.WIRE, width-1, name)
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.WIRE, width, name)
 		
@@ -107,7 +107,7 @@ class VerilogGenerator:
 	@classmethod
 	def GenReg(cls, name, width, tabn=1):
 		if isinstance(width, int):
-			retturn "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.REG, width-1, name)
+			return "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.REG, width-1, name)
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.REG, width, name)
 		
@@ -120,7 +120,7 @@ class VerilogGenerator:
 	@classmethod
 	def GenOutput(cls, name, width, tabn=1):
 		if isinstance(width, int):
-			retturn "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.OUTPUT, width-1, name)
+			return "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.OUTPUT, width-1, name)
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.OUTPUT, width, name)
 			
@@ -128,6 +128,7 @@ class VerilogGenerator:
 	@classmethod
 	def GenInput(cls, name, width, tabn=1):
 		if isinstance(width, int):
-			retturn "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.INPUT, width-1, name)
+			return "\t" * tabn + "%s [%d:0] %s;\n" % (CFVG.INPUT, width-1, name)
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.INPUT, width, name)
+			

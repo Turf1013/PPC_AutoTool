@@ -148,11 +148,11 @@ class Control(object):
 		ret = ""
 		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
 		ret += pre + "\t" + "if ( !rst_n ) begin\n"
-		for istg in range(Rstg+1, stgn)
+		for istg in range(Rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))
 		ret += pre + "\t" + "end\n"
 		ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(Rstg+1))
-		for istg in range(Rstg+2, stgn)
+		for istg in range(Rstg+2, stgn):
 			ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
 		ret += pre + "\t" + "else begin\n"
 		ret += pre + "\t" + "end\n"

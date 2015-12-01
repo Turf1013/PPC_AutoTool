@@ -47,11 +47,11 @@ class Rtl(object):
 		
 	
 	@classmethod
-	def isPipeRtl(cls, line)
+	def isPipeRtl(cls, line):
 		return CFR.pipeSymbol in line
 		
 	@classmethod
-	def isConstSrc(cls, src)
+	def isConstSrc(cls, src):
 		return "." not in src
 	
 

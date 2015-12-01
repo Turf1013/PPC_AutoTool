@@ -6,7 +6,7 @@ from ..verilog.gen_hdl import GenVerilog
 from ..role.instruction import Insn
 from ..role.module import Module, Port
 from ..role.moduleMap import ModuleMap
-from ..role.insnMap import InsnMap
+from ..role.instructionMap import InsnMap
 
 
 class constForVFile:

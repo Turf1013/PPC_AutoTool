@@ -8,7 +8,7 @@ from ..util.Access_Excel import Access_Excel
 from ..role.stage import Stage
 from ..role.pipeline import PipeLine
 from ..role.rtl import Rtl, LinkRtl, PipeRtl
-frin ..role.reg import Reg
+from ..role.reg import Reg
 
 class constForExcel:
 	ReadStageName = "D"
@@ -76,13 +76,13 @@ class Excel(object):
 			
 	# return [2-dimension array] * 2
 	def __GenOneInsnRtl(self, begRow, endRow):
-		cellList = self.__GenOneInsnCell(begRow, endRow):
+		cellList = self.__GenOneInsnCell(begRow, endRow)
 		retLinkList = []
 		retPipeList = []
 		for cells in cellList:
 			tmpLinkList = []
 			tmpPipeList = []
-			val in cells:
+			for val in cells:
 				if Rtl.isLinkRtl(val):
 					tmpLinkList.append( LinkRtl(val) )
 					

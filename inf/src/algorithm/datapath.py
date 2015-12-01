@@ -94,7 +94,7 @@ class Datapath(object):
 		retCSList = []
 		for istg in xrange(stgn):
 			rtlSet = set()
-			for insnName, insnRtlList in linkRtl.iteritems();
+			for insnName, insnRtlList in linkRtl.iteritems():
 				rtlSet.update(insnRtlList[istg])
 			muxList, csList = self.__GenPortMuxPerStg(self, rtlSet, istg)
 			retMuxList += muxList
@@ -127,7 +127,7 @@ class Datapath(object):
 				retMuxList.append(pmux)
 				
 				### Link the MUX dout to orginal module
-				doutName = pmux.GenDoutName():
+				doutName = pmux.GenDoutName()
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.dePort, doutName)
 				
@@ -169,7 +169,7 @@ class Datapath(object):
 	# find source in the bypass if source flow through bypass then return rename or return itself
 	def __FindInBypass(self, src, istg):
 		for rt in self.needBypass:
-			if rt.equal(src=src, stg=istg)
+			if rt.equal(src=src, stg=istg):
 				return rt.des
 		return src
 		
@@ -189,11 +189,12 @@ class Datapath(object):
 		ret += "// wire statement\n" + wireCode + "\n" * 4
 		
 		# instance all modules
-		instanceCode = self.__instanceToVerilog(tabn=tabn) + ctrlCode
+		instanceCode = self.__instanceToVerilog(tabn=tabn)
 		ret += "// Instance Module\n" + instanceCode + "\n" * 4
 		
 		# instance control 
-		ret += 
+		instanceCtrl = ctrlCode
+		ret += "// Instance Module\n" + instanceCtrl + "\n" * 4
 		
 		# pipeReg logic
 		pipeCode = self.__pipeToVerilog(tabn = tabn)
@@ -233,7 +234,7 @@ class Datapath(object):
 		pipeRtl = self.excelRtl.pipeRtl[istg]
 		rtlSet = set()
 		retDict = dict()
-		for rtl in pipeRtl
+		for rtl in pipeRtl:
 			rtlSet.add(rtl)
 		for rtl in rtlSet:
 			src = self.__FindInBypass(src=rtl.src, istg=istg)

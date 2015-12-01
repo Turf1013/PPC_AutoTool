@@ -6,7 +6,7 @@ class constForWire:
 	REG = "reg"
 	DEFAULT_WIDTH = "[0:0]"
 	
-class CFW(constForWite):
+class CFW(constForWire):
 	pass
 	
 	
@@ -19,7 +19,7 @@ class Wire(object):
 		self.stg = stg
 		
 	def __cmp__(self, other):
-		if self.stg == other.stg
+		if self.stg == other.stg:
 			return other.kind - self.kind
 		return self.stg - other.stg
 	

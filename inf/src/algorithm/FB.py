@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from tree import WTree
-from ..role.hazard import StgInsn, RWHazard, StallHazard
+from ..role.hazard import StgInsn, RW_Hazard, Stall_Hazard
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
-from ..util.RTLParser import RTlParser as RP
+from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
+from ..util.verilogParser import VerilogParser as VP
 from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForFB:
@@ -44,7 +44,7 @@ class FB(object):
 		self.pipeLine = pipeLine
 		self.modMap = modMap
 		self.insnMap = insnMap
-		self.stallHazard = StallHazard()
+		self.stallHazard = Stall_Hazard()
 		self.needBypass = set()
 	
 	def __str__(self):
@@ -72,7 +72,7 @@ class FB(object):
 		for insnGrp in self.stallHazard:
 			Binsn = insnGrp.Binsn
 			for Finsn in insnGrp.FinsnSet:
-				if binsn.addr is None and finsn.addr is None
+				if binsn.addr is None and finsn.addr is None:
 					# no addr
 					cond = "%s && %s " % (binsn.condition(), finsn.condition())
 				else:
@@ -119,7 +119,7 @@ class FB(object):
 				insnGrps = map(
 					lambda istg: RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=istg, addr=binsn.addr)), range(Rstg, binsn.stg+1)
 				)
-				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=Rtg, addr=binsn.addr)
+				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=Rtg, addr=binsn.addr))
 				for finsn in wInsnList:
 					self.__HandleInsnPair(finsn, binsn, regs, grps, hazard)
 				# if has valid stall condition
@@ -171,12 +171,12 @@ class FB(object):
 			for g in curGrp:
 				binsn = g.Binsn
 				for finsn in g:
-					if binsn.addr is None and finsn.addr is None
+					if binsn.addr is None and finsn.addr is None:
 						# no addr
 						# check if finsn wr is 1'b1
 						if finsn.ctrl == "1'b1":
 							cond = "%s && %s" % (binsn.condition(), finsn.condition())
-						else
+						else:
 							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
 					else:
 						baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from instruction import Insn
 from stage import Stage
-from reg import reg
+from reg import Reg
 from mutex import BypassMutex, CFM
 from ..util.verilogGenerator import VerilogGenerator as VG
 from ..util.RTLParser import RtlParser as RP
@@ -51,7 +51,7 @@ class StgReg(object):
 			self.dinDict[d] = self.m
 			self.m += 1
 			
-	def index(self, d)
+	def index(self, d):
 		return self.dinDict[d]
 			
 			
@@ -201,7 +201,7 @@ class RW_InsnGrp(InsnGrp):
 	2. Several Predessor Instruction (Finsn);
 	"""
 	
-	def __init__(self. BInsn):
+	def __init__(self, BInsn):
 		super(InsnGrp, self).__init__(Binsn=Binsn)
 		linkeIn = set()
 		
