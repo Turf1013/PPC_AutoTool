@@ -3,10 +3,10 @@ import re
 
 
 class constForVerilogParser:
-	re_range = re.compile(r"\[\w+:\w+\]")
+	re_range = re.compile(r"\[[\`\_\+\-\*\/\w]+:[\`\_\+\-\*\/\w]+\]")
 	re_space = re.compile(r"\s+")
 	
-class CFVP:
+class CFVP(constForVerilogParser):
 	pass
 	
 	
@@ -16,7 +16,7 @@ class VerilogParser:
 	def RangeToInt(cl, r):
 		m = CFVP.re_range.match(r)
 		if m is None:
-			raise ValueError, "%s is not a range" % r
+			raise ValueError, "*%s* is not a range" % r
 		r = m.group(0)
 		f, t = r[1:-1].split(':')
 		r = t if f=="0" else f

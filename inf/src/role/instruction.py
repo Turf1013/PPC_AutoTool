@@ -24,8 +24,8 @@ class Insn(object):
 	def condition(self, opField="[0:5]", opWidth=6, xoField="[21:30]", xoWidth=10, INSTR="Instr", suf=""):
 		instr = INSTR + "_" + suf if suf else INSTR
 		if self.xo is None:
-			return "(%s%s==%d'd%d)" % (instr, opField, opWidth, self.op)
-		return "(%s%s==%d'd%d && %s==%d'd%d)" % (
+			return "(%s%s==%s'd%s)" % (instr, opField, opWidth, self.op)
+		return "(%s%s==%s'd%s && %s==%s'd%s)" % (
 					instr, opField, opWidth, self.op, xoField, xoWidth, self.xo
 				)
 	

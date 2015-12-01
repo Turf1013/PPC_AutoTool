@@ -67,6 +67,8 @@ class Module(object):
 	
 		
 	def addLink(self, desPort, srcPort):
+		if isinstance(desPort, str):
+			desPort = self.find(desPort)
 		if desPort not in self.portList:
 			raise KeyError, "%s not in [%s]" % (desPort, self.name)
 		elif self.linkDict[desPort] is not None:

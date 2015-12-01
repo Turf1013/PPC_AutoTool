@@ -41,10 +41,10 @@ class Wire(object):
 			
 class WireSet(set):
 
-	def toVerilog(self):
+	def toVerilog(self, tabn = 1):
 		ret = ""
 		L = sorted(self)
 		for wire in L:
-			ret += wire.toVerilog()
+			ret += wire.toVerilog(tabn = tabn)
 		return ret
 		

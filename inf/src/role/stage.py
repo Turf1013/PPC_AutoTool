@@ -40,7 +40,12 @@ class Stage(object):
 		
 		
 	def __eq__(self, other):
-		return self.id == other.id
+		if isinstance(other, int):
+			return self.id == other
+		elif isinstance(other, Stage):
+			return self.id + other.id
+		else:
+			raise TypeError, "Stage cmp Error"
 		
 		
 	def __hash__(self):

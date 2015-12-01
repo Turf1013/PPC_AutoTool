@@ -6,8 +6,8 @@ class constForRtl:
 	linkSymbol = "->"
 	pipeSymbol = ">>"
 	ctrlSuffix = [
-		"Op",
-		"Wr"
+		"op",
+		"wr",
 	]
 	
 	
@@ -104,8 +104,7 @@ class PipeRtl(Rtl):
 	
 	def __init__(self, val):
 		super(PipeRtl, self).__init__(val)
-		self.src = self.val.split(CFR.pipeSymbol)
-		self.srcMod, self.srcPort = self.getModAndPort(self.src)
+		self.src = self.val.split(CFR.pipeSymbol)[0]
 		
 		
 	def __eq__(self, other):

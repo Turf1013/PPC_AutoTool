@@ -5,7 +5,7 @@ class constForRtlParser:
 	re_rtlConst = re.compile(r"`\w+|\d+")
 	re_rtlVariable = re.compile(r"[\w`']+")
 
-class CFRP:
+class CFRP(constForRtlParser):
 	pass
 	
 
@@ -25,7 +25,7 @@ class RtlParser:
 	
 	@classmethod		
 	def DesToVar(cls, des):
-		return des.sub(".", "_") 
+		return des.replace(".", "_") 
 		
 	
 	@classmethod

@@ -37,15 +37,16 @@ class Datapath(object):
 		self.pipeList = []
 		self.wireSet = WireSet()
 		# add clr_D to PCWr
-		mod = self.modMap.find("PC")
-		mod.addLink("Wr", "~clr_" % (self.pipeLine.StgNameAt(self.pipeLine.Rstg)))
+		pc = self.modMap.find("PC")
+		pcWrPort = pc.find("wr")
+		pc.addLink(pcWrPort, "~clr_%s" % (self.pipeLine.Rstg.name))
 	
 	
 		
 	# Add the link
 	def LinkMod(self):
-		linkRtl = self.excepRtl.linkRtl
-		stgn = self.pipeLine.stg
+		linkRtl = self.excelRtl.linkRtl
+		stgn = self.pipeLine.stgn
 		for istg in xrange(stgn):
 			rtlSet = set()
 			for insnName, insnRtlList in linkRtl.iteritems():
@@ -76,7 +77,7 @@ class Datapath(object):
 				
 			else:
 				src = self.__FindInBypass(src=rtl.src, stg=istg)
-				varName = RP.SrcToVar(src=src, srg=stgName)
+				varName = RP.SrcToVar(src=src, stg=stgName)
 				mod = self.modMap.find(rtl.desMod)
 				mod.addLink(rtl.desPort, varName)
 				port = mod.find(rtl.desPort)
@@ -97,7 +98,7 @@ class Datapath(object):
 			rtlSet = set()
 			for insnName, insnRtlList in linkRtl.iteritems():
 				rtlSet.update(insnRtlList[istg])
-			muxList, csList = self.__GenPortMuxPerStg(self, rtlSet, istg)
+			muxList, csList = self.__GenPortMuxPerStg(rtlSet, istg)
 			retMuxList += muxList
 			retCSList += retCSList
 		return retCSList, retMuxList
@@ -122,7 +123,7 @@ class Datapath(object):
 				name = self.__GenPortMuxIname(rtl, istg)
 				linkedIn = self.__GenPortMuxLinkedIn(srcList, istg)
 				desMod = self.modMap.find(rtl.desMod)
-				width = VP.RangeToInt(desMod.find(rtl.desPort))
+				width = VP.RangeToInt(desMod.findPortWidth(rtl.desPort))
 				
 				### Generate the MUX
 				pmux = PortMutex(name=name, width=width, linkedIn=linkedIn)
@@ -131,7 +132,7 @@ class Datapath(object):
 				### Link the MUX dout to orginal module
 				doutName = pmux.GenDoutName()
 				mod = self.modMap.find(rtl.desMod)
-				mod.addLink(rtl.dePort, doutName)
+				mod.addLink(rtl.desPort, doutName)
 				
 				### Generate the CtrlSignal
 				selName = pmux.GenSelName()
@@ -143,6 +144,7 @@ class Datapath(object):
 							insn = self.insnMap.find(insnName)
 							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
 							src = self.__FindInBypass(src=r.src, stg=istg)
+							src = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
 							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
 				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
@@ -165,13 +167,13 @@ class Datapath(object):
 				
 	# Generate the instance name of Port Mux
 	def __GenPortMuxIname(self, rtl, istg):
-		return "%s_%s_%s" % (rtl.desMod, rtl.desPort, self.pipeLine.stgNameAt(istg))
+		return "%s_%s_%s" % (rtl.desMod, rtl.desPort, self.pipeLine.StgNameAt(istg))
 		
 	
 	# find source in the bypass if source flow through bypass then return rename or return itself
-	def __FindInBypass(self, src, istg):
+	def __FindInBypass(self, src, stg):
 		for rt in self.needBypass:
-			if rt.equal(src=src, stg=istg):
+			if rt.equal(src=src, stg=stg):
 				return rt.des
 		return src
 		
@@ -187,7 +189,7 @@ class Datapath(object):
 		
 				
 		# wire & reg statement
-		wireCode = self.wireSet().toVerilog(tabn=tabn)
+		wireCode = self.wireSet.toVerilog(tabn=tabn)
 		ret += "// wire statement\n" + wireCode + "\n" * 4
 		
 		# instance all modules
@@ -209,7 +211,7 @@ class Datapath(object):
 		
 	def __instanceToVerilog(self, tabn):
 		ret = ""
-		for mod in self.modMap:
+		for modName,mod in self.modMap.iteritems():
 			ret += self.__instanceToVerilogPerMod(mod=mod, tabn=tabn)
 		return ret
 		
@@ -230,16 +232,24 @@ class Datapath(object):
 		self.pipeDictList = [dict()]
 		for istg in range(1, stgn):
 			self.pipeDictList.append( self.__GenPipePerStg(istg) )
-			
+	
+	
+	def __PipeRtlAtStg(self, istg):
+		ret = set()
+		for insnName, pipeRtlList in self.excelRtl.pipeRtl.iteritems():
+			for pipeRtl in pipeRtlList[istg]:
+				ret.add(pipeRtl)
+		return ret
+		
 			
 	def __GenPipePerStg(self, istg):
-		pipeRtl = self.excelRtl.pipeRtl[istg]
+		pipeRtl = self.__PipeRtlAtStg(istg)
 		rtlSet = set()
 		retDict = dict()
 		for rtl in pipeRtl:
 			rtlSet.add(rtl)
 		for rtl in rtlSet:
-			src = self.__FindInBypass(src=rtl.src, istg=istg)
+			src = self.__FindInBypass(src=rtl.src, stg=istg)
 			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg-1))
 			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg))
 			retDict[outVar] = inVar
@@ -272,22 +282,22 @@ class Datapath(object):
 	# pay attention clear & lock
 	def __pipeToVerilogPerStg(self, tabn, istg):
 		pre = "\t" * tabn
-		Rstg = self.pipeLine.Rstg
+		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
-		pipeDict = self.pipeDict[istg]
+		pipeDict = self.pipeDictList[istg]
 		stgName = self.pipeLine.StgNameAt(istg)
 		ret = ""
 		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
 		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
-		if istg > Rstg:
+		if istg > rstg:
 			ret += pre + "\t" + "if ( !rst_n || clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg-1))
 		else:
-			ret += pre + "\t" + "if ( !rst_n ) begin\n" % (self.pipeLine.StgNameAt(istg))
-		for outVar in pipeDict.itekeys():
+			ret += pre + "\t" + "if ( !rst_n ) begin\n"
+		for outVar in pipeDict.iterkeys():
 			ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 		ret += pre + "\t" + "end\n"
-		if istg <= Rstg:
-			ret += pre + "\t" + "else if ( !clr_%s )begin\n" % (self.pipeLine.StgNameAt(Rstg))
+		if istg <= rstg:
+			ret += pre + "\t" + "else if ( !clr_%s )begin\n" % (self.pipeLine.StgNameAt(rstg))
 		else:
 			ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():

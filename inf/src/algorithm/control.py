@@ -36,9 +36,9 @@ class Control(object):
 		# add clk, rst_n, instr to portList
 		self.portList.append( "clk" )
 		self.portList.append( "rst_n" )
-		self.portList += map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn))
+		self.portList += map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn))
 		# add clr to wireSet
-		for istg in range(self.pipeLine.Rstg, self.pipeLine.stgn):
+		for istg in range(self.pipeLine.Rstg.id, self.pipeLine.stgn):
 			clrName = "clr_" + self.pipeLine.StgNameAt(istg)
 			self.portList.append(clrName)
 			self.wireSet.add( Wire(name=clrName, width=1, kind="reg", stg=istg) )
@@ -47,7 +47,7 @@ class Control(object):
 	def addCS(self, iterable):
 		for cs in iterable:
 			self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg") )
-			self.portList.add( cs.name )
+			self.portList.append( cs.name )
 		self.CSList += list(iterable)
 		
 	
@@ -70,7 +70,7 @@ class Control(object):
 			rtlList = insnRtlList[istg]
 			for rtl in rtlList:
 				# rtl need to be Ctrl Link
-				if not rtl.isCtrlLink:
+				if not rtl.isCtrlLink():
 					continue
 				signalName = RP.DesToVar(rtl.des)
 				if signalName not in csDict:
@@ -90,7 +90,7 @@ class Control(object):
 				cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
 				op = rtl.src
 				cs.add( CtrlTriple(cond=cond, op=op) )
-		return csDict.items()
+		return csDict.values()
 		
 		
 	def toVerilog(self, tabn=1):
@@ -112,15 +112,15 @@ class Control(object):
 		ret += pre + "// output statement\n" + outputCode + "\n"
 		
 		# wire & reg statement
-		wireCode = self.wireSet().toVerilog(tabn=tabn)
+		wireCode = self.wireSet.toVerilog(tabn = tabn)
 		ret += pre + "// wire statement\n" + wireCode + "\n" * 4
 		
 		# control signal
-		csCode = self.__CSToVerilog(tabn=tabn)
+		csCode = self.__CSToVerilog(tabn = tabn)
 		ret += pre + "// Ctrl Signal\n" + csCode + "\n" * 4
 		
 		# pipe signal
-		clrCode = self.__ClrToVerilog(tabn=tabn)
+		clrCode = self.__ClrToVerilog(tabn = tabn)
 		ret += pre + "// Clear Signal\n" + clrCode + "\n" * 4
 		
 		# endmodule
@@ -137,7 +137,7 @@ class Control(object):
 			ret += w.name + ", "
 		# add insn
 		ret += "\n"
-		ret += pre + ", ".join(map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn)))
+		ret += pre + ", ".join(map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn)))
 		
 		# add clk & rst_n
 		ret += ",\n"
@@ -149,7 +149,7 @@ class Control(object):
 		pre = "\t" * tabn
 		ret = ""
 		ret += pre + "input clk, rst_n;\n"
-		instrList = map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn))
+		instrList = map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn))
 		ret += pre + "input %s %s;\n" % (CFC.INSTR_WIDTH, ", ".join(instrList))
 		return ret
 	
@@ -170,25 +170,25 @@ class Control(object):
 		
 		
 	def __ClrToVerilog(self, tabn):
-		Rstg = self.pipeLine.Rstg
+		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		pre = '\t' * tabn
 		ret = ""
 		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
 		ret += pre + "\t" + "if ( !rst_n ) begin\n"
-		for istg in range(Rstg+1, stgn):
+		for istg in range(rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))
 		ret += pre + "\t" + "end\n"
-		ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(Rstg+1))
-		for istg in range(Rstg+2, stgn):
+		ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg+1))
+		for istg in range(rstg+2, stgn):
 			ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
 		ret += pre + "\t" + "else begin\n"
 		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
 		
-		ret += pre + "//// same meaning as clr_%s = stall;\n" % (self.pipeLine.StgNameAt(Rstg))
+		ret += pre + "//// same meaning as clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
 		ret += pre + "always @( * ) begin\n"
-		ret += pre + "\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(Rstg))
+		ret += pre + "\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg))
 		ret += pre + "end // end always\n\n"
 		return ret
 		

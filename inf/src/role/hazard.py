@@ -82,7 +82,7 @@ class BaseStgInsn(object):
 		
 		
 	def __str__(self):
-		return "%s@%s" % (self.stg.name, self.insn)
+		return "%s@%s" % (self.insn.name, self.stg.name)
 		
 		
 	def __cmp__(self, other):
@@ -149,12 +149,13 @@ class InsnGrp(object):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
 		self.FinsnSet.add(Finsn)
 	
+	
 	def addInsn(self, Finsn):
-		self.add(Finsn)
+		self.FinsnSet.add(Finsn)
 		
 		
 	def __iter__(self):
-		return iter(self.Finsn)
+		return iter(self.FinsnSet)
 		
 	
 	def __eq__(self, other):
@@ -177,7 +178,11 @@ class InsnGrp(object):
 	
 	
 	def __str__(self):
-		return "%s_InsnGrp" % (self.Binsn)
+		ret = ""
+		ret += "[%s] InsnGrp:\n" % (str(self.Binsn))
+		for finsn in self.FinsnSet:
+			ret += "\t%s\n" % (str(finsn))
+		return ret
 		
 		
 		
@@ -199,11 +204,20 @@ class RW_InsnGrp(InsnGrp):
 		super(RW_InsnGrp, self).__init__(Binsn=Binsn)
 		self.linkedIn = set()
 		
+		
 	def addLink(self, data):
 		self.linkedIn.add(data)
 		
+		
 	def __str__(self):
-		return "%s__RW_InsnGrp" % (self.Binsn)
+		ret = ""
+		ret += "[%s] InsnGrp:\n" % (str(self.Binsn))
+		for finsn in self.FinsnSet:
+			ret += "\t%s\n" % (str(finsn))
+		ret += "\n SendData:\n"
+		for data in self.linkedIn:
+			ret += "\t%s\n" % (data)
+		return ret
 		
 		
 
@@ -218,19 +232,20 @@ class BaseHazard(object):
 			self.insnGrpSet = set()
 		
 	def add(self, insnGrp):
-		if not isinstance(insnGrp, RW_InsnGrp):
+		if not isinstance(insnGrp, InsnGrp):
 			raise TypeError, "InsnGrp used to add into Hazard"
 		self.insnGrpSet.add(insnGrp)
 		
 		
 	def __contains__(self, insnGrp):
-		if not isinstance(insnGrp, RW_InsnGrp):
+		if not isinstance(insnGrp, InsnGrp):
 			raise TypeError, "InsnGrp used to add into Hazard"
 		return insnGrp in self.insnGrpSet
 		
 		
 	def __len__(self):
 		return len(self.insnGrpSet)
+		
 		
 	def __iter__(self):
 		return iter(self.insnGrpSet)
@@ -262,5 +277,10 @@ class RW_Hazard(BaseHazard):
 		
 
 class Stall_Hazard(BaseHazard):
-	pass
+	
+	def __str__(self):
+		ret = ""
+		for insnGrp in self.insnGrpSet:
+			ret += "%s\n" %(str(insnGrp))
+		return ret
 	

@@ -33,6 +33,7 @@ class RdTriple(object):
 	
 	def equal(self, src, stg):
 		return self.src==src and self.stg==stg
+		
 	
 class FB(object):
 	""" FB is the most optimized algorithm handled the hazard in PipeLine Compeletely.
@@ -56,15 +57,17 @@ class FB(object):
 	def HandleHazard(self):
 		retCsList = []
 		retMuxList = []
+		# bypass
 		for reg in self.pipeLine.regList:
 			csList, muxList = self.__HandleHazardPerReg(reg)
 			retCsList += csList
 			muxList += muxList
+		# stall
 		retCsList.append( self.__HandleStall() )
 		return retCsList, retMuxList
 		
 		
-	def __HandleStall(self, reg):
+	def __HandleStall(self):
 		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		cs = CtrlSignal(name=CFFB.STALL, width=1)
@@ -83,7 +86,7 @@ class FB(object):
 					addrCond = "(%s == %s)" % (baddr, faddr)
 					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 				op = 1
-				pri = stgn - finsn.stg
+				pri = stgn - finsn.stg.id
 				ct = CtrlTriple(cond=cond, op=op, pri=pri)
 				cs.add(ct)
 		return cs
@@ -120,7 +123,7 @@ class FB(object):
 			for rStgInsnList in rInsnList:
 				for binsn in rStgInsnList:
 					insnGrps = []
-					for istg in xrange(rstg, binsn.stg.id+1):
+					for istg in range(0, stgn):
 						stg = Stage(istg, self.pipeLine.StgNameAt(istg))
 						insnGrps.append(
 							RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
@@ -145,14 +148,14 @@ class FB(object):
 	
 		
 	def __HandleRW(self, hazard):
-		Rstg = self.pipeLine.Rstg
+		Rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		regName = hazard.name
 		index = hazard.index
 		retCsList = []
 		retMuxList = []
 		for istg in range(Rstg, stgn):
-			curGrp = filter(lambda grp: grp.BInsn.stg==istg, hazard.insnGrpSet)
+			curGrp = filter(lambda grp: grp.Binsn.stg==istg, hazard.insnGrpSet)
 			if len(curGrp) == 0:
 				continue
 			linkedSet = reduce(lambda ast,bst: ast|bst, map(lambda g:g.linkedIn, curGrp))
@@ -193,9 +196,9 @@ class FB(object):
 							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 						else:
 							cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
-					data = RP.SrcToVar(src=finsn.wd, srg=self.pipeLine.StgNameAt(finsn.stg))
+					data = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(finsn.stg))
 					op = linkedIn.index(data)
-					pri = stgn - finsn.stg
+					pri = stgn - finsn.stg.id
 					ct = CtrlTriple(cond=cond, op=op, pri=pri)
 					cs.add(ct)
 			retCsList.append(cs)
@@ -206,28 +209,38 @@ class FB(object):
 	def __HandleInsnPair(self, finsn, binsn, rwGrps, stallGrp):
 		wstg = self.pipeLine.Wstg.id
 		rstg = self.pipeLine.Rstg.id
-		# the condition of send
+		# the 1-st condition of send
 		for w in range(finsn.stg.id+1, wstg+1):
 			# add the predessor insn to insn groups
-			wInsn = StgInsn(insn=finsn.insn, stg=w, addr=finsn.addr, wd=finsn.wd)
+			wInsn = StgInsn(insn=finsn.insn, stg=Stage(w, self.pipeLine.StgNameAt(w)), addr=finsn.addr, wd=finsn.wd)
 			rwGrps[rstg].addInsn(wInsn)
 			# add the sendData to hazard's linkedIn
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
 			rwGrps[rstg].addLink(sendData)
 		
+		# the 2-nd condition of send
+		mn = min(finsn.stg.id, binsn.stg.id)
 		w = finsn.stg + 1
 		stg = Stage(w, self.pipeLine.StgNameAt(w))
 		wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, wd=finsn.wd)
-		for r in range(rstg+1, binsn.stg.id+1):
+		for r in range(rstg+1, mn+1):
 			rwGrps[r].addInsn(wInsn)
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
+			rwGrps[r].addLink(sendData)
+		
+		# the 3-rd condition of send
+		for r in range(mn+1, binsn.stg.id+1):
+			wInsn = StgInsn(insn=finsn.insn, stg=Stage(r+1, self.pipeLine.StgNameAt(r+1)), addr=finsn.addr, wd=finsn.wd)
+			rwGrps[r].addInsn(wInsn)
+			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(r+1))
 			rwGrps[r].addLink(sendData)
 			
 		# the condition of stall
 		delta = finsn.stg.id - binsn.stg.id
 		if delta > 0:
 			for d in range(1, delta+1):
-				wInsn = StgInsn(insn=finsn.insn, stg=binsn.stg.id+d, addr=finsn.addr)
+				stg = Stage(binsn.stg.id+d, self.pipeLine.StgNameAt(binsn.stg.id+d))
+				wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr)
 				stallGrp.addInsn(wInsn)
 			
 			
@@ -262,7 +275,7 @@ class FB(object):
 			
 			
 	def __findFirstAppear(self, insnName, src):
-		pipeRtl = self.excelRtl.linkRtl
+		pipeRtl = self.excelRtl.pipeRtl
 		rtlList = pipeRtl[insnName]
 		for i in xrange(self.pipeLine.stgn):
 			for rtl in rtlList[i]:

@@ -13,7 +13,7 @@ class constForVerilogGenerator:
 	OUTPUT  = "output"
 	INPUT	= "input"
 	
-class CFVG:
+class CFVG(constForVerilogGenerator):
 	pass
 	
 class VerilogGenerator:

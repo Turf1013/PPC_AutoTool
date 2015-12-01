@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from ..role.stage import Stage
 
 class constForPipeLine:
 	pass
@@ -21,7 +21,9 @@ class BasePipeLine(object):
 		
 		
 	def StgNameAt(self, istg):
-		return self.stgList[istg]
+		if isinstance(istg, Stage):
+			return self.stgList[istg.id].name
+		return self.stgList[istg].name
 		
 		
 class PipeLine(BasePipeLine):
