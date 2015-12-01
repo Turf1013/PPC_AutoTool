@@ -190,19 +190,19 @@ class Datapath(object):
 				
 		# wire & reg statement
 		wireCode = self.wireSet.toVerilog(tabn=tabn)
-		ret += "// wire statement\n" + wireCode + "\n" * 4
+		ret += pre + "// wire statement\n" + wireCode + "\n" * 4
 		
 		# instance all modules
 		instanceCode = self.__instanceToVerilog(tabn=tabn)
-		ret += "// Instance Module\n" + instanceCode + "\n" * 4
+		ret += pre + "// Instance Module\n" + instanceCode + "\n" * 4
 		
 		# instance control 
 		instanceCtrl = ctrlCode
-		ret += "// Instance Module\n" + instanceCtrl + "\n" * 4
+		ret += pre + "// Instance Module\n" + instanceCtrl + "\n" * 4
 		
 		# pipeReg logic
 		pipeCode = self.__pipeToVerilog(tabn = tabn)
-		ret += "// Pipe Register\n" + pipeCode + "\n" * 4
+		ret += pre + "// Pipe Register\n" + pipeCode + "\n" * 4
 		
 		# end module
 		ret += "endmodule\n"
