@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..role.hazard import StgInsn, RW_Hazard, Stall_Hazard
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
+from ..role.stage import Stage
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
 from ..util.verilogParser import VerilogParser as VP
@@ -108,7 +109,7 @@ class FB(object):
 		else:
 			rInsnList.append( self.__GenRStgInsn(regName) )
 			
-		Rstg = self.pipeLine.Rstg
+		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		csRetList = []
 		muxRetList = []
@@ -116,9 +117,12 @@ class FB(object):
 		for rIndex in range(reg.rn):
 			rwHazard = RW_Hazard(name=regName, index=rIndex)
 			for binsn in rInsnList:
-				insnGrps = map(
-					lambda istg: RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=istg, addr=binsn.addr)), range(Rstg, binsn.stg+1)
-				)
+				insnGrps = []
+				for istg in xrange(rstg, binsn.stg+1):
+					stg = Stage(istg, self.pipeLine.StgNameAt(istg))
+					insnGrps.append(
+						RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
+					)
 				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=Rtg, addr=binsn.addr))
 				for finsn in wInsnList:
 					self.__HandleInsnPair(finsn, binsn, regs, grps, hazard)
@@ -233,7 +237,7 @@ class FB(object):
 		linkRtl = self.excelRtl.linkRtl
 		for insnName, rtlList in linkRtl.iteritems():
 			addrRtl, wdRtl, wrRtl = None, None, None
-			for rtl in rtlList[wstg]:
+			for rtl in rtlList[wstg.id]:
 				if rtl.des == waddr:
 					addrRtl = rtl
 				elif rtl.des == wd:
@@ -244,16 +248,17 @@ class FB(object):
 				continue
 			insn = self.insnMap.find(insnName)
 			addr = None if addrRtl is None else addrRtl.src
-			stg = self.__findFirstAppear(insnName, wd.src)
-			if stg<0:
+			stgId = self.__findFirstAppear(insnName, wdRtl.src)
+			if stgId<0:
 				raise ValueError, "%s not appear in %s Pipe" % (wd.src, insnName)
+			stg = Stage(id=stgId, name=self.pipeLine.StgNameAt(stgId))
 			si = StgInsn(insn=insn, stg=stg, addr=addr, wd=wdRtl.src, ctrl=wrRtl.src)
 			ret.append(si)
 		return ret
 			
 			
 	def __findFirstAppear(self, insnName, src):
-		pipeRtl = self.excel.linkRtl
+		pipeRtl = self.excelRtl.linkRtl
 		rtlList = pipeRtl[insnName]
 		for i in xrange(self.pipeLine.stgn):
 			for rtl in rtlList[i]:
@@ -262,11 +267,11 @@ class FB(object):
 		return -1		
 		
 		
-	def __GenRStgInsn(self, insnName, index=""):
+	def __GenRStgInsn(self, regName, index=""):
 		ret = []
 		raddr = RG.GenRegRaddr(regName, index="")
 		rd = RG.GenRegWd(regName, index="")
-		rstg = self.pipeLine.Rstg
+		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		linkRtl = self.excelRtl.linkRtl
 		for insnName, rtlList in linkRtl.iteritems():
@@ -290,6 +295,6 @@ class FB(object):
 			addr = None if addrRtl is None else addrRtl.src
 			si = StgInsn(insn=insn, stg=ustg, addr=addr)
 			ret.append(si)
-		return si
+		return ret
 		
 		

@@ -59,7 +59,7 @@ class VFile(object):
 			raise SystemError, "%s not exists" % (workDirectory)
 		if not os.path.isdir(workDirectory):
 			raise TypeError, "%s is not dir" % (workDirectory)
-		self.workDir = workDirectory
+		self.workDirectory = workDirectory
 		self.modFileList = []
 		self.defFileList = []
 		self.__scanAllDir(workDirectory)
@@ -156,6 +156,7 @@ class VFile(object):
 	
 	# generate all the instuction information we need to implement
 	def GenAllInsn(self, fileName):
+		fileName = os.path.join(self.workDirectory, fileName)
 		if not os.path.exists(fileName) or not os.path.isfile(fileName):
 			raise SystemError, "%s not exists or contains instruction" % (fileName)
 		retInsnList = []

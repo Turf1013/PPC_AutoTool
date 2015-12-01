@@ -18,10 +18,7 @@ class Access_Excel(object):
 	# @param:
 	#	name: name of the sheet
 	def Open_rsheet(self, sheetName):
-		try:
-			self.rsheet = self.book.sheet_by_name(sheetName)
-		except err:
-			print "sheet can't open."
+		self.rsheet = self.book.sheet_by_name(sheetName)
 			
 		self.nrows = self.rsheet.nrows
 		self.ncols = self.rsheet.ncols

@@ -24,9 +24,13 @@ class CFE(constForExcel):
 class ExcelRtl:
 
 	def __init__(self, linkDict, pipeDict):
-		self.linkDict = linkDict
-		self.pipeDict = pipeDict
-		self.stgn = len(self.linkDict.items[0])
+		self.linkRtl = linkDict
+		self.pipeRtl = pipeDict
+		self.stgn = 0
+		for key,value in linkDict.iteritems():
+			self.stgn = len(value)
+			break
+		
 
 class Excel(object):
 	""" Excel means Access all kinds of *.xls file.

@@ -88,11 +88,11 @@ class BaseStgInsn(object):
 		
 		
 	def __str__(self):
-		return "%s@%s" % (self.stg, self.insn)
+		return "%s@%s" % (self.stg.name, self.insn)
 		
 		
 	def __cmp__(self, other):
-		return self.stg - other.stg
+		return self.stg.id - other.stg.id
 	
 	
 	def __eq__(self, other):

@@ -14,7 +14,7 @@ class Stage(object):
 	
 	
 	def __str__(self):
-		self.name
+		return self.name
 		
 		
 	def __repr__(self):

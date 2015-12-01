@@ -1,4 +1,5 @@
 from xlrd import open_workbook, cellname, XL_CELL_TEXT, XL_CELL_NUMBER
+from xlwt import *
 
 class Access_Excel(object):
 	
@@ -8,7 +9,6 @@ class Access_Excel(object):
 		if sheetName is not None:
 			self.Open_rsheet(sheetName)
 		self.path = path
-		self.Set_DefaultFormat()
 	
 	# @function: open a sheet for reading
 	# @param:

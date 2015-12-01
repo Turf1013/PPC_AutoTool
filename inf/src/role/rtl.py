@@ -39,6 +39,8 @@ class Rtl(object):
 		
 	@classmethod
 	def getModAndPort(cls, wire):
+		if "." not in wire:
+			return wire
 		return wire.split(".")
 	
 	@classmethod

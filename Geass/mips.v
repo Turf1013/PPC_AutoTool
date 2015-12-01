@@ -54,6 +54,7 @@ module mips (
 	reg [31:0] NPC_Laddr_E;
 	reg [31:0] GPR_rd1_E;
 	reg [`INSTR_WIDTH-1:0] Instr_E;
+	reg [31:0] GPR_rd2_M;
 	reg [31:0] NPC_Laddr_M;
 	reg [31:0] ALU_C_M;
 	reg [`INSTR_WIDTH-1:0] Instr_M;
@@ -77,7 +78,7 @@ module mips (
 	);
 
 	DMIn_BE U_DMIn_BE (
-		.laddr(ALU_C_M[1:0]), .dout(DMIn_BE_dout_M), .din(GPR_rd1_M), .DMIn_BEOp(DMIn_BEOp), 
+		.laddr(ALU_C_M[1:0]), .dout(DMIn_BE_dout_M), .din(GPR_rd2_M), .DMIn_BEOp(DMIn_BEOp), 
 		.DMBE(DMIn_BE_DMBE_M)
 	);
 
@@ -186,11 +187,13 @@ module mips (
 	/*****     Pipe_M     *****/
 	always @( posedge clk or negedge rst_n ) begin
 		if ( !rst_n ) begin
+			GPR_rd2_M <= 0;
 			NPC_Laddr_M <= 0;
 			ALU_C_M <= 0;
 			Instr_M <= 0;
 		end
 		else if ( pipeRegWr_E ) begin
+			GPR_rd2_M <= GPR_rd2_E;
 			NPC_Laddr_M <= NPC_Laddr_E;
 			ALU_C_M <= ALU_C_E;
 			Instr_M <= Instr_E;
