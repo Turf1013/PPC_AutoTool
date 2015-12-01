@@ -173,12 +173,19 @@ class FB(object):
 				for finsn in g:
 					if binsn.addr is None and finsn.addr is None
 						# no addr
-						cond = "%s && %s " % (binsn.condition(), finsn.condition())
+						# check if finsn wr is 1'b1
+						if finsn.ctrl == "1'b1":
+							cond = "%s && %s" % (binsn.condition(), finsn.condition())
+						else
+							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
 					else:
 						baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 						faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
 						addrCond = "(%s == %s)" % (baddr, faddr)
-						cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+						if finsn.ctrl == "1'b1":
+							cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
+						else:
+							cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
 					data = RP.SrcToVar(src=finsn.wd, srg=self.pipeLine.StgNameAt(finsn.stg))
 					op = linkedIn.index(data)
 					pri = stgn - finsn.stg
@@ -219,25 +226,28 @@ class FB(object):
 		
 	def __GenWStgInsn(self, regName, index=""):
 		ret = []
-		waddr = RG.GenRegWaddr(regName, index="")
-		wd = RG.GenRegWd(regName, index="")
+		waddr = RG.GenRegWaddr(regName, index=index)
+		wd = RG.GenRegWd(regName, index=index)
+		wr = RG.GenRegWr(regName, index=index)
 		wstg = self.pipeLine.Wstg
 		linkRtl = self.excelRtl.linkRtl
 		for insnName, rtlList in linkRtl.iteritems():
-			addrRtl, wdRtl = None, None
+			addrRtl, wdRtl, wrRtl = None, None, None
 			for rtl in rtlList[wstg]:
 				if rtl.des == waddr:
 					addrRtl = rtl
 				elif rtl.des == wd:
 					wdRtl = rtl
-			if wdRtl is None:
+				elif rtl.des == wr:
+					wrRtl = rtl
+			if wdRtl is None or wrRtl is None:
 				continue
 			insn = self.insnMap.find(insnName)
 			addr = None if addrRtl is None else addrRtl.src
 			stg = self.__findFirstAppear(insnName, wd.src)
 			if stg<0:
 				raise ValueError, "%s not appear in %s Pipe" % (wd.src, insnName)
-			si = StgInsn(insn=insn, stg=stg, addr=addr, wd=wdRtl.src)
+			si = StgInsn(insn=insn, stg=stg, addr=addr, wd=wdRtl.src, ctrl=wrRtl.src)
 			ret.append(si)
 		return ret
 			

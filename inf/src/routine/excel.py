@@ -8,7 +8,7 @@ from ..util.Access_Excel import Access_Excel
 from ..role.stage import Stage
 from ..role.pipeline import PipeLine
 from ..role.rtl import Rtl, LinkRtl, PipeRtl
-
+frin ..role.reg import Reg
 
 class constForExcel:
 	ReadStageName = "D"
@@ -43,7 +43,7 @@ class Excel(object):
 		self.AE = Access_Excel(path)
 	
 	
-	def GenPipeLine(self, sheetName):
+	def GenPipeLine(self, sheetName, regArgsList):
 		self.AE.Open_rsheet(sheetName)
 		begRow, endRow = CFE.rtlBegRow, self.AE.Get_NRow()
 		begCol, endCol = CFE.rtlBegCol, self.AE.Get_NCol()
@@ -53,7 +53,11 @@ class Excel(object):
 		stgList = [Stage(i, name) for i, name in enumerate(stgNameList)]
 		Rstg = stgList[stgNameList.index(CFE.ReadStageName)]
 		Wstg = stgList[stgNameList.index(CFE.WriteStageName)]
-		return PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg)
+		regList = []
+		for args in regArgsList:
+			reg = Reg(*args)
+			regList.append(reg)
+		return PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg, regList=regList)
 		
 	
 	def GenAllRtl(self, sheetName):

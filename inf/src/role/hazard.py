@@ -4,6 +4,7 @@ from stage import Stage
 from reg import reg
 from mutex import BypassMutex, CFM
 from ..util.verilogGenerator import VerilogGenerator as VG
+from ..util.RTLParser import RtlParser as RP
 
 class constForHazard:
 	INSTR = "Instr"		
@@ -113,11 +114,14 @@ class StgInsn(BaseStgInsn):
 		
 	"""
 	
-	def __init__(self, insn, stg, addr, wd=None):
+	def __init__(self, insn, stg, addr, wd=None, ctrl="1'b1"):
 		super(StgInsn, self).__init__(insn, stg)
 		self.addr = addr
 		self.wd = wd
-	
+		self.ctrl = ctrl
+		
+	def ctrlCondition(self):
+		return RP.SrcToVar(self.ctrl)
 		
 		
 class InsnPair(object):
