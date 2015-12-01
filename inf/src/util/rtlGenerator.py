@@ -17,7 +17,7 @@ class RtlGenerator:
 
 	@classmethod
 	def GenMuxSel(cls, name, seln, isel):
-		return "%d'd%d -> %s.%s" % (selfn, isel, name, CFM.mux_sel)
+		return "%d'd%d -> %s.%s" % (seln, isel, name, CFM.mux_sel)
 		
 	
 	@classmethod

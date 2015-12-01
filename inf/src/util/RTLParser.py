@@ -20,17 +20,17 @@ class RtlParser:
 				return val
 			else:
 				return val + "_" + stg
-		return re_rtlVariable.sub(repl, src.replace(".", "_"))
+		return CFRP.re_rtlVariable.sub(repl, src.replace(".", "_"))
 		
 	
 	@classmethod		
-	def DesToVar(cl, des):
+	def DesToVar(cls, des):
 		return des.sub(".", "_") 
 		
 	
 	@classmethod
 	def SrcToList(cls, src):
-		m = re_rtlVariable.match(src)
+		m = CFRP.re_rtlVariable.match(src)
 		if m:
 			return m.group(0)
 		return []

@@ -90,8 +90,8 @@ class LinkRtl(Rtl):
 	def isCtrlLink(self):
 		for suf in CFR.ctrlSuffix:
 			if self.desPort.endswith(suf):
-				return true
-		return false
+				return True
+		return False
 	
 	
 	

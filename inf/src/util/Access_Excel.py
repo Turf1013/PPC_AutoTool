@@ -1,5 +1,4 @@
 from xlrd import open_workbook, cellname, XL_CELL_TEXT, XL_CELL_NUMBER
-from xlwt import *
 
 class Access_Excel(object):
 	
@@ -14,10 +13,7 @@ class Access_Excel(object):
 	# @param:
 	#	name: name of the sheet
 	def Open_rsheet(self, sheetName):
-		try:
-			self.rsheet = self.book.sheet_by_name(sheetName)
-		except err:
-			print "sheet can't open."
+		self.rsheet = self.book.sheet_by_name(sheetName)
 			
 		self.nrows = self.rsheet.nrows
 		self.ncols = self.rsheet.ncols

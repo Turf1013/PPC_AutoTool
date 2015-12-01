@@ -72,8 +72,8 @@ class Control(object):
 				# rtl need to be Ctrl Link
 				if not rtl.isCtrlLink:
 					continue
-				signalName = VP.DesToVar(cl, rtl.des)
-				if singalName not in csDict:
+				signalName = RP.DesToVar(rtl.des)
+				if signalName not in csDict:
 					# Create a CS
 					mod = self.modMap.find(rtl.desMod)
 					port = mod.find(rtl.desPort)
@@ -84,7 +84,7 @@ class Control(object):
 					cs.add( CtrlTriple(cond=clr, pri=10**5) )
 					csDict[signalName] = cs
 				else:
-					cs = csDict[Name]
+					cs = csDict[signalName]
 				# create a CT
 				insn = self.insnMap.find(insnName)
 				cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
@@ -99,30 +99,58 @@ class Control(object):
 		
 		# module statement
 		ret += "module control (\n"
+		portCode = self.__GenPortVerilog(tabn = tabn)
+		ret += portCode
 		ret += ");\n"
+		
+		# input statement
+		inputCode = self.__GenInputVerilog(tabn = tabn)
+		ret += pre + "// input statement\n" + inputCode + "\n"
+		
+		# output statement
+		outputCode = self.__GenOutputVerilog(tabn = tabn)
+		ret += pre + "// output statement\n" + outputCode + "\n"
 		
 		# wire & reg statement
 		wireCode = self.wireSet().toVerilog(tabn=tabn)
-		ret += "// wire statement\n" + wireCode + "\n" * 4
+		ret += pre + "// wire statement\n" + wireCode + "\n" * 4
 		
 		# control signal
 		csCode = self.__CSToVerilog(tabn=tabn)
-		ret += "// Ctrl Signal\n" + csCode + "\n" * 4
+		ret += pre + "// Ctrl Signal\n" + csCode + "\n" * 4
 		
 		# pipe signal
 		clrCode = self.__ClrToVerilog(tabn=tabn)
-		ret += "// Clear Signal\n" + clrCode + "\n" * 4
+		ret += pre + "// Clear Signal\n" + clrCode + "\n" * 4
 		
 		# endmodule
 		ret += "endmodule\n"
 		return ret
+		
+		
+	def __GenPortVerilog(self, tabn):
+		pre = "\t" * tabn
+		ret = ""
+		for i,w in enumerate(self.wireSet):
+			if i%5==0:
+				ret += "\n" + pre if i else pre
+			ret += w.name + ", "
+		# add insn
+		ret += "\n"
+		ret += pre + ", ".join(map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn)))
+		
+		# add clk & rst_n
+		ret += ",\n"
+		ret += pre + "clk, rst_n\n"
+		return ret
+		
 	
 	def __GenInputVerilog(self, tabn):
 		pre = "\t" * tabn
 		ret = ""
 		ret += pre + "input clk, rst_n;\n"
 		instrList = map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg, self.pipeLine.stgn))
-		ret += pre + "input %s %s;\n" % (INSTR_WIDTH, ", ".join(instrList))
+		ret += pre + "input %s %s;\n" % (CFC.INSTR_WIDTH, ", ".join(instrList))
 		return ret
 	
 		
@@ -130,7 +158,7 @@ class Control(object):
 		pre = "\t" * tabn
 		ret = ""
 		for w in self.wireSet:
-			ret += VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
+			ret += pre + VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
 		return ret
 		
 		
@@ -167,9 +195,10 @@ class Control(object):
 	def instance(self, tabn = 1):
 		name = "control"
 		pre = "\t" * tabn
+		ret = ""
 		ret += "%s%s I_%s(\n" % (pre, name, name)
 		last = len(self.portList) - 1
-		for port in self.portList:
+		for i,port in enumerate(self.portList):
 			if i == last:
 				ret += pre + "\t.%s(%s)\n" % (port, port)
 			else:

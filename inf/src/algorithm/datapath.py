@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
+from ..role.wire import WireSet, Wire
+from ..role.mutex import PortMutex
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
-from ..role.wire import WireSet, Wire
 
 class constForDatapath:
 	CLK = "clk"
@@ -43,11 +44,11 @@ class Datapath(object):
 		
 	# Add the link
 	def LinkMod(self):
-		likRtl = self.excepRtl.linkRtl
+		linkRtl = self.excepRtl.linkRtl
 		stgn = self.pipeLine.stg
 		for istg in xrange(stgn):
 			rtlSet = set()
-			for insnName, insnRtlList in linkRtls.iteritems():
+			for insnName, insnRtlList in linkRtl.iteritems():
 				rtlSet.update(insnRtlList[istg])
 			self.__LinkModPerStg(rtlSet, istg)
 			
@@ -82,7 +83,7 @@ class Datapath(object):
 				width = port.width
 				srcList = RP.SrcToList(src=rtl.src)
 				for src in srcList:
-					varName = SrcToVar(src=src, stg=stgName)
+					varName = RP.SrcToVar(src=src, stg=stgName)
 					self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 	
 	
@@ -105,6 +106,7 @@ class Datapath(object):
 	
 	# Generate the Port Mux & Control Signal @istg
 	def __GenPortMuxPerStg(self, rtlSet, istg):
+		linkRtl = self.excelRtl.linkRtl
 		portDict = defaultdict(set)
 		for rtl in rtlSet:
 			if not rtl.isCtrlLink():
@@ -113,7 +115,7 @@ class Datapath(object):
 		retCSList = []
 		for des,linkSet in portDict.iteritems():
 			srcList = map(lambda x:x.src, linkSet)
-			srcList = map(self.__FindInBypass(src=src,stg=istg), srcList)
+			srcList = map(lambda src:self.__FindInBypass(src=src,stg=istg), srcList)
 			if len(srcList) > 1:
 				rtl = list(linkSet)[0]
 				# Need to Insert a Port MUX
@@ -123,7 +125,7 @@ class Datapath(object):
 				width = VP.RangeToInt(desMod.find(rtl.desPort))
 				
 				### Generate the MUX
-				pmux = PortMutex(name=name, width=width, linkedIn=linedIn)
+				pmux = PortMutex(name=name, width=width, linkedIn=linkedIn)
 				retMuxList.append(pmux)
 				
 				### Link the MUX dout to orginal module
@@ -141,7 +143,7 @@ class Datapath(object):
 							insn = self.insnMap.find(insnName)
 							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
 							src = self.__FindInBypass(src=r.src, stg=istg)
-							op = linkeIn.index(src)
+							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
 				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
 				retCSList.append(cs)
@@ -243,8 +245,8 @@ class Datapath(object):
 			retDict[outVar] = inVar
 			
 			# add source in reg statement
-			if rtl.src in pipeIDict:
-				width = pipeIDict[rtl.src]
+			if rtl.src in CFD.pipeIDict:
+				width = CFD.pipeIDict[rtl.src]
 				inVar = rtl.src
 			elif '.' in rtl.src:
 				modName, portName = rtl.src.split('.')[:2]
@@ -255,14 +257,14 @@ class Datapath(object):
 				width = "XXXXXXXXX"
 				inVar = rtl.src
 				
-			self.wireSet.add( wire(name=inVar, width=width, kind="wire", stg=istg-1) )
-			self.wireSet.add( wire(name=outVar, width=width, kind="reg", stg=istg) )
+			self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg-1) )
+			self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg) )
 		return retDict
 			
 		
 	def __pipeToVerilog(self, tabn):
 		ret = ""
-		for istg in range(1, stgn):
+		for istg in range(1, self.pipeLine.stgn):
 			ret += self.__pipeToVerilogPerStg(tabn=tabn, istg=istg)
 		return ret
 		
@@ -274,6 +276,7 @@ class Datapath(object):
 		stgn = self.pipeLine.stgn
 		pipeDict = self.pipeDict[istg]
 		stgName = self.pipeLine.StgNameAt(istg)
+		ret = ""
 		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
 		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
 		if istg > Rstg:

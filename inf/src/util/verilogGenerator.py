@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re
+import re, math
 from ..verilog.const_hdl import CFV
 
 class constForVerilogGenerator:

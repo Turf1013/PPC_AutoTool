@@ -76,7 +76,7 @@ class Module(object):
 			self.linkDict[desPort] = srcPort
 			
 			
-	def __hash__(hash):
+	def __hash__(self, hash):
 		return hash(self.name)
 		
 			

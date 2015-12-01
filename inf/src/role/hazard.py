@@ -55,8 +55,8 @@ class StgReg(object):
 		return self.dinDict[d]
 			
 			
-	def GenBypassMuxname(self):
-		return VG.GenBypassMuxName(name=name, suf="%s_%s" % (str(index), stgName))
+	def GenBypassMuxName(self):
+		return VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName))
 		
 	def toBypassMux(self):
 		name = self.GenBypassMuxName()
@@ -66,12 +66,6 @@ class StgReg(object):
 			
 	def GenMuxSelName(self):
 		return "%s_%s" % (VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName)), CFM.mux_sel)
-
-
-class BaseHazard(object):
-
-	def __init__(self):
-		pass
 
 
 		
@@ -143,11 +137,11 @@ class InsnPair(object):
 	
 class InsnGrp(object):
 	
-	def __init__(self, BInsn):
-		if not isinstance(BInsn, BaseStgInsn):
+	def __init__(self, Binsn):
+		if not isinstance(Binsn, BaseStgInsn):
 			raise TypeError, "insn must be instanced with StgInsn During RW_Hazard"
-		self.BInsn = BInsn
-		self.FInsn = set()
+		self.Binsn = Binsn
+		self.FinsnSet = set()
 		
 	
 	def add(self, Finsn):
@@ -164,11 +158,11 @@ class InsnGrp(object):
 		
 	
 	def __eq__(self, other):
-		return self.BInsn == other.BInsn
+		return self.Binsn == other.Binsn
 		
 		
 	def __hash__(self):
-		return hash(self.BInsn)
+		return hash(self.Binsn)
 		
 	
 	
@@ -201,12 +195,12 @@ class RW_InsnGrp(InsnGrp):
 	2. Several Predessor Instruction (Finsn);
 	"""
 	
-	def __init__(self, BInsn):
+	def __init__(self, Binsn):
 		super(InsnGrp, self).__init__(Binsn=Binsn)
-		linkeIn = set()
+		self.linkedIn = set()
 		
 	def addLink(self, data):
-		linkedIn.add(data)
+		self.linkedIn.add(data)
 		
 	def __str__(self):
 		return "%s__RW_InsnGrp" % (self.Binsn)

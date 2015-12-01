@@ -3,7 +3,7 @@ import sys
 import os
 from collections import defaultdict
 from scan_re import *
-from const_hdl import *
+from const_hdl import CFV
 
 """
 scan_hdl.py include:
@@ -41,7 +41,7 @@ def scan_mod_file(filename):
 		for line in fin:
 			if foundMod and re_endmodule.match(line):
 				foundMod = False
-				is modName:
+				if modName:
 					ret.append(
 						module(name=modName, in_port=in_port, in_width=in_width, out_port=out_port, out_width=out_width)
 					)
@@ -62,10 +62,10 @@ def scan_mod_file(filename):
 				if mgroup:
 					direct = mgroup.group('dir')
 					width = mgroup.group('width')
-					width = width if width else hdl_WIDHTONE
+					width = width if width else CFV.WIDHTONE
 					ports = self.re_portName.findall(line[mgroup.end():])
 					ports = map(lambda s:s[:-1].strip(), ports)
-					if direct[0] == hdl_INPUT[0]:
+					if direct[0] == CFV.INPUT[0]:
 						in_port += ports
 						in_width += [width] * len(ports)
 					else:
@@ -79,12 +79,12 @@ def scan_insnDef_file(filename):
 	ret_xo_dict = {}
 	ret_op_dict = {}
 	ret_op_ldict = defaultdict(list)
-	len_define  = len(hdl_DEFINE)
+	len_define  = len(CFV.DEFINE)
 	len_op 		= len(arch_OP)
 	len_xo 		= len(arch_XO)
 	with open(filename, 'r') as fin:
-		line in fin:
-			if line.startswith(hdl_DEFINE):
+		for line in fin:
+			if line.startswith(CFV.DEFINE):
 				defName, def_Val = re_instrDef.findall(line[len_define:])[:2]
 				if defName.endswith(arch_OP):
 					ret_xo_dict[defName[:-len_op-1]] = defVal
@@ -93,5 +93,4 @@ def scan_insnDef_file(filename):
 					ret_xo_dict[defName[:-len_xo-1]] = defVal
 	return ret_op_dict, ret_xo_dict, ret_op_ldict
 	
-	
-if __name__ == '__main__':
+
