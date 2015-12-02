@@ -244,7 +244,7 @@ class Datapath(object):
 		
 		
 	# Generate Verilog code	
-	def toVerilog(self, ctrlCode, tabn=1):
+	def toVerilog(self, ctrlCode, pmuxList, bmuxList, tabn=1):
 		pre = "\t" * tabn
 		ret = ""
 		# module statement
@@ -260,6 +260,14 @@ class Datapath(object):
 		# instance all modules
 		instanceCode = self.__instanceToVerilog(tabn=tabn)
 		ret += pre + "// Instance Module\n" + instanceCode + "\n" * 4
+		
+		# instance port mux
+		instanceCode = self.__instanceMuxToVerilog(pmuxList, tabn)
+		ret += pre + "// Instance Port Mux\n" + instanceCode + "\n" * 4
+		
+		# instance bypass mux
+		instanceCode = self.__instanceMuxToVerilog(bmuxList, tabn)
+		ret += pre + "// Instance Bypass Mux\n" + instanceCode + "\n" * 4
 		
 		# instance control 
 		instanceCtrl = ctrlCode
@@ -381,5 +389,12 @@ class Datapath(object):
 			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
 		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
+		return ret
+		
+		
+	def __instanceMuxToVerilog(self, muxList, tabn = 1):
+		ret = ""
+		for mux in muxList:
+			ret += mux.toVerilog(tabn = tabn)
 		return ret
 		

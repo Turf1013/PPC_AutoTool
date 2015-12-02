@@ -175,11 +175,12 @@ class FB(object):
 			rd = RG.GenRegRd(name=hazard.name, index=hazard.index)
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
-			logging.debug("[hazard] %s\n" % (hazard.name))
+			# logging.debug("[hazard] %s\n" % (hazard.name))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux()
 			### Insert Into needBypass
 			selName = mux.GenSelName()
+			logging.debug("[bypass_sel] %s\n" % (selName))
 			src = RG.GenRegRd(name=regName, index=index)
 			doutName = mux.GenDoutName()
 			rt = RdTriple(src=src, des=doutName, stg=istg)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
+import logging
 from module import Port, Module
 
 
@@ -28,7 +29,7 @@ class Mutex(Module):
 			Port(CFM.mux_sel, width),									# dout signal
 		]
 		self.name = "mux%d" % (self.muxn)
-		self.Iname = "%s_%s" % (name, self.name)
+		self.Iname = "%s_Pmux" % (name)
 		super(Mutex, self).__init__(self.name, iterable)
 		self.linkedIn = linkedIn
 		for i, linkPort in enumerate(linkedIn):
@@ -36,21 +37,28 @@ class Mutex(Module):
 			
 	
 	def GenSelName(self):
-		return "%s_%s" % (self.name, CFM.mux_sel)
+		return "%s_%s" % (self.Iname, CFM.mux_sel)
 		
 	def GenDoutName(self):
-		return "%s_%s" % (self.name, CFM.mux_dout)
+		return "%s_%s" % (self.Iname, CFM.mux_dout)
 		
 		
 	def instance(self, tabn=1):
 		Iname = self.Iname
 		pre = '\t' * tabn
 		ret = ""
-		ret += "%s%s #(%s) %s(\n" % (pre, self.name, self.width, Iname)
+		ret += pre + "%s #(%s) %s(\n" % (self.name, self.width, Iname)
 		last = len(self.linkDict) - 1
 		for i,(key, value) in enumerate(self.linkDict.iteritems()):
 			if value is None:
-				value = "0000"
+				if key.name == CFM.mux_dout:
+					value = self.GenDoutName()
+				elif key.name == CFM.mux_sel:
+					value = self.GenSelName()
+				else:
+					value = "0000"
+				
+				# logging.debug("[mux] %s,%s\n" % (key, value))
 			if i == last:
 				ret += pre + "\t.%s(%s)\n" % (key, value)
 			else:
@@ -80,7 +88,7 @@ class BypassMutex(Mutex):
 	
 	def __init__(self, name, width, linkedIn):
 		super(BypassMutex, self).__init__(name, width, linkedIn)
-		self.Iname = "%s_B%s" % (name, self.name)
+		self.Iname = "%s_Bmux" % (name)
 		
 		
 		

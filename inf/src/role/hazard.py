@@ -7,7 +7,7 @@ from ..util.verilogGenerator import VerilogGenerator as VG
 from ..util.rtlParser import RtlParser as RP
 
 class constForHazard:
-	INSTR = "Instr"		
+	INSTR = "Instr"	
 	DATA_WIDTH = 32
 	
 class CFH(constForHazard):

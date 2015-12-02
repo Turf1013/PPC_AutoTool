@@ -58,7 +58,7 @@ class VerilogGenerator:
 	
 	@classmethod
 	def GenBypassMuxName(cls, name, suf=""):
-		return "%s_%s_%s" % (name, CFVG.RD, suf)
+		return "%s_%s%s" % (name, CFVG.RD, suf)
 		
 		
 	@classmethod
