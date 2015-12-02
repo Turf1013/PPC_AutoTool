@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+import re
 import math
 import logging
 from module import Port, Module
-
+from ..util.verilogGenerator import VerilogGenerator as VG
+from ..role.stage import Stage
 
 class constForMutex:
 	mux_din  = "din"
 	mux_dout = "dout"
 	mux_sel  = "sel"
 	mux_width = "WIDTH"
+	re_Number = re.compile(r"^\d+$")
 	
 class CFM(constForMutex):
 	pass
@@ -18,10 +21,13 @@ class Mutex(Module):
 	
 	"""
 
-	def __init__(self, name, width, linkedIn):
+	def __init__(self, name, width, stg, linkedIn):
+		if not isinstance(stg, Stage):
+			raise TypeError, "must use Stage(%s) to instance Mutex" % (type(stg))
 		self.seln = int(math.ceil(math.log(len(linkedIn), 2)))
 		self.muxn = 2 ** self.seln
 		self.width = width
+		self.stg = stg
 		iterable = [
 			Port(CFM.mux_din+str(i), width) for i in xrange(self.muxn)	# din signal
 		] + [
@@ -34,13 +40,28 @@ class Mutex(Module):
 		self.linkedIn = linkedIn
 		for i, linkPort in enumerate(linkedIn):
 			self.addLink(iterable[i], linkPort)
-			
 	
-	def GenSelName(self):
-		return "%s_%s" % (self.Iname, CFM.mux_sel)
+	
+	def widthRange(self):
+		if isinstance(self.width, int) or (isinstance(self.width, str) and CFM.re_Number.match(self.width)):
+			return VG.IntToRange(int(self.width))
+		else:
+			logging.debug("[mux_width] %s %s\n" % (self.Iname, self.width))
+			return self.width
 		
-	def GenDoutName(self):
-		return "%s_%s" % (self.Iname, CFM.mux_dout)
+	
+	def GenSelName(self, withStage=True):
+		if withStage:
+			return "%s_%s_%s" % (self.Iname, CFM.mux_sel, self.stg.name)
+		else:
+			return "%s_%s" % (self.Iname, CFM.mux_sel)
+
+		
+	def GenDoutName(self, withStage=True):
+		if withStage:
+			return "%s_%s_%s" % (self.Iname, CFM.mux_dout, self.stg.name)
+		else:
+			return "%s_%s" % (self.Iname, CFM.mux_dout)
 		
 		
 	def instance(self, tabn=1):
@@ -56,7 +77,7 @@ class Mutex(Module):
 				elif key.name == CFM.mux_sel:
 					value = self.GenSelName()
 				else:
-					value = "0000"
+					value = " 0/* empty */ "
 				
 				# logging.debug("[mux] %s,%s\n" % (key, value))
 			if i == last:
@@ -75,8 +96,8 @@ class PortMutex(Mutex):
 	
 	"""
 	
-	def __init__(self, name, width, linkedIn):
-		super(PortMutex, self).__init__(name, width, linkedIn)
+	def __init__(self, name, width, stg, linkedIn):
+		super(PortMutex, self).__init__(name, width, stg, linkedIn)
 		self.Iname = "%s_P%s" % (name, self.name)
 
 		
@@ -86,8 +107,8 @@ class BypassMutex(Mutex):
 	
 	"""
 	
-	def __init__(self, name, width, linkedIn):
-		super(BypassMutex, self).__init__(name, width, linkedIn)
+	def __init__(self, name, width, stg, linkedIn):
+		super(BypassMutex, self).__init__(name, width, stg, linkedIn)
 		self.Iname = "%s_Bmux" % (name)
 		
 		

@@ -3,6 +3,7 @@ from collections import defaultdict
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..role.wire import WireSet, Wire
 from ..role.mutex import PortMutex
+from ..role.stage import Stage
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
@@ -120,8 +121,12 @@ class Datapath(object):
 				mod = self.modMap.find(rtl.desMod)
 				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
-				port = mod.find(rtl.desPort)
-				width = port.width
+				width = mod.find(rtl.desPort).width
+				
+				# add the desPort to wireSet
+				self.wireSet.add( Wire(name=RP.SrcToVar(src=rtl.des, stg=stgName), width=width, kind="wire", stg=istg) )
+				
+				# add the element in srcList to wireSet
 				srcList = RP.SrcToList(src=rtl.src)
 				logging.debug("[rtl.src] = %s\n" % (rtl.src))
 				logging.debug("[srcList] = %s\n" % (str(srcList)))
@@ -137,6 +142,7 @@ class Datapath(object):
 					try:
 						logging.debug("[rtl] %s\n" % (rtl))
 						mod.addLink(rtl.srcPort, varName)
+						self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 					except ValueError: 
 						pass
 						
@@ -172,6 +178,7 @@ class Datapath(object):
 	
 	# Generate the Port Mux & Control Signal @istg
 	def __GenPortMuxPerStg(self, rtlSet, istg):
+		stgName = self.pipeLine.StgNameAt(istg)
 		linkRtl = self.excelRtl.linkRtl
 		portDict = defaultdict(set)
 		for rtl in rtlSet:
@@ -191,7 +198,7 @@ class Datapath(object):
 				width = VP.RangeToInt(desMod.findPortWidth(rtl.desPort))
 				
 				### Generate the MUX
-				pmux = PortMutex(name=name, width=width, linkedIn=linkedIn)
+				pmux = PortMutex(name=name, width=width, stg=Stage(istg, stgName), linkedIn=linkedIn)
 				retMuxList.append(pmux)
 				
 				### Link the MUX dout to orginal module
@@ -208,9 +215,9 @@ class Datapath(object):
 					for r in insnRtlList[istg]:
 						if r in linkSet:
 							insn = self.insnMap.find(insnName)
-							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
+							cond = insn.condition(suf=stgName)
 							src = self.__FindInBypass(src=r.src, stg=istg)[0]
-							src = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
+							src = RP.SrcToVar(src=src, stg=stgName)
 							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
 				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
@@ -245,7 +252,7 @@ class Datapath(object):
 		
 		
 	# Generate Verilog code	
-	def toVerilog(self, ctrlCode, pmuxList, bmuxList, tabn=1):
+	def toVerilog(self, ctrl, pmuxList, bmuxList, tabn=1):
 		pre = "\t" * tabn
 		ret = ""
 		# module statement
@@ -257,10 +264,10 @@ class Datapath(object):
 		inputCode = self.__inputToVerilog(tabn=tabn)
 		ret += pre + "// input statement\n" + inputCode + "\n" * 2
 		outputCode = self.__outputToVerilog(tabn=tabn)
-		ret += pre + "// input statement\n" + outputCode + "\n" * 2
+		ret += pre + "// output statement\n" + outputCode + "\n" * 2
 				
 		# wire & reg statement
-		wireCode = self.wireSet.toVerilog(tabn=tabn)
+		wireCode = self.__wireToVerilog(ctrl, pmuxList, bmuxList, tabn=tabn)
 		ret += pre + "// wire statement\n" + wireCode + "\n" * 4
 		
 		# instance all modules
@@ -276,7 +283,7 @@ class Datapath(object):
 		ret += pre + "// Instance Bypass Mux\n" + instanceCode + "\n" * 4
 		
 		# instance control 
-		instanceCtrl = ctrlCode
+		instanceCtrl = self.__instanceCtrlToVerilog(ctrl, tabn)
 		ret += pre + "// Instance Module\n" + instanceCtrl + "\n" * 4
 		
 		# pipeReg logic
@@ -416,4 +423,23 @@ class Datapath(object):
 		pre = "\t" * tabn
 		ret = ""
 		return ret 
+		
+	def __instanceCtrlToVerilog(self, ctrl, tabn):
+		return ctrl.instance(tabn = tabn)
+		
+		
+	def __wireToVerilog(self, ctrl, pmuxList, bmuxList, tabn):
+		# add ctrl signal
+		for w in ctrl.wireSet:
+			self.wireSet.add( Wire(name=w.name, width=w.width, kind="wire", stg=w.stg) )
+			
+		# add port mux dout
+		for pmux in pmuxList:
+			self.wireSet.add( Wire(name=pmux.GenDoutName(), width=pmux.widthRange(), kind="wire", stg=pmux.stg.id) )
+			
+		# add bypass mux dout
+		for bmux in bmuxList:
+			self.wireSet.add( Wire(name=bmux.GenDoutName(), width=bmux.widthRange(), kind="wire", stg=bmux.stg.id) )
+			
+		return self.wireSet.toVerilog(tabn=tabn)
 		

@@ -12,7 +12,7 @@ module NPC (
    output [31:0] NPC;
    output [31:0] Laddr;
    
-   reg [31:2] NPC;
+   reg [31:0] NPC;
    
    wire [31:0] PC_PLUS4, PC_BRNACH, PC_JUMP, PC_Rs;
    

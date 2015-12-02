@@ -132,3 +132,10 @@ class VerilogGenerator:
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.INPUT, width, name)
 			
+	@classmethod
+	def IntToRange(cls, x):
+		if isinstance(x, int):
+			return "[%d:0]" % (x-1)
+		else:
+			raise TypeError, "%s call IntToRange" % (type(x))
+			

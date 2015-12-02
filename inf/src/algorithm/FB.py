@@ -179,13 +179,13 @@ class FB(object):
 			# logging.debug("[hazard] %s\n" % (hazard.name))
 			# logging.debug("[linked] %s\n" % (linkedIn))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
-			mux = stgReg.toBypassMux()
+			mux = stgReg.toBypassMux(stg = Stage(istg, stgName))
 			logging.debug("[hazard] %s@%s\n" % (mux.Iname, istg))
 			### Insert Into needBypass
 			selName = mux.GenSelName()
 			# logging.debug("[bypass_sel] %s\n" % (selName))
 			src = RG.GenRegRd(name=regName, index=index)
-			doutName = mux.GenDoutName()
+			doutName = mux.GenDoutName(withStage=False)
 			rt = RdTriple(src=src, des=doutName, stg=istg)
 			self.needBypass.add(rt)
 			### Generate control singla referenced

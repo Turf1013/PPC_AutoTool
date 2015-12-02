@@ -3,3 +3,8 @@ test*.py
 test*.py[cod]
 *.log
 
+# verilig:
+control.v
+ppc.v
+mips.v
+

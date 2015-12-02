@@ -60,12 +60,12 @@ class StgReg(object):
 	def GenBypassMuxName(self):
 		return VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName))
 		
-	def toBypassMux(self):
+	def toBypassMux(self, stg=-1):
 		name = self.GenBypassMuxName()
 		width = CFH.DATA_WIDTH
 		linkedIn = self.dinDict.keys()
 		# logging.debug("[linkedIn] %s: %s\n" % (self.name, linkedIn))
-		return BypassMutex(name=name, width=width, linkedIn=linkedIn)
+		return BypassMutex(name=name, width=width, stg=stg, linkedIn=linkedIn)
 			
 	def GenMuxSelName(self):
 		return "%s_%s" % (VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName)), CFM.mux_sel)
