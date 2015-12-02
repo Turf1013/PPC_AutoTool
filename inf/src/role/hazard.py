@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 from instruction import Insn
 from stage import Stage
 from reg import Reg
 from mutex import BypassMutex, CFM
 from ..util.verilogGenerator import VerilogGenerator as VG
 from ..util.rtlParser import RtlParser as RP
+
 
 class constForHazard:
 	INSTR = "Instr"	
@@ -31,7 +33,7 @@ class StgReg(object):
 			
 		elif isinstance(iterable, (list, set)):
 			self.m = len(iterable)
-			self.dinDict = dict(zip(range(self.m), iterable))
+			self.dinDict = dict(zip(iterable, range(self.m)))
 		
 		else:
 			self.m = 0
@@ -62,6 +64,7 @@ class StgReg(object):
 		name = self.GenBypassMuxName()
 		width = CFH.DATA_WIDTH
 		linkedIn = self.dinDict.keys()
+		# logging.debug("[linkedIn] %s: %s\n" % (self.name, linkedIn))
 		return BypassMutex(name=name, width=width, linkedIn=linkedIn)
 			
 	def GenMuxSelName(self):

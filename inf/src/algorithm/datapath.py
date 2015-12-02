@@ -395,6 +395,6 @@ class Datapath(object):
 	def __instanceMuxToVerilog(self, muxList, tabn = 1):
 		ret = ""
 		for mux in muxList:
-			ret += mux.toVerilog(tabn = tabn)
+			ret += mux.toVerilog(tabn = tabn) + "\n"
 		return ret
 		

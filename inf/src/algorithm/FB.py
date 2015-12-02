@@ -63,7 +63,7 @@ class FB(object):
 		for reg in self.pipeLine.regList:
 			csList, muxList = self.__HandleHazardPerReg(reg)
 			retCsList += csList
-			muxList += muxList
+			retMuxList += muxList
 		# stall
 		retCsList.append( self.__HandleStall() )
 		return retCsList, retMuxList
@@ -177,6 +177,7 @@ class FB(object):
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
 			# logging.debug("[hazard] %s\n" % (hazard.name))
+			logging.debug("[linked] %s\n" % (linkedIn))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux()
 			### Insert Into needBypass
