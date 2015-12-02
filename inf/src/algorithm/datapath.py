@@ -10,6 +10,7 @@ import logging
 
 
 class constForDatapath:
+	ARCH = "mips"
 	CLK = "clk"
 	RST = "rst_n"
 	WIDTH = "WIDTH"
@@ -248,10 +249,15 @@ class Datapath(object):
 		pre = "\t" * tabn
 		ret = ""
 		# module statement
-		ret += "module ppc (\n"
+		ret += "module %s (\n" % (CFD.ARCH)
 		ret += pre + "%s, %s\n" % (CFD.CLK, CFD.RST)
 		ret += ");\n"
 		
+		# input & output statement
+		inputCode = self.__inputToVerilog(tabn=tabn)
+		ret += pre + "// input statement\n" + inputCode + "\n" * 2
+		outputCode = self.__outputToVerilog(tabn=tabn)
+		ret += pre + "// input statement\n" + outputCode + "\n" * 2
 				
 		# wire & reg statement
 		wireCode = self.wireSet.toVerilog(tabn=tabn)
@@ -397,4 +403,17 @@ class Datapath(object):
 		for mux in muxList:
 			ret += mux.toVerilog(tabn = tabn) + "\n"
 		return ret
+		
+		
+	def __inputToVerilog(self, tabn = 1):
+		pre = "\t" * tabn
+		ret = ""
+		ret += pre + "input %s;\n" % (CFD.CLK)
+		ret += pre + "input %s;\n" % (CFD.RST)
+		return ret
+		
+	def __outputToVerilog(self, tabn = 1):
+		pre = "\t" * tabn
+		ret = ""
+		return ret 
 		

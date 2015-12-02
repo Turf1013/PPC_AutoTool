@@ -60,6 +60,9 @@ class Control(object):
 		stgn = self.pipeLine.stgn
 		for istg in range(stgn):
 			csList = self.__GenCSFromRtlPerStg(istg)
+			for cs in csList:
+				self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg") )
+				self.portList.append( cs.name )
 			self.CSList += csList
 			
 		

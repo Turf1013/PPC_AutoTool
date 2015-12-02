@@ -149,23 +149,23 @@ class FB(object):
 					for grp in insnGrps:
 						if len(grp) > 0:
 							rwHazard.add(grp)
-				# handle current channel of reg
-				csList, muxList = self.__HandleRW(rwHazard)
-				retCsList += csList
-				retMuxList += muxList
-				logging.debug("[N of bmux] %s" % (len(muxList)))
+			# handle current channel of reg
+			csList, muxList = self.__HandleRW(rwHazard)
+			retCsList += csList
+			retMuxList += muxList
+			logging.debug("[N of bmux] %s" % (len(muxList)))
 		return retCsList, retMuxList
 		
 	
 		
 	def __HandleRW(self, hazard):
-		Rstg = self.pipeLine.Rstg.id
+		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		regName = hazard.name
 		index = hazard.index
 		retCsList = []
 		retMuxList = []
-		for istg in range(Rstg, stgn):
+		for istg in range(rstg, stgn):
 			curGrp = filter(lambda grp: grp.Binsn.stg==istg, hazard.insnGrpSet)
 			if len(curGrp) == 0:
 				continue
@@ -177,12 +177,13 @@ class FB(object):
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
 			# logging.debug("[hazard] %s\n" % (hazard.name))
-			logging.debug("[linked] %s\n" % (linkedIn))
+			# logging.debug("[linked] %s\n" % (linkedIn))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux()
+			logging.debug("[hazard] %s@%s\n" % (mux.Iname, istg))
 			### Insert Into needBypass
 			selName = mux.GenSelName()
-			logging.debug("[bypass_sel] %s\n" % (selName))
+			# logging.debug("[bypass_sel] %s\n" % (selName))
 			src = RG.GenRegRd(name=regName, index=index)
 			doutName = mux.GenDoutName()
 			rt = RdTriple(src=src, des=doutName, stg=istg)
