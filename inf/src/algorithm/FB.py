@@ -153,6 +153,7 @@ class FB(object):
 				csList, muxList = self.__HandleRW(rwHazard)
 				retCsList += csList
 				retMuxList += muxList
+				logging.debug("[N of bmux] %s" % (len(muxList)))
 		return retCsList, retMuxList
 		
 	
