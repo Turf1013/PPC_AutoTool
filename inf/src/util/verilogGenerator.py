@@ -72,7 +72,7 @@ class VerilogGenerator:
 		seln = int(math.ceil(math.log(muxn, 2)))
 		dinList = ["din"+str(i) for i in xrange(muxn)]
 		ret += "\t" + ", ".join(dinList) + ",\n"
-		ret += "\t" + "s, y\n"
+		ret += "\t" + "sel, dout\n"
 		ret += ");\n"
 		
 		ret += "\t" + "parameter WIDTH = 8;\n\n"
@@ -89,7 +89,7 @@ class VerilogGenerator:
 		ret += "\t\t" + "endcase\n"
 		ret += "\t" + "end // end always\n\n"
 		
-		ret += "\t" + "assign dout = dour_r;\n\n"
+		ret += "\t" + "assign dout = dout_r;\n\n"
 		
 		ret += "endmodule\n"
 		return ret

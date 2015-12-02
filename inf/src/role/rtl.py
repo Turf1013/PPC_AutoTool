@@ -6,7 +6,7 @@ class constForRtl:
 	linkSymbol = "->"
 	pipeSymbol = ">>"
 	ctrlSuffix = [
-		"op",
+		"Op",
 		"wr",
 	]
 	
