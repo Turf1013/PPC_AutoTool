@@ -40,7 +40,7 @@ class Rtl(object):
 	@classmethod
 	def getModAndPort(cls, wire):
 		if "." not in wire:
-			return wire
+			return [None, wire]
 		return wire.split(".")
 	
 	@classmethod
@@ -54,7 +54,7 @@ class Rtl(object):
 		
 	@classmethod
 	def isConstSrc(cls, src):
-		return "." not in src
+		return "." not in src and "'" in src
 	
 
 
@@ -66,12 +66,7 @@ class LinkRtl(Rtl):
 	def __init__(self, val):
 		super(LinkRtl, self).__init__(val)
 		self.src, self.des = self.val.split(CFR.linkSymbol)
-		if self.isConstLink():
-			self.srcMod = None
-			self.srcPort = self.src
-		else:
-			self.srcMod, self.srcPort = self.getModAndPort(self.src)
-			
+		self.srcMod, self.srcPort = self.getModAndPort(self.src)
 		self.desMod, self.desPort = self.getModAndPort(self.des)
 	
 	
@@ -105,7 +100,7 @@ class PipeRtl(Rtl):
 	def __init__(self, val):
 		super(PipeRtl, self).__init__(val)
 		self.src = self.val.split(CFR.pipeSymbol)[0]
-		
+		self.srcMod, self.srcPort = self.getModAndPort(self.src)
 		
 	def __eq__(self, other):
 		return self.src==other.src

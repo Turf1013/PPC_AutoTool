@@ -19,17 +19,27 @@ class Wire(object):
 		self.stg = stg
 		
 	def __cmp__(self, other):
-		if self.stg == other.stg:
+		if self.stg != other.stg:
+			return self.stg - other.stg
+		elif self.name != other.name:
+			return -1 if self.name < other.name else 1
+		else:
 			return other.kind - self.kind
-		return self.stg - other.stg
+	
+	
+	def __str__(self):
+		if self.kind:
+			return "reg %s@P_%s" % (self.name, self.stg)
+		else:
+			return "wire %s@P_%s" % (self.name, self.stg)
 	
 	
 	def __hash__(self):
-		return hash(self.name)
+		return hash(self.__str__())
 	
 		
 	def __eq__(self, other):
-		return self.name == other.name
+		return self.name==other.name and self.stg==other.stg and self.kind==other.kind
 	
 	
 	def toVerilog(self, tabn):
@@ -44,7 +54,11 @@ class WireSet(set):
 	def toVerilog(self, tabn = 1):
 		ret = ""
 		L = sorted(self)
+		pwire = None
 		for wire in L:
-			ret += wire.toVerilog(tabn = tabn)
+			if pwire is None or wire.stg!=pwire.stg or wire.name!=pwire.name or wire.stg>pwire.stg:
+				ret += wire.toVerilog(tabn = tabn)
+				pwire = wire
+			
 		return ret
 		

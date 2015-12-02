@@ -21,7 +21,7 @@ class Insn(object):
 		self.xo		= xo
 		
 		
-	def condition(self, opField="[0:5]", xoField="[21:30]", INSTR="Instr", suf=""):
+	def condition(self, opField="[31:26]", xoField="[5:0]", INSTR="Instr", suf=""):
 		instr = INSTR + "_" + suf if suf else INSTR
 		if self.xo is None:
 			return "(%s%s==%s)" % (instr, opField, self.op)

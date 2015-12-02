@@ -6,6 +6,8 @@ from ..role.mutex import PortMutex
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
+import logging
+
 
 class constForDatapath:
 	CLK = "clk"
@@ -14,6 +16,10 @@ class constForDatapath:
 	pipeIDict = {
 		"Instr": "[`INSTR_WIDTH-1:0]",
 	}
+	
+	pipeRtlIgoreList = [
+		"Instr",
+	]
 	
 class CFD(constForDatapath):
 	pass
@@ -40,53 +46,111 @@ class Datapath(object):
 		pc = self.modMap.find("PC")
 		pcWrPort = pc.find("wr")
 		pc.addLink(pcWrPort, "~clr_%s" % (self.pipeLine.Rstg.name))
-	
+		
 	
 		
 	# Add the link
 	def LinkMod(self):
+		""" Link the module from two aspect:
+			1. linkRtl include the input port;
+			2. pipeRtl include the output port.
+		""" 
 		linkRtl = self.excelRtl.linkRtl
+		pipeRtl = self.excelRtl.pipeRtl
 		stgn = self.pipeLine.stgn
+		pipeSet = set()
 		for istg in xrange(stgn):
-			rtlSet = set()
+			# link rtl merge
+			linkRtlSet = set()
 			for insnName, insnRtlList in linkRtl.iteritems():
-				rtlSet.update(insnRtlList[istg])
-			self.__LinkModPerStg(rtlSet, istg)
+				linkRtlSet.update(insnRtlList[istg])
 			
+			# pipe rtl merge
+			pipeRtlSet = set()
+			for insnName, insnRtlList in pipeRtl.iteritems():
+				pipeRtlSet.update(insnRtlList[istg])
+			pipeRtlSet -= pipeSet
+			self.__LinkModPerStg(linkRtlSet, pipeRtlSet, istg)
+			pipeSet |= pipeRtlSet
 			
-	def __LinkModPerStg(self, rtlSet, istg):
+	def __LinkModPerStg(self, linkRtlSet, pipeRtlSet, istg):
 		stgName = self.pipeLine.StgNameAt(istg)
 		d = defaultdict(set)
-		for rtl in rtlSet:
+		for rtl in linkRtlSet:
 			d[rtl.des].add(rtl)
 			
-		for des, rtlSet in d.iteritems():
-			rtlList = list(rtlSet)
+		for des, linkRtlSet in d.iteritems():
+			rtlList = list(linkRtlSet)
 			rtl = rtlList[0]
 			if rtl.isCtrlLink():
 				# Control Signal named as itself
 				varName = RP.DesToVar(rtl.des)
 				mod = self.modMap.find(rtl.desMod)
+				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
-				port = mod.find(rtl.desPort)
-				self.wireSet.add( Wire(name=varName, width=port.width, kind="wire", stg=istg) )
+				width = mod.find(rtl.desPort).width
+				logging.debug("[wire] %s %s\n" % (width, varName))
+				self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
+				
 				
 			elif len(rtlList)>1:
 				# mux.dout link (linked in mux generating)
-				pass
+				for rtl in rtlList:
+					if rtl.srcMod is None:
+						continue
+					varName = RP.SrcToVar(src=rtl.src, stg=stgName)
+					mod = self.modMap.find(rtl.srcMod)
+					try:
+						mod.addLink(rtl.srcPort, varName)
+					except ValueError:
+						pass
+					width = mod.find(rtl.srcPort).width
+					srcList = RP.SrcToList(src=rtl.src)
+					logging.debug("[rtl.src] = %s\n" % (rtl.src))
+					logging.debug("[srcList] = %s\n" % (str(srcList)))
+					for src in srcList:
+						varName = RP.SrcToVar(src=src, stg=stgName)
+						logging.debug("[wire] %s %s\n" % (width, varName))
+						self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 				
 			else:
-				src = self.__FindInBypass(src=rtl.src, stg=istg)
+				src = self.__FindInBypass(src=rtl.src, stg=istg)[0]
 				varName = RP.SrcToVar(src=src, stg=stgName)
 				mod = self.modMap.find(rtl.desMod)
+				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
 				port = mod.find(rtl.desPort)
 				width = port.width
 				srcList = RP.SrcToList(src=rtl.src)
+				logging.debug("[rtl.src] = %s\n" % (rtl.src))
+				logging.debug("[srcList] = %s\n" % (str(srcList)))
 				for src in srcList:
 					varName = RP.SrcToVar(src=src, stg=stgName)
+					logging.debug("[wire] %s %s\n" % (width, varName))
 					self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
-	
+					
+				# some srcPort is the output of the module, make them link
+				if rtl.srcMod is not None:
+					varName = RP.SrcToVar(src=rtl.src, stg=stgName)
+					mod = self.modMap.find(rtl.srcMod)
+					try:
+						logging.debug("[rtl] %s\n" % (rtl))
+						mod.addLink(rtl.srcPort, varName)
+					except ValueError: 
+						pass
+						
+		for rtl in pipeRtlSet:
+			if rtl.srcMod is None or rtl.srcPort is None:
+				continue
+			varName = RP.SrcToVar(src=rtl.src, stg=stgName)
+			mod = self.modMap.find(rtl.srcMod)
+			try:
+				logging.debug("[rtl] %s\n" % rtl)
+				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.srcPort))
+				mod.addLink(rtl.srcPort, varName)
+			except ValueError: 
+				pass
+				
 	
 	# Generate all the Port Mux
 	def GenPortMux(self):
@@ -116,7 +180,7 @@ class Datapath(object):
 		retCSList = []
 		for des,linkSet in portDict.iteritems():
 			srcList = map(lambda x:x.src, linkSet)
-			srcList = map(lambda src:self.__FindInBypass(src=src,stg=istg), srcList)
+			srcList = map(lambda src:self.__FindInBypass(src=src,stg=istg)[0], srcList)
 			if len(srcList) > 1:
 				rtl = list(linkSet)[0]
 				# Need to Insert a Port MUX
@@ -132,6 +196,7 @@ class Datapath(object):
 				### Link the MUX dout to orginal module
 				doutName = pmux.GenDoutName()
 				mod = self.modMap.find(rtl.desMod)
+				logging.debug("[%s] link %s to %s\n" % (mod.name, doutName, rtl.desPort))
 				mod.addLink(rtl.desPort, doutName)
 				
 				### Generate the CtrlSignal
@@ -143,7 +208,7 @@ class Datapath(object):
 						if r in linkSet:
 							insn = self.insnMap.find(insnName)
 							cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
-							src = self.__FindInBypass(src=r.src, stg=istg)
+							src = self.__FindInBypass(src=r.src, stg=istg)[0]
 							src = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
 							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
@@ -174,8 +239,8 @@ class Datapath(object):
 	def __FindInBypass(self, src, stg):
 		for rt in self.needBypass:
 			if rt.equal(src=src, stg=stg):
-				return rt.des
-		return src
+				return rt.des, True
+		return src, False
 		
 		
 	# Generate Verilog code	
@@ -228,11 +293,13 @@ class Datapath(object):
 		
 		
 	def GenPipe(self):
+		self.pipeDictList = []
 		stgn = self.pipeLine.stgn
-		self.pipeDictList = [dict()]
-		for istg in range(1, stgn):
-			self.pipeDictList.append( self.__GenPipePerStg(istg) )
-	
+		rtlAllSet = set()
+		rtlAllSet.add(RP.SrcToVar(src="Instr", stg=self.pipeLine.StgNameAt(0)))
+		for istg in range(0, stgn-1):
+			self.pipeDictList.append( self.__GenPipePerStg(rtlAllSet, istg) )
+		self.pipeDictList.append(dict())
 	
 	def __PipeRtlAtStg(self, istg):
 		ret = set()
@@ -242,39 +309,49 @@ class Datapath(object):
 		return ret
 		
 			
-	def __GenPipePerStg(self, istg):
+	def __GenPipePerStg(self, st, istg):
 		pipeRtl = self.__PipeRtlAtStg(istg)
 		rtlSet = set()
 		retDict = dict()
 		for rtl in pipeRtl:
 			rtlSet.add(rtl)
 		for rtl in rtlSet:
-			src = self.__FindInBypass(src=rtl.src, stg=istg)
-			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg-1))
-			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg))
-			retDict[outVar] = inVar
+			src, find = self.__FindInBypass(src=rtl.src, stg=istg)
+			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
+			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg+1))
+			
+			logging.debug("[pipe] %s | inVar = %s, outVar = %s\n" % (rtl, inVar, outVar))
 			
 			# add source in reg statement
 			if rtl.src in CFD.pipeIDict:
 				width = CFD.pipeIDict[rtl.src]
-				inVar = rtl.src
-			elif '.' in rtl.src:
-				modName, portName = rtl.src.split('.')[:2]
+			elif rtl.srcMod is not None:
+				modName, portName = rtl.srcMod, rtl.srcPort
 				mod = self.modMap.find(modName)
-				port = mod.find(portName)
-				width = port.width
+				width = mod.find(portName).width
 			else:
 				width = "XXXXXXXXX"
 				inVar = rtl.src
 				
-			self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg-1) )
-			self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg) )
+			if find:
+				retDict[outVar] = inVar
+				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
+				self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg) )
+			elif inVar in st:
+				retDict[outVar] = inVar
+				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
+			else:
+				retDict[outVar] = inVar
+				self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg) )
+				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
+			
+			st.add(outVar)
 		return retDict
 			
 		
 	def __pipeToVerilog(self, tabn):
 		ret = ""
-		for istg in range(1, self.pipeLine.stgn):
+		for istg in range(0, self.pipeLine.stgn-1):
 			ret += self.__pipeToVerilogPerStg(tabn=tabn, istg=istg)
 		return ret
 		
@@ -302,6 +379,7 @@ class Datapath(object):
 			ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():
 			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
+		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
 		return ret
 		

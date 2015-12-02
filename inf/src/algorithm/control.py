@@ -66,13 +66,14 @@ class Control(object):
 	def __GenCSFromRtlPerStg(self, istg):
 		csDict = dict()
 		linkRtl = self.excelRtl.linkRtl
+		stgName = self.pipeLine.StgNameAt(istg)
 		for insnName,insnRtlList in linkRtl.iteritems():
 			rtlList = insnRtlList[istg]
 			for rtl in rtlList:
 				# rtl need to be Ctrl Link
 				if not rtl.isCtrlLink():
 					continue
-				signalName = RP.DesToVar(rtl.des)
+				signalName = RP.DesToVar(rtl.des, suf=stgName)
 				if signalName not in csDict:
 					# Create a CS
 					mod = self.modMap.find(rtl.desMod)
@@ -174,7 +175,7 @@ class Control(object):
 		stgn = self.pipeLine.stgn
 		pre = '\t' * tabn
 		ret = ""
-		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
+		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
 		ret += pre + "\t" + "if ( !rst_n ) begin\n"
 		for istg in range(rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))

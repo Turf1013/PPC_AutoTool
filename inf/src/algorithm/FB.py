@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from ..role.hazard import StgInsn, StgReg, RW_Hazard, Stall_Hazard, RW_InsnGrp, InsnGrp
 from ..role.ctrlSignal import CtrlSignal, CtrlTriple
 from ..role.stage import Stage
@@ -6,6 +7,7 @@ from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
 from ..util.verilogParser import VerilogParser as VP
 from ..util.verilogGenerator import VerilogGenerator as VG
+
 
 class constForFB:
 	STALL = "stall"
@@ -173,6 +175,7 @@ class FB(object):
 			rd = RG.GenRegRd(name=hazard.name, index=hazard.index)
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
+			logging.debug("[hazard] %s\n" % (hazard.name))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux()
 			### Insert Into needBypass
@@ -238,12 +241,12 @@ class FB(object):
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
 			rwGrps[r].addLink(sendData)
 		
-		# the 3-rd condition of send
-		for r in range(mn+1, binsn.stg.id+1):
-			wInsn = StgInsn(insn=finsn.insn, stg=Stage(r+1, self.pipeLine.StgNameAt(r+1)), addr=finsn.addr, wd=finsn.wd)
-			rwGrps[r].addInsn(wInsn)
-			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(r+1))
-			rwGrps[r].addLink(sendData)
+		# the 3-rd condition of send (useless)
+		# for r in range(mn+1, binsn.stg.id+1):
+			# wInsn = StgInsn(insn=finsn.insn, stg=Stage(r+1, self.pipeLine.StgNameAt(r+1)), addr=finsn.addr, wd=finsn.wd)
+			# rwGrps[r].addInsn(wInsn)
+			# sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(r+1))
+			# rwGrps[r].addLink(sendData)
 			
 		# the condition of stall
 		delta = finsn.stg.id - binsn.stg.id

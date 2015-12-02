@@ -3,7 +3,10 @@ import re
 
 class constForRtlParser:
 	re_rtlConst = re.compile(r"`\w+|\d+")
-	re_rtlVariable = re.compile(r"[\w`']+")
+	re_rtlVariable = re.compile(r"[\`\'\.\w]+")
+	re_rtlNumber = re.compile(r"^\d+$")
+	re_hdlNumber = re.compile(r"^\d+'(b[01]+|d\d+|h[a-f\d]+)$")
+	re_hdlConst  = re.compile(r"^`[\_\w]+$")
 
 class CFRP(constForRtlParser):
 	pass
@@ -24,14 +27,16 @@ class RtlParser:
 		
 	
 	@classmethod		
-	def DesToVar(cls, des):
-		return des.replace(".", "_") 
+	def DesToVar(cls, des, suf=""):
+		if suf:
+			return des.replace(".", "_") + "_" + suf
+		else:
+			return des.replace(".", "_")
 		
 	
 	@classmethod
 	def SrcToList(cls, src):
-		m = CFRP.re_rtlVariable.match(src)
-		if m:
-			return m.group(0)
-		return []
+		m = CFRP.re_rtlVariable.findall(src)
+		m = filter(lambda s:not (CFRP.re_rtlNumber.match(s) or CFRP.re_hdlNumber.match(s) or CFRP.re_hdlConst.match(s)), m)
+		return m
 		

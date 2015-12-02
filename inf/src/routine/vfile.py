@@ -24,7 +24,18 @@ class constForVFile:
 	XO = "_XO"
 	
 	controlFileName = "control.v"
-	ppcFileName = "ppc.v"
+	ppcFileName = "mips.v"
+	
+	moduleIgnoreList = [
+		"FF",
+		"FFW",
+		"mux2",
+		"mux4",
+		"mux8",
+		"mux16",
+		"mux32",
+		"mux64",
+	]
 	
 class CFV(constForVFile):
 	pass
@@ -127,7 +138,8 @@ class VFile(object):
 			portList = []
 			for line in fin:
 				if foundMod and CFV.re_endmodule.match(line):
-					retModList.append(Module(name=modName, iterable=portList))
+					if modName not in CFV.moduleIgnoreList:
+						retModList.append(Module(name=modName, iterable=portList))
 					foundMod = False
 					modName = None
 					portList = []

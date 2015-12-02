@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from itertools import izip
+import logging
 
 class constForPort:
 	pass
@@ -67,12 +68,13 @@ class Module(object):
 	
 		
 	def addLink(self, desPort, srcPort):
+		logging.debug("[%s] link %s to %s\n" % (self.name, srcPort, desPort))
 		if isinstance(desPort, str):
 			desPort = self.find(desPort)
 		if desPort not in self.portList:
 			raise KeyError, "%s not in [%s]" % (desPort, self.name)
 		elif self.linkDict[desPort] is not None:
-			raise ValueError, "both %s and %s link %s " % (srcPort, self.linkDict[desPort])
+			raise ValueError, "both %s and %s link %s " % (srcPort, self.linkDict[desPort], desPort)
 			# pass
 		else:
 			self.linkDict[desPort] = srcPort
