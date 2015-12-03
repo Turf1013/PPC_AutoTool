@@ -40,7 +40,7 @@ class ppcInsnFormat:
 		PFC.RA		:	(11, 15),
 		PFC.RB		:	(16, 20),
 		PFC.OE		: 	(21, 21),
-		PFC.XO		:	(22, 30)
+		PFC.XO		:	(22, 30),
 		PFC.Rc		: 	(31, 31),
 	}
 	XoForm = insnFormat(name="XO", fieldDict=XoFormFieldDict)

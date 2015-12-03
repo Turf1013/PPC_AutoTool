@@ -1,6 +1,6 @@
 from ppc_insnFormat import ppcInsnFormat as PIF
 from ppc_const import ppcFieldConst as PFC
-from Instruction import Instrution
+from Instruction import Instruction
 from insnFormat import insnFormat
 
 
@@ -25,7 +25,7 @@ class constForInsnRename:
 	lha = Instruction(name="lha", form=PIF.DForm)
 	lha.setField(PFC.OPCD, 42)
 	
-	ld = Instrution(name="ld", form=PIF.DsForm)
+	ld = Instruction(name="ld", form=PIF.DsForm)
 	ld.setField(PFC.OPCD, 58)
 	ld.setField(PFC.XO, 0)
 	
@@ -52,6 +52,35 @@ class constForInsnRename:
 	lbzx = Instruction(name="lbzx", form=PIF.XForm)
 	lbzx.setField(PFC.OPCD, 31)
 	lbzx.setField(PFC.XO, 87)
+	
+	stb = Instruction(name="stb", form=PIF.DForm)
+	stb.setField(PFC.OPCD, 38)
+	
+	stbx = Instruction(name="stbx", form=PIF.XForm)
+	stbx.setField(PFC.OPCD, 31)
+	stbx.setField(PFC.XO, 215)
+	
+	sth = Instruction(name="sth", form=PIF.DForm)
+	sth.setField(PFC.OPCD, 44)
+	
+	sthx = Instruction(name="sthx", form=PIF.XForm)
+	sthx.setField(PFC.OPCD, 31)
+	sthx.setField(PFC.XO, 407)
+	
+	stw = Instruction(name="stw", form=PIF.DForm)
+	stw.setField(PFC.OPCD, 36)
+	
+	stwx = Instruction(name="stwx", form=PIF.XForm)
+	stwx.setField(PFC.OPCD, 31)
+	stwx.setField(PFC.XO, 151)
+	
+	std = Instruction(name="std", form=PIF.DForm)
+	std.setField(PFC.OPCD, 62)
+	
+	stdx = Instruction(name="stdx", form=PIF.XForm)
+	stdx.setField(PFC.OPCD, 31)
+	stdx.setField(PFC.XO, 149)
+	
 
 class CFIR(constForInsnRename):
 	pass
@@ -99,9 +128,207 @@ class insnRename(object):
 		elif insn.name == "stmw":
 			return cls.stmw_rename(insn)
 		
+		elif insn.name == "stbu":
+			return cls.stbu_rename(insn)
+			
+		elif insn.name == "stdu":
+			return cls.stdu_rename(insn)
+			
+		elif insn.name == "sthu":
+			return cls.sthu_rename(insn)
+			
+		elif insn.name == "stwu":
+			return cls.stwu_rename(insn)
+			
+		elif insn.name == "stbux":
+			return cls.stbux_rename(insn)
+			
+		elif insn.name == "sthux":
+			return cls.sthux_rename(insn)
+			
+		elif insn.name == "stwux":
+			return cls.stwux_rename(insn)
+		
+		elif insn.name == "stdux":
+			return cls.stdux_rename(insn)
+					
 		else:
-			return []	
+			return []
+			
+			
+	@classmethod
+	def stbux_rename(cls, insn):
+		"""
+			stbux RS, RA, RB
+			->	stbx RS, RA, RB
+			->	add RA, RA, RB
+		"""
+		ret = []
+		
+		CFIR.stbx.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.stbx.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stbx.setField(PFC.RB, insn.getField(PFC.RB))
+		ret.append(CFIR.stbx.toCode())
+		
+		CFIR.add.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RB, insn.getField(PFC.RB) )
+		ret.append(CFIR.add.toCode())
+		
+		return ret
+		
 	
+	@classmethod
+	def sthux_rename(cls, insn):
+		"""
+			sthux RS, RA, RB
+			->	sthx RS, RA, RB
+			->	add RA, RA, RB
+		"""
+		ret = []
+		
+		CFIR.sthx.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.sthx.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.sthx.setField(PFC.RB, insn.getField(PFC.RB))
+		ret.append(CFIR.sthx.toCode())
+		
+		CFIR.add.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RB, insn.getField(PFC.RB) )
+		ret.append(CFIR.add.toCode())
+		
+		return ret
+		
+	
+	@classmethod
+	def stdux_rename(cls, insn):
+		"""
+			stdux RS, RA, RB
+			->	stdx RS, RA, RB
+			->	add RA, RA, RB
+		"""
+		ret = []
+		
+		CFIR.stdx.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.stdx.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stdx.setField(PFC.RB, insn.getField(PFC.RB))
+		ret.append(CFIR.stdx.toCode())
+		
+		CFIR.add.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RB, insn.getField(PFC.RB) )
+		ret.append(CFIR.add.toCode())
+		
+		return ret	
+	
+	
+	@classmethod
+	def stwux_rename(cls, insn):
+		"""
+			stwux RS, RA, RB
+			->	stwx RS, RA, RB
+			->	add RA, RA, RB
+		"""
+		ret = []
+		
+		CFIR.stwx.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.stwx.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stwx.setField(PFC.RB, insn.getField(PFC.RB))
+		ret.append(CFIR.stwx.toCode())
+		
+		CFIR.add.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.add.setField(PFC.RB, insn.getField(PFC.RB) )
+		ret.append(CFIR.add.toCode())
+		
+		return ret
+	
+	
+	@classmethod
+	def stbu_rename(cls, insn):
+		"""
+			stbu RS, D(RA)
+			->	stb RS, D(RA)
+			->	addi RA, RA, D
+		"""
+		ret = []
+		
+		CFIR.stb.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.stb.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stb.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.stb.toCode())
+		
+		CFIR.addi.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.addi.toCode())
+		
+		return ret
+		
+	@classmethod
+	def sthu_rename(cls, insn):
+		"""
+			sthu RS, D(RA)
+			->	sth RS, D(RA)
+			->	addi RA, RA, D
+		"""
+		ret = []
+		
+		CFIR.sth.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.sth.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.sth.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.sth.toCode())
+		
+		CFIR.addi.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.addi.toCode())
+		
+		return ret
+		
+		
+	@classmethod
+	def stwu_rename(cls, insn):
+		"""
+			stwu RS, D(RA)
+			->	stw RS, D(RA)
+			->	addi RA, RA, D
+		"""
+		ret = []
+		
+		CFIR.stw.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.stw.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stw.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.stw.toCode())
+		
+		CFIR.addi.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.addi.toCode())
+		
+		return ret
+	
+	
+	@classmethod
+	def stdu_rename(cls, insn):
+		"""
+			stdu RS, D(RA)
+			->	std RS, D(RA)
+			->	addi RA, RA, D
+		"""
+		ret = []
+		
+		CFIR.std.setField(PFC.RS, insn.getField(PFC.RS))
+		CFIR.std.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.std.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.std.toCode())
+		
+		CFIR.addi.setField(PFC.RT, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.addi.setField(PFC.D,  insn.getField(PFC.D) )
+		ret.append(CFIR.addi.toCode())
+		
+		return ret
 	
 	@classmethod
 	def stmw_rename(cls, insn):
@@ -115,11 +342,11 @@ class insnRename(object):
 		ret = []
 		d = insn.getField(PFC.D)
 		r = insn.getField(PFC.RS)
-		CFIR.lwz.setField(PFC.RA, insn.getField(PFC.RA))
+		CFIR.stw.setField(PFC.RA, insn.getField(PFC.RA))
 		while r <= 31:
-			CFIR.lwz.setField(PFC.RS, r)
-			CFIR.lwz.setField(PFC.D, d)
-			ret.append(lwz.toCode())
+			CFIR.stw.setField(PFC.RS, r)
+			CFIR.stw.setField(PFC.D, d)
+			ret.append(CFIR.stw.toCode())
 			r += 1
 			d += 4
 		return ret
@@ -141,7 +368,7 @@ class insnRename(object):
 		while r <= 31:
 			CFIR.lwz.setField(PFC.RD, r)
 			CFIR.lwz.setField(PFC.D, d)
-			ret.append(lwz.toCode())
+			ret.append(CFIR.lwz.toCode())
 			r += 1
 			d += 4
 		return ret
@@ -345,7 +572,7 @@ class insnRename(object):
 		
 	
 	@classmethod
-	def lhaux_rename(cls, insn):
+	def lwzux_rename(cls, insn):
 		"""
 			lwzux RT, RA, RB
 			->	lwzx RT, RA, RB

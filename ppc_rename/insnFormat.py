@@ -12,7 +12,7 @@ class insnFormat(object):
 
 	def __init__(self, name, fieldDict):
 		self.name = name
-		if not instance(fieldDict, dict):
+		if not isinstance(fieldDict, dict):
 			raise TypeError, "use dict to instance instruction format"
 		self.fieldDict = fieldDict
 		

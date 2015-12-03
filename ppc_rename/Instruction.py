@@ -10,7 +10,7 @@ class CFI(constForInstruction):
 class Instruction(object):
 
 	def __init__(self, name, form, code=0):
-		if not instance(form, insnFormat):
+		if not isinstance(form, insnFormat):
 			raise TypeError, "use insnFormat to instance Instruction"
 		self.name = name
 		self.form = form
@@ -30,7 +30,7 @@ class Instruction(object):
 		return ret
 		
 		
-	def __setBetween(self, beg, end, value):
+	def __setBetween(self, beg, end, value, bigEndian=True):
 		if bigEndian:
 			beg = CFI.insnWidth-1-beg
 			end = CFI.insnWidth-1-end
@@ -55,10 +55,10 @@ class Instruction(object):
 			(beg, end) = (min(beg, end), max(beg, end))
 		else:
 			(beg, end) = (max(beg, end), min(beg, end))
-		return self.__valBetween(beg, end):
+		return self.__valBetween(beg, end)
 	
 	
-	def getField(self. field):
+	def getField(self, field):
 		return self.valAt(field)
 	
 		
