@@ -1,6 +1,13 @@
 from insnFormat import insnFormat
 from ppc_const import ppcFieldConst as PFC
 		
+class constForPpcInsnFormat:
+	INSTR = "instr"
+	
+
+class CFPIF(constForPpcInsnFormat):
+	pass
+		
 class ppcInsnFormat:
 	
 	DFormFieldDict = {
@@ -46,3 +53,77 @@ class ppcInsnFormat:
 	XoForm = insnFormat(name="XO", fieldDict=XoFormFieldDict)
 	
 	
+	fieldDictList = [
+		("D",	DFormFieldDict),
+		("DS", 	DsFormFieldDict),
+		("X", 	XFormFieldDict),
+		("XO", 	XoFormFieldDict),
+	]
+	
+	@classmethod
+	def GenFormatDef(cls):
+		defList = []
+		for formName, formDict in cls.fieldDictList:
+			defList.append( cls.__GenFormatDefPerForm(formName, formDict) )
+		return "\n".join(defList)
+		
+	
+	@classmethod
+	def __GenFormatDefPerForm(cls, formName, formDict):
+		ret = ""
+		ret += "// define %s-Form\n" % (formName)
+		for name, rng in formDict.iteritems():
+			ret += "`define %s_%s_WIDTH %d\n" % (formName, name, rng[1]-rng[0]+1);
+			ret += "`define %s_%s [%d:%d]\n" % (formName, name, rng[0], rng[1]);
+		return ret	
+		
+		
+	@classmethod
+	def GenFormatAssign(cls):
+		assignList = []
+		for formName, formDict in cls.fieldDictList:
+			assignList.append( cls.__GenFormatAssignPerForm(formName, formDict) )
+		return "\n".join(assignList)
+		
+		
+	@classmethod
+	def __GenFormatAssignPerForm(cls, formName, formDict):
+		ret = ""
+		ret += "// assign %s-Form\n" % (formName)
+		for name in formDict.iterkeys():
+			fieldName = "%s_%s" % (formName, name)
+			ret += "assign %s = %s`%s;\n" % (fieldName, CFPIF.INSTR, fieldName)
+		return ret
+		
+		
+	@classmethod
+	def GenFormatWire(cls):
+		wireList = []
+		for formName, formDict in cls.fieldDictList:
+			wireList.append( cls.__GenFormatWirePerForm(formName, formDict) )
+		return "\n".join(wireList)
+		
+		
+	@classmethod
+	def	__GenFormatWirePerForm(cls, formName, formDict):
+		ret = ""
+		ret += "// wire %s-Form\n" % (formName)
+		for name in formDict.iterkeys():
+			fieldName = "%s_%s" % (formName, name)
+			ret += "wire [0:`%s_WIDTH-1] %s;\n" % (fieldName, fieldName)
+		return ret
+		
+		
+if __name__ == "__main__":
+	defLines = ppcInsnFormat.GenFormatDef()
+	wireLines = ppcInsnFormat.GenFormatWire()
+	assignLines = ppcInsnFormat.GenFormatAssign()
+	fileName = "F:\Qt_prj\hdoj\data.out"
+	
+	with open(fileName, "w") as fout:
+		fout.write(defLines)
+		fout.write(wireLines)
+		fout.write(assignLines)
+		
+	
+		

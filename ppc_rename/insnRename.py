@@ -335,6 +335,7 @@ class insnRename(object):
 		"""
 			!!! may cross the bound because of D+=4.
 			stmw $29, 0($0)
+			-> nop
 			-> stw $29, 0($0)
 			-> stw $30, 4($0)
 			-> stw $31, 8($0)
@@ -357,6 +358,7 @@ class insnRename(object):
 		"""
 			!!! may cross the bound because of D+=4.
 			lmw $29, 0($0)
+			-> nop
 			-> lwz $29, 0($0)
 			-> lwz $30, 4($0)
 			-> lwz $31, 8($0)
