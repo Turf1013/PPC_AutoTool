@@ -21,7 +21,7 @@ class constForVFile:
 	re_insnDef		= 	re.compile(r'\S+')
 	
 	OP = "_OP"
-	XO = "_XO"
+	XO = "_FUNCT"
 	
 	controlFileName = "control.v"
 	ppcFileName = "mips.v"
@@ -179,10 +179,17 @@ class VFile(object):
 				if line.startswith(CFVL.DEFINE):
 					defName, defVal = CFV.re_insnDef.findall(line)[1:3]
 					if defName.endswith(CFV.OP):
-						opDict[defName[:-len(CFV.OP)]] = defVal
-						xoDict[defName[:-len(CFV.OP)]] = None
+						# direct use val
+						# opDict[defName[:-len(CFV.OP)]] = defVal
+						# use `def
+						opDict[defName[:-len(CFV.OP)]] = "`" + defName
+						# xoDict[defName[:-len(CFV.OP)]] = None
 					elif defName.endswith(CFV.XO):
-						xoDict[defName[:-len(CFV.XO)]] = defVal
+						# direct use val
+						# xoDict[defName[:-len(CFV.XO)]] = defVal
+						# use `def
+						xoDict[defName[:-len(CFV.XO)]] = "`" + defName
+						
 						
 			for name,op in opDict.iteritems():
 				xo = xoDict[name] if name in xoDict else None

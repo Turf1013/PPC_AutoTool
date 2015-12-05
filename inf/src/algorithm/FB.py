@@ -103,6 +103,7 @@ class FB(object):
 		
 			
 	def __HandleHazardPerReg(self, reg):
+		logging.debug("[reg] reg = %s, rn = %s, wn = %s\n" % (reg.name, reg.rn, reg.wn))
 		regName = reg.name
 		wInsnList = []
 		rInsnList = []
@@ -111,14 +112,14 @@ class FB(object):
 			# Generate Write StgInsn
 			for i in range(reg.wn):
 				wStgInsnList = self.__GenWStgInsn(regName, index=i)
-				wInsnList += wStgInsnList
+				wInsnList.append( wStgInsnList )
 		else:
 			wInsnList.append( self.__GenWStgInsn(regName))
 			
 		if reg.rn > 1:
 			# Generate Read StgInsn
-			for j in range(reg.rn):
-				rStgInsnList = self.__GenRStgInsn(regName, index=j)
+			for i in range(reg.rn):
+				rStgInsnList = self.__GenRStgInsn(regName, index=i)
 				rInsnList.append(rStgInsnList)
 		else:
 			rInsnList.append( self.__GenRStgInsn(regName) )
@@ -130,25 +131,27 @@ class FB(object):
 		# iterate every read channels
 		for rIndex in range(reg.rn):
 			rwHazard = RW_Hazard(name=regName, index=rIndex)
-			for rStgInsnList in rInsnList:
-				for binsn in rStgInsnList:
-					insnGrps = []
-					for istg in range(0, stgn):
-						stg = Stage(istg, self.pipeLine.StgNameAt(istg))
-						insnGrps.append(
-							RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
-						)
-					stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=self.pipeLine.Rstg, addr=binsn.addr))
-					for wStgInsnList in wInsnList:
-						for finsn in wStgInsnList:
-							self.__HandleInsnPair(finsn, binsn, insnGrps, stallGrp)
-					# if has valid stall condition
-					if len(stallGrp) > 0:
-						self.stallHazard.add(stallGrp)
-					# if has valid send condtion
-					for grp in insnGrps:
-						if len(grp) > 0:
-							rwHazard.add(grp)
+			rStgInsnList = rInsnList[rIndex]
+			for binsn in rStgInsnList:
+				insnGrps = []
+				for istg in range(0, stgn):
+					stg = Stage(istg, self.pipeLine.StgNameAt(istg))
+					insnGrps.append(
+						RW_InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=stg, addr=binsn.addr))
+					)
+				stallGrp = InsnGrp(Binsn=StgInsn(insn=binsn.insn, stg=self.pipeLine.Rstg, addr=binsn.addr))
+				for wStgInsnList in wInsnList:
+					for finsn in wStgInsnList:
+						self.__HandleInsnPair(finsn, binsn, insnGrps, stallGrp)
+				# if has valid stall condition
+				if len(stallGrp) > 0:
+					self.stallHazard.add(stallGrp)
+				# if has valid send condtion
+				for grp in insnGrps:
+					# if rIndex==1:
+						# logging.debug( "[len(grp)] %d\n" % (len(grp)) )
+					if len(grp) > 0:
+						rwHazard.add(grp)
 			# handle current channel of reg
 			csList, muxList = self.__HandleRW(rwHazard)
 			retCsList += csList
@@ -163,10 +166,12 @@ class FB(object):
 		stgn = self.pipeLine.stgn
 		regName = hazard.name
 		index = hazard.index
+		# logging.debug("[Handle_RW] regName = %s, index = %s\n" % (regName, index))
 		retCsList = []
 		retMuxList = []
 		for istg in range(rstg, stgn):
 			curGrp = filter(lambda grp: grp.Binsn.stg==istg, hazard.insnGrpSet)
+			# logging.debug("[len(curGrp)] %d\n" % (len(curGrp)))
 			if len(curGrp) == 0:
 				continue
 			linkedSet = reduce(lambda ast,bst: ast|bst, map(lambda g:g.linkedIn, curGrp))
@@ -180,7 +185,7 @@ class FB(object):
 			# logging.debug("[linked] %s\n" % (linkedIn))
 			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
 			mux = stgReg.toBypassMux(stg = Stage(istg, stgName))
-			logging.debug("[hazard] %s@%s\n" % (mux.Iname, istg))
+			# logging.debug("[hazard] %s@%s\n" % (mux.Iname, istg))
 			### Insert Into needBypass
 			selName = mux.GenSelName()
 			# logging.debug("[bypass_sel] %s\n" % (selName))
@@ -195,7 +200,11 @@ class FB(object):
 			cs.add( CtrlTriple(cond=clr, pri=10**5) )
 			for g in curGrp:
 				binsn = g.Binsn
+				# if index==1:
+					# logging.debug("[Handle_RW] binsn = %s, addr = %s, index = %s:\n" % (binsn, binsn.addr, index))
 				for finsn in g:
+					# if index==1:
+						# logging.debug("\t[handle_RW] finsn = %s, addr = %s.\n" % (finsn, finsn.addr))
 					if binsn.addr is None and finsn.addr is None:
 						# no addr
 						# check if finsn wr is 1'b1
@@ -327,6 +336,7 @@ class FB(object):
 					break
 			insn = self.insnMap.find(insnName)
 			addr = None if addrRtl is None else addrRtl.src
+			logging.debug("[StgInsn] regName=%s, index=%s, addr=%s, insn=%s\n" % (regName, index, addr, insnName))
 			stg = Stage(ustg, self.pipeLine.StgNameAt(ustg))
 			si = StgInsn(insn=insn, stg=stg, addr=addr)
 			ret.append(si)

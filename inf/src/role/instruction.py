@@ -25,8 +25,8 @@ class Insn(object):
 		instr = INSTR + "_" + suf if suf else INSTR
 		if self.xo is None:
 			return "(%s%s==%s)" % (instr, opField, self.op)
-		return "(%s%s==%s && %s==%s)" % (
-					instr, opField, self.op, xoField, self.xo
+		return "(%s%s==%s && %s%s==%s)" % (
+					instr, opField, self.op, instr, xoField, self.xo
 				)
 	
 	def __hash__(self):
