@@ -75,8 +75,12 @@ class FB(object):
 		stgn = self.pipeLine.stgn
 		cs = CtrlSignal(name=CFFB.STALL, width=1, stg=rstg)
 		# add clear 
-		clr = VG.GenClr(suf = self.pipeLine.StgNameAt(rstg))
-		cs.add( CtrlTriple(cond=clr, pri=10**5))
+		"""
+			``` pay attention to ```
+			clr_D comes from decode Insn@D,
+			so clr_D is not a part of ctrlSignal's condition
+		"""
+		cs.add( CtrlTriple(cond="0", pri=10**5) )
 		for insnGrp in self.stallHazard:
 			binsn = insnGrp.Binsn
 			for finsn in insnGrp.FinsnSet:
@@ -97,7 +101,15 @@ class FB(object):
 						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 					# else:
 						# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl, addrCond)
-				noclear = "~%s_%s && ~%s_%s && " % (CFFB.CLR, finsn.stg.name, CFFB.CLR, binsn.stg.name)
+				if finsn.stg.id == rstg:
+					clrFinsn = "1'b1"
+				else:
+					clrFinsn = "~%s_%s" % (CFFB.CLR, finsn.stg.name)
+				if binsn.stg.id == rstg:
+					clrBinsn = "1'b1"
+				else:
+					clrBinsn = "~%s_%s" % (CFFB.CLR, binsn.stg.name)
+				noclear = "%s && %s && " % (clrFinsn, clrBinsn)
 				cond = noclear + cond
 				op = 1
 				pri = stgn - finsn.stg.id
@@ -200,8 +212,16 @@ class FB(object):
 			### Generate control singla referenced
 			cs = CtrlSignal(name=selName, width=mux.seln, stg=istg)
 			# add clr
-			clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
-			cs.add( CtrlTriple(cond=clr, pri=10**5) )
+			"""
+				``` pay attention to ```
+				clr_D comes from decode Insn@D,
+				so clr_D is not a part of ctrlSignal's condition
+			"""
+			if istg == rstg:
+				cs.add( CtrlTriple(cond="0", pri=10**5) )
+			else:
+				clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
+				cs.add( CtrlTriple(cond=clr, pri=10**5) )
 			for g in curGrp:
 				binsn = g.Binsn
 				# if index==1:
@@ -226,7 +246,20 @@ class FB(object):
 							# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 						# else:
 							# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
-					noclear = "~%s_%s && ~%s_%s && " % (CFFB.CLR, finsn.stg.name, CFFB.CLR, binsn.stg.name)
+					"""
+						``` pay attention to ```
+						clr_D comes from decode Insn@D,
+						so clr_D is not a part of ctrlSignal's condition
+					"""	
+					if finsn.stg.id == rstg:
+						clrFinsn = "1'b1"
+					else:
+						clrFinsn = "~%s_%s" % (CFFB.CLR, finsn.stg.name)
+					if binsn.stg.id == rstg:
+						clrBinsn = "1'b1"
+					else:
+						clrBinsn = "~%s_%s" % (CFFB.CLR, binsn.stg.name)
+					noclear = "%s && %s && " % (clrFinsn, clrBinsn)
 					cond = noclear + cond	
 					data = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(finsn.stg))
 					op = linkedIn.index(data)

@@ -11,6 +11,7 @@ from ..role.instructionMap import InsnMap
 
 class constForVFile:
 	VFILE_SUFFIX = ".v"
+	TB_VFILE_SUFFIX = "_tb.v"
 	DEF_SUFFIX = "_def" + VFILE_SUFFIX
 	
 	# re using by scan
@@ -131,6 +132,8 @@ class VFile(object):
 	
 	# scan the .v file and generate all the module in the file. (one file may contains several modules)
 	def __GenModule(self, fileName):
+		if fileName.endswith(CFV.TB_VFILE_SUFFIX):
+			return []
 		retModList = []
 		with open(fileName, "r") as fin:
 			foundMod = False

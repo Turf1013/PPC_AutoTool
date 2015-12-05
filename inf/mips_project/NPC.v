@@ -14,13 +14,14 @@ module NPC (
    
    reg [31:0] NPC;
    
-   wire [31:0] PC_PLUS4, PC_BRNACH, PC_JUMP, PC_Rs;
+   wire [31:0] PC_PLUS4, PC_PLUS8, PC_BRANCH, PC_JUMP, PC_Rs;
    
    assign PC_PLUS4 = PC + 4;
+   assign PC_PLUS8 = PC + 8;
    assign PC_JUMP = {PC[31:28], Imm26[25:0], 2'b00};
    assign PC_BRANCH = PC + {{14{Imm26[15]}}, Imm26[15:0], 2'b00};
    assign PC_Rs = Rs;
-   assign Laddr = PC + 8;
+   assign Laddr = PC_PLUS4;
    
    always @(*) begin
       case (Op)

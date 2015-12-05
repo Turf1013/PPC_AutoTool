@@ -66,11 +66,7 @@ class mipsPatch:
 				newCtrlLines.append(line)
 				continue
 					
-			if lline.startswith("if"):
-				line = line.replace("clr_D", "0")
-				newCtrlLines.append(line)
-				
-			elif lline.startswith("else if"):
+			if lline.startswith("else if"):
 				eleList = line.split("(")
 				ele = eleList[-1]
 				raddr = ele[:ele.index(" ")]

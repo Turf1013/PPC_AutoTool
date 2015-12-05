@@ -18,7 +18,7 @@ def move(srcDir, desDir):
 
 
 if __name__ == "__main__":
-	workDirectory = "F:\ppc_project"
+	workDirectory = "F:\mips_project"
 	excelName = "mips_pipeline.xls"
 	sheetName = "rtl"
 	insnFileName = "instruction_def.v"

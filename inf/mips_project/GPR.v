@@ -19,7 +19,7 @@ module GPR (
 			for (i=0; i<32; i=i+1)
 				GPR[i] <= 0;
 		end
-		else if (wr)
+		else if (wr && waddr!=0)
 			GPR[waddr] <= wd;
 	end // end always
 

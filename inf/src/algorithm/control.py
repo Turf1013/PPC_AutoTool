@@ -69,6 +69,7 @@ class Control(object):
 	def __GenCSFromRtlPerStg(self, istg):
 		csDict = dict()
 		linkRtl = self.excelRtl.linkRtl
+		rstg = self.pipeLine.Rstg.id
 		stgName = self.pipeLine.StgNameAt(istg)
 		for insnName,insnRtlList in linkRtl.iteritems():
 			rtlList = insnRtlList[istg]
@@ -84,8 +85,16 @@ class Control(object):
 					width = port.width
 					cs = CtrlSignal(name=signalName, width=width, stg=istg)
 					# add clr with INF priority to the CtrlSignal
-					clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
-					cs.add( CtrlTriple(cond=clr, pri=10**5) )
+					"""
+						``` pay attention to ```
+						clr_D comes from decode Insn@D,
+						so clr_D is not a part of ctrlSignal's condition
+					"""
+					if istg == rstg:
+						cs.add( CtrlTriple(cond="0", pri=10**5) )
+					else:
+						clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg) )
+						cs.add( CtrlTriple(cond=clr, pri=10**5) )
 					csDict[signalName] = cs
 				else:
 					cs = csDict[signalName]

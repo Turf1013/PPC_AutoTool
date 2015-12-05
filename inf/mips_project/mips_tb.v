@@ -24,6 +24,8 @@
       rst_n = 0;
       #20;
       rst_n = 1;
+		// #7100;
+		// $finish;
    end
    
    always
@@ -33,6 +35,7 @@
 	   if (I_MIPS.I_GPR.wr) begin
 	     wr <= 1'b1;
 	     instr <= I_MIPS.Instr_W;
+		 // $display("instr = %h, GPR[%2d] = %h\n", I_MIPS.Instr_W, I_MIPS.I_GPR.waddr, I_MIPS.I_GPR.wd);
 	   end
 	   else begin
 	     wr <= 1'b0;
@@ -46,7 +49,6 @@
 	       for (i=0; i<32; i=i+4) begin
 	         for (j=0; j<4; j=j+1)
 	           $display("GPR[%2d] = %h", i+j, I_MIPS.I_GPR.GPR[i+j]);
-	         // $display("\n");
 	       end
      end
      else begin
