@@ -72,7 +72,7 @@ class FB(object):
 	def __HandleStall(self):
 		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
-		cs = CtrlSignal(name=CFFB.STALL, width=1)
+		cs = CtrlSignal(name=CFFB.STALL, width=1, stg=rstg)
 		# add clear 
 		clr = VG.GenClr(suf = self.pipeLine.StgNameAt(rstg))
 		cs.add( CtrlTriple(cond=clr, pri=10**5))
@@ -189,7 +189,7 @@ class FB(object):
 			rt = RdTriple(src=src, des=doutName, stg=istg)
 			self.needBypass.add(rt)
 			### Generate control singla referenced
-			cs = CtrlSignal(name=selName, width=mux.seln)
+			cs = CtrlSignal(name=selName, width=mux.seln, stg=istg)
 			# add clr
 			clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
 			cs.add( CtrlTriple(cond=clr, pri=10**5) )

@@ -46,7 +46,7 @@ class Control(object):
 		
 	def addCS(self, iterable):
 		for cs in iterable:
-			self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg") )
+			self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg", stg=cs.stg) )
 			self.portList.append( cs.name )
 		self.CSList += list(iterable)
 		
@@ -61,7 +61,7 @@ class Control(object):
 		for istg in range(stgn):
 			csList = self.__GenCSFromRtlPerStg(istg)
 			for cs in csList:
-				self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg") )
+				self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg", stg=istg) )
 				self.portList.append( cs.name )
 			self.CSList += csList
 			
@@ -82,7 +82,7 @@ class Control(object):
 					mod = self.modMap.find(rtl.desMod)
 					port = mod.find(rtl.desPort)
 					width = port.width
-					cs = CtrlSignal(name=signalName, width=width)
+					cs = CtrlSignal(name=signalName, width=width, stg=istg)
 					# add clr with INF priority to the CtrlSignal
 					clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
 					cs.add( CtrlTriple(cond=clr, pri=10**5) )

@@ -31,9 +31,10 @@ class CtrlTriple(object):
 
 class CtrlSignal(object):
 	
-	def __init__(self, name, width, iterable=None):
+	def __init__(self, name, width, stg, iterable=None):
 		self.name = name
 		self.width = width
+		self.stg = stg
 		if iterable is not None:
 			self.st = set(iterable)
 		else:

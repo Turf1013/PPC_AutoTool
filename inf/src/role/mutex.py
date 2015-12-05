@@ -98,7 +98,7 @@ class PortMutex(Mutex):
 	
 	def __init__(self, name, width, stg, linkedIn):
 		super(PortMutex, self).__init__(name, width, stg, linkedIn)
-		self.Iname = "%s_P%s" % (name, self.name)
+		self.Iname = "%s_Pmux" % (name)
 
 		
 		

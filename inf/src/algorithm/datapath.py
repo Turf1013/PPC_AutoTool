@@ -86,7 +86,7 @@ class Datapath(object):
 			rtl = rtlList[0]
 			if rtl.isCtrlLink():
 				# Control Signal named as itself
-				varName = RP.DesToVar(rtl.des)
+				varName = RP.DesToVar(rtl.des, suf=stgName)
 				mod = self.modMap.find(rtl.desMod)
 				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
@@ -171,7 +171,7 @@ class Datapath(object):
 				rtlSet.update(insnRtlList[istg])
 			muxList, csList = self.__GenPortMuxPerStg(rtlSet, istg)
 			retMuxList += muxList
-			retCSList += retCSList
+			retCSList += csList
 		return retCSList, retMuxList
 		
 	
@@ -220,7 +220,7 @@ class Datapath(object):
 							src = RP.SrcToVar(src=src, stg=stgName)
 							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
-				cs = CtrlSignal(name=selName, width=selN, iterable=tList)
+				cs = CtrlSignal(name=selName, width=selN, stg=istg, iterable=tList)
 				retCSList.append(cs)
 				
 				### Add the selName to Wire 
@@ -431,15 +431,21 @@ class Datapath(object):
 	def __wireToVerilog(self, ctrl, pmuxList, bmuxList, tabn):
 		# add ctrl signal
 		for w in ctrl.wireSet:
-			self.wireSet.add( Wire(name=w.name, width=w.width, kind="wire", stg=w.stg) )
+			ww = Wire(name=w.name, width=w.width, kind="wire", stg=w.stg)
+			self.wireSet.add( ww )
+			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
 			
 		# add port mux dout
 		for pmux in pmuxList:
-			self.wireSet.add( Wire(name=pmux.GenDoutName(), width=pmux.widthRange(), kind="wire", stg=pmux.stg.id) )
+			ww = Wire(name=pmux.GenDoutName(), width=pmux.widthRange(), kind="wire", stg=pmux.stg.id)
+			self.wireSet.add( ww )
+			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
 			
 		# add bypass mux dout
 		for bmux in bmuxList:
-			self.wireSet.add( Wire(name=bmux.GenDoutName(), width=bmux.widthRange(), kind="wire", stg=bmux.stg.id) )
+			ww = Wire(name=bmux.GenDoutName(), width=bmux.widthRange(), kind="wire", stg=bmux.stg.id)
+			self.wireSet.add( ww )
+			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
 			
 		return self.wireSet.toVerilog(tabn=tabn)
 		
