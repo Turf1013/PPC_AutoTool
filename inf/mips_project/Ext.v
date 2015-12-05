@@ -12,7 +12,7 @@ module Ext (
 	
 	always @(*)	begin
 		case (Op)
-			`ExtOp_SIGNED: Imm32_r = {{16{Imm16[0]}}, Imm16};
+			`ExtOp_SIGNED: Imm32_r = {{16{Imm16[15]}}, Imm16};
 			`ExtOp_UNSIGN: Imm32_r = {16'h0, Imm16};
 			`ExtOp_HIGH16: Imm32_r = {Imm16, 16'h0};
 			default:	   Imm32_r = 32'd0;

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from operator import itemgetter
 from instruction import Insn
 from stage import Stage
 from reg import Reg
@@ -63,7 +64,8 @@ class StgReg(object):
 	def toBypassMux(self, stg=-1):
 		name = self.GenBypassMuxName()
 		width = CFH.DATA_WIDTH
-		linkedIn = self.dinDict.keys()
+		itemList = sorted(self.dinDict.items(), key=itemgetter(1))
+		linkedIn = map(lambda item:item[0], itemList)
 		# logging.debug("[linkedIn] %s: %s\n" % (self.name, linkedIn))
 		return BypassMutex(name=name, width=width, stg=stg, linkedIn=linkedIn)
 			

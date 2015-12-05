@@ -7,6 +7,7 @@ from src.routine.vfile import VFile
 from src.algorithm.FB import FB
 from src.algorithm.datapath import Datapath
 from src.algorithm.control import Control
+from src.patch.mipsPatch import mipsPatch
 
 def move(srcDir, desDir):
 	if os.path.exists(srcDir) and os.path.exists(desDir):
@@ -87,4 +88,11 @@ if __name__ == "__main__":
 	
 	logging.debug("[N of bpmux] %s\n" % (len(muxFromFB)))
 	move(workDirectory, "E:\ppc_project")
+	
+	
+	# patch mips
+	workDirectory = "E:\ppc_project"
+	mp = mipsPatch(workDirectory)
+	mp.PatchControl()
+	mp.PatchMips()
 	

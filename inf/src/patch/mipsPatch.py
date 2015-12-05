@@ -66,12 +66,15 @@ class mipsPatch:
 				newCtrlLines.append(line)
 				continue
 					
-			
-			if lline.startswith("else if"):
+			if lline.startswith("if"):
+				line = line.replace("clr_D", "0")
+				newCtrlLines.append(line)
+				
+			elif lline.startswith("else if"):
 				eleList = line.split("(")
 				ele = eleList[-1]
 				raddr = ele[:ele.index(" ")]
-				ele_ = ele[:ele.index(")")+1] + " && (%s != 0)" % (raddr) + ele[ele.index(")"):]
+				ele_ = ele[:ele.index(")")+1] + " && (%s != 0)" % (raddr) + ele[ele.index(")")+1:]
 				eleList[-1] = ele_
 				newCtrlLines.append( "(".join(eleList) )
 				
@@ -86,18 +89,16 @@ class mipsPatch:
 	def PatchControl(self):
 		self.__patchBypass()
 		self.__patchStall()
-		with open(os.path.join(workDirectory, CFMP.CONTROL_FILE+".bk"), "w") as fout:
+		with open(os.path.join(self.workDirectory, CFMP.CONTROL_FILE), "w") as fout:
+		# with open(os.path.join(workDirectory, CFMP.CONTROL_FILE+".bk"), "w") as fout:
 			fout.write("".join(self.ctrlLines))
 			
 			
 	def PatchMips(self):
-		with open(os.path.join(workDirectory, CFMP.MIPS_FILE+".bk"), "w") as fout:
+		with open(os.path.join(self.workDirectory, CFMP.MIPS_FILE), "w") as fout:
+		# with open(os.path.join(workDirectory, CFMP.MIPS_FILE+".bk"), "w") as fout:
 			fout.write("".join(self.mipsLines))
 	
 
-if __name__ == "__main__":
-	workDirectory = "E:\ppc_project"
-	mp = mipsPatch(workDirectory)
-	mp.PatchControl()
-	mp.PatchMips()
+
 	
