@@ -78,8 +78,7 @@ if __name__ == "__main__":
 	
 	# Generate Verilog
 	ctrlCode = ctrl.toVerilog(tabn = 1)
-	IctrlCode = ctrl.instance(tabn = 1)
-	dpCode = dp.toVerilog(ctrlCode=IctrlCode, pmuxList=muxFromDP, bmuxList=muxFromFB, tabn=1)
+	dpCode = dp.toVerilog(ctrl, pmuxList=muxFromDP, bmuxList=muxFromFB, tabn=1)
 	
 	
 	# Write .v
@@ -88,3 +87,4 @@ if __name__ == "__main__":
 	
 	logging.debug("[N of bpmux] %s\n" % (len(muxFromFB)))
 	move(workDirectory, "E:\ppc_project")
+	
