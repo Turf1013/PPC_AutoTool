@@ -11,6 +11,7 @@ from ..util.verilogGenerator import VerilogGenerator as VG
 
 class constForFB:
 	STALL = "stall"
+	CLR = "clr"
 	
 class CFFB(constForFB):
 	pass
@@ -86,6 +87,7 @@ class FB(object):
 						# cond = "%s && %s" % (binsn.condition(), finsn.condition())
 					# else:
 						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl)
+					# add clear
 				else:
 					baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 					faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
@@ -95,6 +97,8 @@ class FB(object):
 						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 					# else:
 						# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl, addrCond)
+				noclear = "~%s_%s && ~%s_%s && " % (CFFB.CLR, finsn.stg.name, CFFB.CLR, binsn.stg.name)
+				cond = noclear + cond
 				op = 1
 				pri = stgn - finsn.stg.id
 				ct = CtrlTriple(cond=cond, op=op, pri=pri)
@@ -222,6 +226,8 @@ class FB(object):
 							# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 						# else:
 							# cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
+					noclear = "~%s_%s && ~%s_%s && " % (CFFB.CLR, finsn.stg.name, CFFB.CLR, binsn.stg.name)
+					cond = noclear + cond	
 					data = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(finsn.stg))
 					op = linkedIn.index(data)
 					pri = stgn - finsn.stg.id

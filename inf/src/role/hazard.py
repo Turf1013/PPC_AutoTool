@@ -117,6 +117,18 @@ class StgInsn(BaseStgInsn):
 		self.wd = wd
 		self.ctrl = ctrl
 		
+	def __str__(self):
+		return "%s@%s [%s]" % (self.insn.name, self.stg.name, self.addr)
+	
+	
+	def __eq__(self, other):
+		return self.insn==other.insn and self.stg==other.stg and self.addr==other.addr
+		
+		
+	def __hash__(self):
+		return hash(self.__str__())	
+		
+		
 	def ctrlCondition(self):
 		return RP.SrcToVar(self.ctrl)
 		

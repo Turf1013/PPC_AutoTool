@@ -11,6 +11,7 @@ import logging
 
 
 class constForDatapath:
+	INSTR = "Instr"
 	ARCH = "mips"
 	CLK = "clk"
 	RST = "rst_n"
@@ -387,15 +388,18 @@ class Datapath(object):
 		ret = ""
 		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
 		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
-		if istg > rstg:
-			ret += pre + "\t" + "if ( !rst_n || clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg-1))
+		if istg >= rstg:
+			ret += pre + "\t" + "if ( !rst_n || clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg))
 		else:
 			ret += pre + "\t" + "if ( !rst_n ) begin\n"
 		for outVar in pipeDict.iterkeys():
-			ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
+			if outVar.startswith(CFD.INSTR):
+				ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+			else:
+				ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 		ret += pre + "\t" + "end\n"
-		if istg <= rstg:
-			ret += pre + "\t" + "else if ( !clr_%s )begin\n" % (self.pipeLine.StgNameAt(rstg))
+		if istg < rstg:
+			ret += pre + "\t" + "else if ( !clr_%s ) begin\n" % (self.pipeLine.StgNameAt(rstg))
 		else:
 			ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():
