@@ -272,6 +272,8 @@ class FB(object):
 		
 				
 	def __HandleInsnPair(self, finsn, binsn, rwGrps, stallGrp):
+		if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
+			logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
 		wstg = self.pipeLine.Wstg.id
 		rstg = self.pipeLine.Rstg.id
 		# the 1-st condition of send
@@ -304,7 +306,7 @@ class FB(object):
 		delta = finsn.stg.id - binsn.stg.id
 		if delta > 0:
 			for d in range(1, delta+1):
-				stg = Stage(binsn.stg.id+d, self.pipeLine.StgNameAt(binsn.stg.id+d))
+				stg = Stage(rstg+d, self.pipeLine.StgNameAt(rstg+d))
 				wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr)
 				stallGrp.addInsn(wInsn)
 			
