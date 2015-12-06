@@ -40,7 +40,23 @@
 `define BLTZ_OP       6'b000001
 `define J_OP          6'b000010
 `define JAL_OP        6'b000011
+`define MFHI_OP			6'b000000
+`define MFLO_OP			6'b000000
+`define MTHI_OP			6'b000000
+`define MTLO_OP			6'b000000
+`define DIV_OP			6'b000000
+`define DIVU_OP			6'b000000
+`define MULT_OP			6'b000000
+`define MULTU_OP		6'b000000
 
+`define MULTU_FUNCT		6'b011001
+`define MULT_FUNCT		6'b011000
+`define DIVU_FUNCT		6'b011011
+`define DIV_FUNCT		6'b011010
+`define MTLO_FUNCT		6'b010011
+`define MTHI_FUNCT		6'b010001
+`define MFLO_FUNCT		6'b010010
+`define MFHI_FUNCT		6'b010000
 `define ADD_FUNCT     6'b100000
 `define ADDU_FUNCT    6'b100001
 `define SUB_FUNCT     6'b100010

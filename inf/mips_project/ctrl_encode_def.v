@@ -6,8 +6,13 @@
 `define NPCOp_JR      3'd3
 
 // Branch Compare signal
-`define BrCmp_Op_WIDTH 3
-`define BEQ_CMP		3'b000
+`define BrCmp_Op_WIDTH 	3
+`define BrCmpOp_BEQ		3'b000
+`define BrCmpOp_BNE		3'b001
+`define BrCmpOp_BLEZ	3'b010
+`define BrCmpOp_BGTZ	3'b011
+`define BrCmpOp_BLTZ	3'b100
+`define BrCmpOp_BGEZ	3'b101
 
 /**** About Ext ****/
 `define ExtOp_WIDTH		2
@@ -15,9 +20,16 @@
 `define ExtOp_UNSIGN	2'd1
 `define ExtOp_HIGH16	2'd2
 
+// MDU control signal
+`define MDUOp_WIDTH 2
+`define MDUOp_MULT	2'd0
+`define MDUOp_MULTU	2'd1
+`define MDUOp_DIV	2'd2
+`define MDUOp_DIVU	2'd3
+
 // ALU control signal
 `define ALUOp_WIDTH 5
-`define ALUOp_NOP   5'b00000 
+`define ALUOp_MOVA  5'b00000
 `define ALUOp_ADDU  5'b00001
 `define ALUOp_ADD   5'b00010
 `define ALUOp_SUBU  5'b00011
@@ -37,6 +49,7 @@
 `define ALUOp_SLL   5'b10001
 `define ALUOp_SRL   5'b10010
 `define ALUOp_SRA   5'b10011
+`define ALUOp_MOVB  5'b10100
 
 /**** About DM ****/
 `define DMIn_BE_WIDTH		4

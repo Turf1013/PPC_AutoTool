@@ -1,4 +1,7 @@
-module mips_tb();
+`include "arch_def.v"
+`include "ctrl_encode_def.v"
+
+module mips_tb;
     
 	reg clk, rst_n;
 	reg wr;
@@ -30,20 +33,39 @@ module mips_tb();
    
 	always
 		#(50) clk = ~clk;
+	
+	reg [31:0] addr;
+	wire [`DM_DEPTH-1:0] dm_addr;
+	
+	assign dm_addr = addr[`DM_DEPTH+1:2];
 	   
 	always @(posedge clk) begin
-		if (I_MIPS.I_DM.wr) begin
-			$display("instr = %h, DM[%8h] = %h\n", I_MIPS.Instr_M, I_MIPS.I_DM.addr, I_MIPS.I_DM.din);
+		if ( wr ) begin
+			$display("instr = %h, DM[%8h] = %h\n", instr, {addr[31:2],2'b0}, I_MIPS.I_DM.DM[dm_addr]);
 		end
+		
+		wr <= 1'b0;
+		
 		if (I_MIPS.I_GPR.wr) begin
-			wr <= 1'b1;
-			instr <= I_MIPS.Instr_W;
 			$display("instr = %h, GPR[%2d] = %h\n", I_MIPS.Instr_W, I_MIPS.I_GPR.waddr, I_MIPS.I_GPR.wd);
 		end
-		else begin
-			wr <= 1'b0;
-			instr <= 32'd0;
+		
+		if (I_MIPS.I_DM.wr) begin
+			wr <= 1'b1;
+			instr <= I_MIPS.Instr_M;
+			addr <= I_MIPS.I_DM.addr;
 		end
+		
+		if (I_MIPS.I_HI.wr && I_MIPS.I_LO.wr) begin
+			$display("instr = %h, HI = %h, LO = %h\n", I_MIPS.Instr_W, I_MIPS.I_HI.wd, I_MIPS.I_LO.wd);
+		end
+		else if (I_MIPS.I_HI.wr) begin
+			$display("instr = %h, HI = %h\n", I_MIPS.Instr_W, I_MIPS.I_HI.wd);
+		end
+		else if (I_MIPS.I_LO.wr) begin
+			$display("instr = %h, LO = %h\n", I_MIPS.Instr_W, I_MIPS.I_LO.wd);
+		end
+		
 	end // end always
 	 
 	// always @(posedge clk) begin

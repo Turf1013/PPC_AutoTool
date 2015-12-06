@@ -42,11 +42,21 @@ module BrCmp (
 	input [`BrCmp_Op_WIDTH-1:0] Op;
 	output Comp;
 	
+	wire signed [31:0] srcA, srcB;
+	
+	assign srcA = A;
+	assign srcB = B;
+	
 	reg Comp;
 	
 	always @( * ) begin
 		case (Op)
-			`BEQ_CMP: Comp = (A == B);
+			`BrCmpOp_BEQ: 	Comp = (srcA == srcB);
+			`BrCmpOp_BNE: 	Comp = (srcA != srcB);
+			`BrCmpOp_BLEZ: 	Comp = (srcA <= 0);
+			`BrCmpOp_BGTZ: 	Comp = (srcA >  0);
+			`BrCmpOp_BLTZ: 	Comp = (srcA <  0);
+			`BrCmpOp_BGEZ: 	Comp = (srcA >= 0);
 			default: Comp = 0;
 		endcase
 	end

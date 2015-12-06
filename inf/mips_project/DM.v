@@ -62,10 +62,10 @@ module DMIn_BE (
 		if (Op == `DMIn_BEOp_SW)
 			BE = 4'b1111;
 		else if (Op == `DMIn_BEOp_SH) begin
-			if (laddr[0])
-				BE = 4'b0011;
-			else
+			if (laddr[1])
 				BE = 4'b1100;
+			else
+				BE = 4'b0011;
 		end
 		else if (Op == `DMIn_BEOp_SB) begin
 			case (laddr)
@@ -101,31 +101,31 @@ module DMOut_ME (
 		case (Op)
 			`DMOut_MEOp_LW: dout = din;
 			`DMOut_MEOp_LHU: begin
-				if (laddr[0])
-					dout = {{16{1'b0}}, din[31:16]};
+				if (laddr[1])
+					dout = {16'd0, din[31:16]};
 				else
-					dout = {{16{1'b0}}, din[15:0]};
+					dout = {16'd0, din[15:0 ]};
 			end
 			`DMOut_MEOp_LH: begin
-				if (laddr[0])
+				if (laddr[1])
 					dout = {{16{din[31]}}, din[31:16]};
 				else
-					dout = {{16{din[15] }}, din[15:0]};
+					dout = {{16{din[15]}}, din[15:0 ]};
 			end
 			`DMOut_MEOp_LBU: begin
 				case (laddr)
-					2'd0: dout = {{16{1'b0}}, din[ 7:0 ]};
-					2'd1: dout = {{16{1'b0}}, din[15:8 ]};
-					2'd2: dout = {{16{1'b0}}, din[23:16]};
-					2'd3: dout = {{16{1'b0}}, din[31:24]};
+					2'd0: dout = {24'd0, din[ 7:0 ]};
+					2'd1: dout = {24'd0, din[15:8 ]};
+					2'd2: dout = {24'd0, din[23:16]};
+					2'd3: dout = {24'd0, din[31:24]};
 				endcase
 			end
 			`DMOut_MEOp_LB: begin
 				case (laddr)
-					2'd0: dout = {{16{din[7 ]}}, din[ 7:0 ]};
-					2'd1: dout = {{16{din[15]}}, din[15:8 ]};
-					2'd2: dout = {{16{din[23]}}, din[23:16]};
-					2'd3: dout = {{16{din[31]}}, din[31:24]};
+					2'd0: dout = {{24{din[7 ]}}, din[ 7:0 ]};
+					2'd1: dout = {{24{din[15]}}, din[15:8 ]};
+					2'd2: dout = {{24{din[23]}}, din[23:16]};
+					2'd3: dout = {{24{din[31]}}, din[31:24]};
 				endcase
 			end
 			default: dout = din;
