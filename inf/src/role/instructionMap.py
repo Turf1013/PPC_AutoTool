@@ -18,7 +18,12 @@ class InsnMap(dict):
 		
 		
 	def find(self, insnName):
-		return self.get(insnName)
+		ret = self.get(insnName)
+		if ret:
+			return ret
+		else:
+			raise ValueError, "%s not in InsnMap" % (insnName)
+			
 		
 	
 	

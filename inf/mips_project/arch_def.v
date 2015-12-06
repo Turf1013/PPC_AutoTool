@@ -14,10 +14,10 @@
 `define DMBE_WIDTH		4
 
 /**** About Filed of Instr ****/
-`define OP 31:26
-`define RS 25:21
-`define RT 20:16
-`define RD 15:11
-`define FUNCT 5:0
+`define OP 				[31:26]
+`define RS 				[25:21]
+`define RT 				[20:16]
+`define RD 				[15:11]
+`define FUNCT 			[5:0]
 
-`define NOP 32'd0
+`define NOP 			32'd0

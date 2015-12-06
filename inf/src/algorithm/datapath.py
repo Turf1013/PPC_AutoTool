@@ -359,9 +359,15 @@ class Datapath(object):
 				retDict[outVar] = inVar
 				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
 				self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg) )
+				orgSrcName = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg))
+				# if orgSrcName not in retDict:
+					# self.wireSet.add( Wire(name=orgSrcName, width=width, kind="wire", stg=istg) )
+				self.wireSet.add( Wire(name=orgSrcName, width=width, kind="wire", stg=istg) )
+				
 			elif inVar in st:
 				retDict[outVar] = inVar
 				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
+				
 			else:
 				retDict[outVar] = inVar
 				self.wireSet.add( Wire(name=inVar, width=width, kind="wire", stg=istg) )

@@ -139,3 +139,8 @@ class VerilogGenerator:
 		else:
 			raise TypeError, "%s call IntToRange" % (type(x))
 			
+			
+	@classmethod
+	def GenInsnFieldDef(cls, fieldName):
+		return "`" + fieldName.upper()
+		

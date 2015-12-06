@@ -107,7 +107,7 @@ class Module(object):
 		Iname = self.name
 		pre = '\t' * tabn
 		ret = ""
-		ret += "%s%s I_%s(\n" % (pre, self.name, Iname)
+		ret += "%s%s I_%s (\n" % (pre, self.name, Iname)
 		last = len(self.linkDict) - 1
 		for i,(key, value) in enumerate(self.linkDict.iteritems()):
 			if value is None:

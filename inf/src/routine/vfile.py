@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
 import os
+import logging
+from collections import defaultdict
 from ..verilog.const_hdl import constForVerilog as CFVL
 from ..verilog.gen_hdl import GenVerilog
 from ..role.instruction import Insn
 from ..role.module import Module, Port
 from ..role.moduleMap import ModuleMap
 from ..role.instructionMap import InsnMap
+from ..util.verilogGenerator import VerilogGenerator as VG
 
 
 class constForVFile:
@@ -171,34 +174,41 @@ class VFile(object):
 	
 	# generate all the instuction information we need to implement
 	def GenAllInsn(self, fileName):
+		"""
+			some insn may have multiple field to locate the insn.
+			1. use defaultdict( dict() ) to get all possible field;
+			2. Instance instruction with fieldDict;
+			3. the defName in ```instruction_def.v```` must end with "_" + fieldName.
+		"""
 		fileName = os.path.join(self.workDirectory, fileName)
 		if not os.path.exists(fileName) or not os.path.isfile(fileName):
 			raise SystemError, "%s not exists or contains instruction" % (fileName)
 		retInsnList = []
 		with open(fileName, "r") as fin:
-			opDict = dict()
-			xoDict = dict()
+			fieldDict = defaultdict( dict )
+			insnNameSet = set()
 			for line in fin:
+				line = line.strip()
+				
 				if line.startswith(CFVL.DEFINE):
 					defName, defVal = CFV.re_insnDef.findall(line)[1:3]
-					if defName.endswith(CFV.OP):
-						# direct use val
-						# opDict[defName[:-len(CFV.OP)]] = defVal
-						# use `def
-						opDict[defName[:-len(CFV.OP)]] = "`" + defName
-						# xoDict[defName[:-len(CFV.OP)]] = None
-					elif defName.endswith(CFV.XO):
-						# direct use val
-						# xoDict[defName[:-len(CFV.XO)]] = defVal
-						# use `def
-						xoDict[defName[:-len(CFV.XO)]] = "`" + defName
+					underlinePos = defName.rindex("_")
+					fieldName = defName[underlinePos+1:]
+					insnName = defName[:underlinePos]
+					insnNameSet.add( insnName )
+					fieldDict[fieldName][insnName] = VG.GenInsnFieldDef(defName)
+					# logging.debug("[vfile-Insn] fieldName=%s, insnName=%s, defName=%s\n" % (fieldName, insnName, defName))
+					
+			for insnName in insnNameSet:
+				d = dict()
+				for fieldName,insnFieldDict in fieldDict.iteritems():
+					if insnName in insnFieldDict:
+						d[fieldName] = insnFieldDict[insnName]
 						
-						
-			for name,op in opDict.iteritems():
-				xo = xoDict[name] if name in xoDict else None
-				retInsnList.append( Insn(name=name, op=op, xo=xo) ) 
+				retInsnList.append( Insn(name=insnName, fieldDict=d) )
 				
 		return retInsnList	
+		
 		
 	def __WriteVFile(self, path, header="", code=""):
 		with open(path, "w") as fout:

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
+from ..util.verilogGenerator import VerilogGenerator as VG
 
 
 class constForInsn:
-	pass
+	INSTR = "Instr"
 
 class CFI(constForInsn):
 	pass
@@ -15,19 +17,19 @@ class Insn(object):
 	
 	"""
 	
-	def __init__(self, name, op, xo):
-		self.name	= name
-		self.op		= op
-		self.xo		= xo
+	def __init__(self, name, fieldDict):
+		self.name = name
+		self.fieldDict = fieldDict
 		
 		
-	def condition(self, opField="[31:26]", xoField="[5:0]", INSTR="Instr", suf=""):
-		instr = INSTR + "_" + suf if suf else INSTR
-		if self.xo is None:
-			return "(%s%s==%s)" % (instr, opField, self.op)
-		return "(%s%s==%s && %s%s==%s)" % (
-					instr, opField, self.op, instr, xoField, self.xo
-				)
+	def condition(self, suf=""):
+		instr = CFI.INSTR + "_" + suf if suf else CFI.INSTR
+		condList = []
+		for fieldName, fieldVal in self.fieldDict.iteritems():
+			fieldDef = VG.GenInsnFieldDef(fieldName)
+			condList.append( "%s%s == %s" % (instr, fieldDef, fieldVal) )
+		return "( %s ) " % (" && ".join(condList))
+		
 	
 	def __hash__(self):
 		return hash(self.name)

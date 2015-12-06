@@ -68,7 +68,7 @@ class Mutex(Module):
 		Iname = self.Iname
 		pre = '\t' * tabn
 		ret = ""
-		ret += pre + "%s #(%s) %s(\n" % (self.name, self.width, Iname)
+		ret += pre + "%s #(%s) %s (\n" % (self.name, self.width, Iname)
 		last = len(self.linkDict) - 1
 		for i,(key, value) in enumerate(self.linkDict.iteritems()):
 			if value is None:

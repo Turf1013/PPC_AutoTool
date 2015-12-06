@@ -32,4 +32,12 @@ class PipeLine(BasePipeLine):
 	def __init__(self, stgList, Rstg, Wstg, regList):
 		super(PipeLine, self).__init__(stgList, Rstg, Wstg)
 		self.regList = regList
+		
+		
+	def findReg(self, regName):
+		for reg in self.regList:
+			if reg.name == regName:
+				return reg
+		raise ValueError, "%s not in pipeLine.regList" % (regName)
+		
 	

@@ -181,6 +181,7 @@ class FB(object):
 		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		regName = hazard.name
+		rn = self.pipeLine.findReg(regName).rn
 		index = hazard.index
 		# logging.debug("[Handle_RW] regName = %s, index = %s\n" % (regName, index))
 		retCsList = []
@@ -194,18 +195,25 @@ class FB(object):
 			# add raw rd to the first index
 			### Generate the MUX
 			stgName = self.pipeLine.StgNameAt(istg)
-			rd = RG.GenRegRd(name=hazard.name, index=hazard.index)
+			if rn == 1:
+				rd = RG.GenRegRd(name=hazard.name)
+			else:
+				rd = RG.GenRegRd(name=hazard.name, index=index)
 			rdName = RP.SrcToVar(src=rd, stg=stgName)
 			linkedIn = [rdName] + list(linkedSet)
 			# logging.debug("[hazard] %s\n" % (hazard.name))
 			# logging.debug("[linked] %s\n" % (linkedIn))
-			stgReg = StgReg(name=hazard.name, index=hazard.index, stg=istg, stgName=stgName, iterable=linkedIn)
+			if rn == 1:
+				stgReg = StgReg(name=hazard.name, index="", stg=istg, stgName=stgName, iterable=linkedIn)
+				src = RG.GenRegRd(name=regName)
+			else:
+				stgReg = StgReg(name=hazard.name, index=index, stg=istg, stgName=stgName, iterable=linkedIn)
+				src = RG.GenRegRd(name=regName, index=index)
 			mux = stgReg.toBypassMux(stg = Stage(istg, stgName))
 			# logging.debug("[hazard] %s@%s\n" % (mux.Iname, istg))
 			### Insert Into needBypass
 			selName = mux.GenSelName()
 			# logging.debug("[bypass_sel] %s\n" % (selName))
-			src = RG.GenRegRd(name=regName, index=index)
 			doutName = mux.GenDoutName(withStage=False)
 			rt = RdTriple(src=src, des=doutName, stg=istg)
 			self.needBypass.add(rt)
@@ -237,6 +245,7 @@ class FB(object):
 							# cond = "%s && %s" % (binsn.condition(), finsn.condition())
 						# else:
 							# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
+							
 					else:
 						baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 						faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
@@ -331,6 +340,7 @@ class FB(object):
 			if wdRtl is None or wrRtl is None:
 				continue
 			insn = self.insnMap.find(insnName)
+			logging.debug("[WStgInsn] insn = %s" % (insn.name))
 			addr = None if addrRtl is None else addrRtl.src
 			stgId = self.__findFirstAppear(insnName, wdRtl.src)
 			if stgId<0:

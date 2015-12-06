@@ -31,7 +31,7 @@ class mipsPatch:
 		for line in self.ctrlLines:
 			lline = line.lstrip()
 			if not findBMux:
-				if lline.startswith("/*") and "Bmux" in lline:
+				if lline.startswith("/*") and "Bmux" in lline and "GPR" in lline:
 					findBMux = True
 				newCtrlLines.append(line)
 				continue
@@ -61,7 +61,7 @@ class mipsPatch:
 		for line in self.ctrlLines:
 			lline = line.lstrip()
 			if not findBMux:
-				if lline.startswith("/*") and "stall" in lline:
+				if lline.startswith("/*") and "stall" in lline and "GPR" in lline:
 					findBMux = True
 				newCtrlLines.append(line)
 				continue

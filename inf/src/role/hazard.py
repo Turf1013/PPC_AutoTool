@@ -61,6 +61,7 @@ class StgReg(object):
 	def GenBypassMuxName(self):
 		return VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName))
 		
+		
 	def toBypassMux(self, stg=-1):
 		name = self.GenBypassMuxName()
 		width = CFH.DATA_WIDTH
@@ -68,7 +69,8 @@ class StgReg(object):
 		linkedIn = map(lambda item:item[0], itemList)
 		# logging.debug("[linkedIn] %s: %s\n" % (self.name, linkedIn))
 		return BypassMutex(name=name, width=width, stg=stg, linkedIn=linkedIn)
-			
+		
+		
 	def GenMuxSelName(self):
 		return "%s_%s" % (VG.GenBypassMuxName(name=self.name, suf="%s_%s" % (str(self.index), self.stgName)), CFM.mux_sel)
 
@@ -103,8 +105,8 @@ class BaseStgInsn(object):
 	
 	
 	def condition(self):
-		instr = "%s_%s" % (CFH.INSTR, self.stg)
-		return self.insn.condition(INSTR = instr)
+		suf = self.stg.name
+		return self.insn.condition(suf=suf)
 	
 		
 		
