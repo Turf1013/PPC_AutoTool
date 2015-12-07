@@ -16,6 +16,13 @@ module DM (
 	wire [`DM_DEPTH-1:0]   dm_addr;
 	
 	assign dm_addr = addr[`DM_DEPTH+1:2];
+	
+	// initial all element with 0
+	integer i;
+	initial begin
+		for (i=0; i<`DM_SIZE; i=i+1)
+			DM[i] <= 0;
+	end
    
 	always @(posedge clk) begin
 		if (wr) begin
