@@ -26,6 +26,8 @@ if __name__ == "__main__":
 	regArgsList = [
 		# name	rn wn
 		["GPR", 2, 1],
+		["HI", 1, 1],
+		["LO", 1, 1],
 	]
 	GenFileNameList = [
 		"ppc.v",
