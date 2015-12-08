@@ -1,10 +1,10 @@
 module BOIn (
-	BO, BO_n
+	din, dout
 );
 	
-	input BO;
-	output BO_n;
+	input din;
+	output dout;
 	
-	assign BO_n = ~BO;
+	assign dout = ~din;
 	
 endmodule
