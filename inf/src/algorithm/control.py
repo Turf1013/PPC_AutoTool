@@ -81,8 +81,7 @@ class Control(object):
 				if signalName not in csDict:
 					# Create a CS
 					mod = self.modMap.find(rtl.desMod)
-					port = mod.find(rtl.desPort)
-					width = port.width
+					width = mod.find(rtl.desPort).width
 					cs = CtrlSignal(name=signalName, width=width, stg=istg)
 					# add clr with INF priority to the CtrlSignal
 					"""

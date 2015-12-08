@@ -223,9 +223,53 @@ class VFile(object):
 		self.__WriteVFile(path=path, header=header, code=code)
 		
 		
-	def GenPPCVFile(self, header, code):
-		path = os.path.join(self.workDirectory, CFV.ppcFileName)
+	def GenPPCVFile(self, header, code, topFileName=CFV.ppcFileName):
+		path = os.path.join(self.workDirectory, topFileName)
 		self.__WriteVFile(path=path, header=header, code=code)
 		
 
+	@classmethod
+	def checkInsnDef(cls, fileName):
+		with open(fileName, "r") as fin:
+			nameSet = set()
+			valSet = set()
+			opSet = set()
+			insnSet = set()
+			needXO = False
+			for line in fin:
+				if line.endswith("\n"):
+					line = line[:-1]
+					if not line:
+						continue
+					dataList = re.split("\s+", line)
+					if len(dataList) < 3:
+						print dataList
+						continue
+					name = dataList[1]
+					val = dataList[2]
+					
+					if name.endswith("_XO"):
+						print "%s need to add format" % (name)
+					
+					if name in nameSet:
+						print "%s define repeated" % (name)
+					nameSet.add(name)	
+					
+					# print "name = %s, val = %s" % (name, val)
+					insnName = '_'.join(name.split('_')[:-1])
+					if needXO and not name.endswith("XO"):
+						print "%s should add XO" % (insnName)
+					
+					if name.endswith("OPCD") and val in opSet:
+						needXO = True
+					else:
+						needXO  = False
+						
+					if name.endswith("OPCD"):
+						opSet.add(val)
+					else:
+						if val in valSet:
+							print "%s's XO has already got one." % (insnName)
+						valSet.add(val)
+						
 	

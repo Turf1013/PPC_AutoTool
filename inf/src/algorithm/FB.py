@@ -344,7 +344,7 @@ class FB(object):
 			addr = None if addrRtl is None else addrRtl.src
 			stgId = self.__findFirstAppear(insnName, wdRtl.src)
 			if stgId<0:
-				raise ValueError, "%s not appear in %s Pipe" % (wd.src, insnName)
+				raise ValueError, "%s not appear in %s Pipe" % (wdRtl.src, insnName)
 			stg = Stage(id=stgId, name=self.pipeLine.StgNameAt(stgId))
 			si = StgInsn(insn=insn, stg=stg, addr=addr, wd=wdRtl.src, ctrl=wrRtl.src)
 			ret.append(si)

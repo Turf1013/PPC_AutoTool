@@ -20,7 +20,10 @@ class ModuleMap(dict):
 		
 		
 	def find(self, modName):
-		return self.get(modName)
+		ret = self.get(modName)
+		if ret is None:
+			raise ValueError, "%s not in Module Map" % (modName)
+		return ret
 		
 	
 	def chkLink(self):

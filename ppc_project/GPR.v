@@ -6,34 +6,34 @@
 `include "arch_def.v"
  
 module GPR (
-	clk, rst_n, GPRWr, raddr1, raddr2, raddr3,
-	waddr1, GPRWd1, rd1, rd2, rd3,
+	clk, rst_n, wr, raddr0, raddr1, raddr2
+	waddr, wd, rd0, rd1
 );
 
-	input 					  clk;
-	input 					  rst_n;
-	input					  GPRWr;			// wrte-enable	
-	input  [0:`GPR_DEPTH-1]   raddr1, raddr2, raddr3;	// read address
-	input  [0:`GPR_DEPTH-1]   waddr1;				// write-back address
-	input  [0:`GPR_WIDTH-1] GPRWd1;			// write-back data
-	output [0:`GPR_WIDTH-1] rd1, rd2, rd3;	// source data
+	input 					  	clk;
+	input 					  	rst_n;
+	input					  	wr;				// wrte-enable	
+	input  [0:`GPR_DEPTH-1]   	raddr0, raddr1, raddr2;	// read address
+	input  [0:`GPR_DEPTH-1]		waddr;			// write-back address
+	input  [0:`GPR_WIDTH-1] 	wd;				// write-back data
+	output [0:`GPR_WIDTH-1] 	rd0, rd1, rd2;		// source data
 	
-	reg [0:`GPR_WIDTH-1] RF[`GPR_N-1:0];
+	reg [0:`GPR_WIDTH-1] GPR[`GPR_SIZE-1:0];
 	
 	integer i;
 	
-	always @(posedge clk or negedge rst_n) begin
-		if (!rst_n) begin
-			for (i=0; i<`GPR_N; i=i+1)
-				RF[i] <= 0;
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n ) begin
+			for (i=0; i<`GPR_SIZE; i=i+1)
+				GPR[i] <= 0;
 		end
-		else if (GPRWr) begin
-			RF[waddr1] <= GPRWd1;
+		else if ( wr ) begin
+			GPR[waddr] <= wd;
 		end
 	end // end always
 	
-	assign rd1 = RF[raddr1];
-	assign rd2 = RF[raddr2];
-	assign rd3 = RF[raddr3];
+	assign rd0 = GPR[raddr0];
+	assign rd1 = GPR[raddr1];
+	assign rd2 = GPR[raddr2];
 
 endmodule

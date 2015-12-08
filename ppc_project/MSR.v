@@ -7,15 +7,15 @@
  */
 `include "arch_def.v"
 
-module MSR(
-	clk, rst_n, MSRWr, MSRWd, MSR
+module MSR (
+	clk, rst_n, wr, wd, rd
 );
 	
 	input 					clk;
 	input 					rst_n;
-	input					MSRWr;
-	input  [0:`MSR_WIDTH-1] MSRWd;
-	output [0:`MSR_WIDTH-1] MSR;
+	input					wr;
+	input  [0:`MSR_WIDTH-1] wd;
+	output [0:`MSR_WIDTH-1] rd;
 	
 	/*******************/
 	// 16: EE, External enable;
@@ -25,19 +25,19 @@ module MSR(
 	
 	reg EE, ME, LE;
 	
-	always @(posedge clk or negedge rst_n) begin
-		if (!rst_n) begin
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n ) begin
 			EE <= 0;
 			ME <= 0;
 			LE <= 0;
 		end
-		else if (MSRWr) begin
-			EE <= MSRWd[16];
-			ME <= MSRWd[19];
-			LE <= MSRWd[31];
+		else if ( wr ) begin
+			EE <= wd[16];
+			ME <= wd[19];
+			LE <= wd[31];
 		end
 	end // end always
 	
-	assign MSR = {16'h0, EE, 2'h0, ME, 11'h0, LE};
+	assign rd = {16'h0, EE, 2'h0, ME, 11'h0, LE};
 	
 endmodule

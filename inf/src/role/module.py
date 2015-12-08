@@ -68,7 +68,7 @@ class Module(object):
 	
 		
 	def addLink(self, desPort, srcPort):
-		logging.debug("[%s] link %s to %s\n" % (self.name, srcPort, desPort))
+		# logging.debug("[%s] link %s to %s\n" % (self.name, srcPort, desPort))
 		if isinstance(desPort, str):
 			desPort = self.find(desPort)
 		if desPort not in self.portList:
@@ -128,6 +128,7 @@ class Module(object):
 		for port in self.portList:
 			if port.name == name:
 				return port
+		raise ValueError, "%s has no port named %s" % (self.name, name)
 		return None
 		
 		
@@ -142,4 +143,13 @@ class Module(object):
 			if val is None:
 				retList.append(key)
 		return key
+		
+		
+	def linkn(self):
+		ret = 0
+		for key, val in self.linkDict.iteritems():
+			if val:
+				ret += 1
+		return ret
+		
 		

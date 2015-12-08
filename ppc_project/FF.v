@@ -7,31 +7,31 @@
  */
 
 module FF (
-	clk, rst_n, d, q
+	clk, rst_n, din, dout
 );
 
 	parameter WIDTH = 8, RESET = 0;
 	
 	input              clk;
 	input              rst_n;
-	input  [0:WIDTH-1] d;
-	output [0:WIDTH-1] q;
+	input  [0:WIDTH-1] din;
+	output [0:WIDTH-1] dout;
 	
-	reg [0:WIDTH-1] q_r;
+	reg [0:WIDTH-1] dout_r;
 	
-	always @(posedge clk or negedge rst_n) begin
-		if (!rst_n)
-			q_r <= RESET;
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n )
+			dout_r <= RESET;
 		else
-			q_r <= d;
+			dout_r <= din;
 	end // end always
 	
-	assign q = q_r;
+	assign dout = dout_r;
 	
 endmodule
 
 module FFW (
-	clk, rst_n, wr, d, q
+	clk, rst_n, wr, din, dout
 );
 
 	parameter WIDTH = 8, RESET = 0;
@@ -39,18 +39,18 @@ module FFW (
 	input              clk;
 	input              rst_n;
 	input			   wr;	
-	input  [0:WIDTH-1] d;
-	output [0:WIDTH-1] q;
+	input  [0:WIDTH-1] din;
+	output [0:WIDTH-1] dout;
 	
-	reg [0:WIDTH-1] q_r;
+	reg [0:WIDTH-1] dout_r;
 	
-	always @(posedge clk or negedge rst_n) begin
-		if (!rst_n)
-			q_r <= RESET;
-		else if (wr)
-			q_r <= d;
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n )
+			dout_r <= RESET;
+		else if ( wr )
+			dout_r <= din;
 	end // end always
 	
-	assign q = q_r;
+	assign dout = dout_r;
 	
 endmodule

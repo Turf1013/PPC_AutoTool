@@ -1,241 +1,269 @@
-/*
- * Description: This module is all about definition of instruction.
- * Author: ZengYX
- * Date:   2014.8.1
- */
- 
-`define TWI_OPCD     6'd3
-`define MULLI_OPCD   6'd7
-`define SUBFIC_OPCD  6'd8
-`define CMPLI_OPCD   6'd10
-`define CMPI_OPCD    6'd11
-`define ADDIC_OPCD   6'd12
-`define ADDIC__OPCD  6'd13
-`define ADDI_OPCD    6'd14
-`define ADDIS_OPCD   6'd15
-`define BC_OPCD      6'd16
-`define SC_OPCD      6'd17
-`define B_OPCD       6'd18
-`define MCRF_OPCD    6'd19
-`define BCLR_OPCD    6'd19
-`define CRNOR_OPCD   6'd19
-`define RFI_OPCD     6'd19
-`define CRXOR_OPCD   6'd19
-`define CRAND_OPCD   6'd19
-`define BCCTR_OPCD   6'd19
-`define RLWIMI_OPCD  6'd20
-`define RLWINM_OPCD  6'd21
-`define RLWNM_OPCD   6'd23
-`define ORI_OPCD     6'd24
-`define ORIS_OPCD    6'd25
-`define XORI_OPCD    6'd26
-`define XORIS_OPCD   6'd27
-`define ANDI__OPCD   6'd28
-`define ANDIS__OPCD  6'd29
-`define CMP_OPCD     6'd31
-`define SUBFC_OPCD   6'd31
-`define ADDC_OPCD    6'd31
-`define MULHWU_OPCD  6'd31
-`define MFCR_OPCD    6'd31
-`define LWARX_OPCD   6'd31
-`define LWZX_OPCD    6'd31
-`define SLW_OPCD     6'd31
-`define CNTLZW_OPCD  6'd31
-`define AND_OPCD     6'd31
-`define CMPL_OPCD    6'd31
-`define SUBF_OPCD    6'd31
-`define ANDC_OPCD    6'd31
-`define MULHW_OPCD   6'd31
-`define MFMSR_OPCD   6'd31
-`define LBZX_OPCD    6'd31
-`define NEG_OPCD     6'd31
-`define NOR_OPCD     6'd31
-`define SUBFE_OPCD   6'd31
-`define ADDE_OPCD    6'd31
-`define MTCRF_OPCD   6'd31
-`define MTMSR_OPCD   6'd31
-`define STWCX__OPCD  6'd31
-`define STWX_OPCD    6'd31
-`define WRTEEI_OPCD  6'd31
-`define SUBFZE_OPCD  6'd31
-`define ADDZE_OPCD   6'd31
-`define STBX_OPCD    6'd31
-`define ADDME_OPCD   6'd31
-`define MULLW_OPCD   6'd31
-`define ADD_OPCD     6'd31
-`define LHZX_OPCD    6'd31
-`define XOR_OPCD     6'd31
-`define MFSPR_OPCD   6'd31
-`define LHAX_OPCD    6'd31
-`define STHX_OPCD    6'd31
-`define ORC_OPCD     6'd31
-`define OR_OPCD      6'd31
-`define DIVWU_OPCD   6'd31
-`define MTSPR_OPCD   6'd31
-`define NAND_OPCD    6'd31
-`define DIVW_OPCD    6'd31
-`define LWBRX_OPCD   6'd31
-`define SRW_OPCD     6'd31
-`define SYNC_OPCD    6'd31
-`define STWBRX_OPCD  6'd31
-`define LHBRX_OPCD   6'd31
-`define SRAW_OPCD    6'd31
-`define SRAWI_OPCD   6'd31
-`define STHBRX_OPCD  6'd31
-`define EXTSH_OPCD   6'd31
-`define EXTSB_OPCD   6'd31
-`define LWZ_OPCD     6'd32
-`define LBZ_OPCD     6'd34
-`define STW_OPCD     6'd36
-`define STB_OPCD     6'd38
-`define LHZ_OPCD     6'd40
-`define LHA_OPCD     6'd42
-`define STH_OPCD     6'd44
-`define LMW_OPCD     6'd46
-`define STMW_OPCD    6'd47
-`define LBZU_OPCD	 6'd35
-`define LBZUX_OPCD	 6'd31
-`define LHZU_OPCD	 6'd41
-`define LHZUX_OPCD	 6'd31
-`define LHAU_OPCD	 6'd43
-`define LHAUX_OPCD	 6'd31
-`define LWZU_OPCD	 6'd33
-`define LWZUX_OPCD	 6'd31
-`define STBU_OPCD	 6'd39
-`define STBUX_OPCD	 6'd31
-`define STHU_OPCD	 6'd45
-`define STHUX_OPCD	 6'd31
-`define STWU_OPCD	 6'd37
-`define STWUX_OPCD	 6'd31
-`define SUBFME_OPCD	 6'd31
-`define LD_OPCD		 6'd58
-`define LDU_OPCD	 6'd58
-`define LDX_OPCD	 6'd31
-`define LDUX_OPCD	 6'd31
-`define LWA_OPCD	 6'd58
-`define LWAX_OPCD	 6'd31
-`define LWAUX_OPCD	 6'd31
-`define STD_OPCD	 6'd62
-`define STDX_OPCD	 6'd31
-`define STDU_OPCD	 6'd62
-`define STDUX_OPCD	 6'd31
-`define LMW_OPCD	 6'd46
-`define STMW_OPCD	 6'd47
+`define ADD_OPCD	6'b011_111
+`define ADD_XOXO		9'b10000_1010
 
-`define STMW_XO		 10'd0
-`define LMW_XO		 10'd0
-`define STDUX_XO	 10'd181
-`define STDU_XO		 2'd1
-`define STDX_XO		 10'd149
-`define STD_XO		 2'd0
-`define LWAUX_XO	 10'd373
-`define LWAX_XO		 10'd341
-`define LWA_XO		 2'd2
-`define LDUX_XO		 10'd53
-`define LDX_XO		 10'd21
-`define LDU_XO		 2'd1
-`define LD_XO		 2'd0
-`define TWI_XO       10'd0
-`define MULLI_XO     10'd0
-`define SUBFIC_XO    10'd0
-`define CMPLI_XO     10'd0
-`define CMPI_XO      10'd0
-`define ADDIC_XO     10'd0
-`define ADDIC__XO    10'd0
-`define ADDI_XO      10'd0
-`define ADDIS_XO     10'd0
-`define BC_XO        10'd0
-`define SC_XO        10'd0
-`define B_XO         10'd0
-`define MCRF_XO      10'd0
-`define BCLR_XO      10'd16
-`define CRNOR_XO     10'd33
-`define RFI_XO       10'd50
-`define CRXOR_XO     10'd193
-`define CRAND_XO     10'd257
-`define BCCTR_XO     10'd528
-`define RLWIMI_XO    10'd0
-`define RLWINM_XO    10'd0
-`define RLWNM_XO     10'd0
-`define ORI_XO       10'd0
-`define ORIS_XO      10'd0
-`define XORI_XO      10'd0
-`define XORIS_XO     10'd0
-`define ANDI__XO     10'd0
-`define ANDIS__XO    10'd0
-`define CMP_XO       10'd0
-`define SUBFC_XO     10'bx000001000
-`define ADDC_XO      10'bx000001010
-`define MULHWU_XO    10'd11
-`define MFCR_XO      10'd19
-`define LWARX_XO     10'd20
-`define LWZX_XO      10'd23
-`define SLW_XO       10'd24
-`define CNTLZW_XO    10'd26
-`define AND_XO       10'd28
-`define CMPL_XO      10'd32
-`define SUBF_XO      10'bx000101000
-`define ANDC_XO      10'd60
-`define MULHW_XO     10'd75
-`define MFMSR_XO     10'd83
-`define LBZX_XO      10'd87
-`define NEG_XO       10'bx001101000
-`define NOR_XO       10'd124
-`define SUBFE_XO     10'bx010001000
-`define ADDE_XO      10'bx010001010
-`define MTCRF_XO     10'd144
-`define MTMSR_XO     10'd146
-`define STWCX__XO    10'd150
-`define STWX_XO      10'd151
-`define WRTEEI_XO    10'd163
-`define SUBFZE_XO    10'bx011001000
-`define ADDZE_XO     10'bx011001010
-`define STBX_XO      10'd215
-`define ADDME_XO     10'bx011101010
-`define MULLW_XO     10'bx011101011
-`define ADD_XO       10'bx100001010
-`define LHZX_XO      10'd279
-`define XOR_XO       10'd316
-`define MFSPR_XO     10'd339
-`define LHAX_XO      10'd343
-`define STHX_XO      10'd407
-`define ORC_XO       10'd412
-`define OR_XO        10'd444
-`define DIVWU_XO     10'bx111001011
-`define MTSPR_XO     10'd467
-`define NAND_XO      10'd476
-`define DIVW_XO      10'bx111101011
-`define LWBRX_XO     10'd534
-`define SRW_XO       10'd536
-`define SYNC_XO      10'd598
-`define STWBRX_XO    10'd662
-`define LHBRX_XO     10'd790
-`define SRAW_XO      10'd792
-`define SRAWI_XO     10'd824
-`define STHBRX_XO    10'd918
-`define EXTSH_XO     10'd922
-`define EXTSB_XO     10'd954
-`define LWZ_XO       10'd0
-`define LBZ_XO       10'd0
-`define STW_XO       10'd0
-`define STB_XO       10'd0
-`define LHZ_XO       10'd0
-`define LHA_XO       10'd0
-`define STH_XO       10'd0
-`define LMW_XO       10'd0
-`define STMW_XO      10'd0
-`define LBZU_XO	 	 10'd0
-`define LBZUX_XO	 10'd119
-`define LHZU_XO	 	 10'd0
-`define LHZUX_XO	 10'd311
-`define LHAU_XO	 	 10'd0
-`define LHAUX_XO	 10'd375
-`define LWZU_XO	 	 10'd0
-`define LWZUX_XO	 10'd55
-`define STBU_XO	 	 10'd0
-`define STBUX_XO	 10'd247
-`define STHU_XO	 	 10'd0
-`define STHUX_XO	 10'd439
-`define STWU_XO	 	 10'd0
-`define STWUX_XO	 10'd183
-`define SUBFME_XO	 10'bx011101000
+`define ADDC_OPCD	6'b011_111
+`define ADDC_XOXO		9'b00000_1010
+
+`define ADDE_OPCD	6'b011_111
+`define ADDE_XOXO		9'b01000_1010
+
+`define ADDI_OPCD	6'b011_110
+
+`define ADDIC_OPCD	6'b001_100
+
+`define ADDIC__OPCD	6'b001_101
+
+`define ADDIS_OPCD	6'b001_111
+
+`define ADDME_OPCD	6'b011_111
+`define ADDME_XOXO	9'b01110_1010
+
+`define ADDZE_OPCD	6'b011_111
+`define ADDZE_XOXO	9'b01100_1010
+
+`define AND_OPCD	6'b011_111
+`define AND_XXO		10'b00000_11100
+
+`define ANDC_OPCD	6'b011_111
+`define ANDC_XXO		10'b00001_11100
+
+`define ANDI__OPCD	6'b011_100
+
+`define ANDIS__OPCD	6'b011_101
+
+`define B_OPCD		6'b010_010
+
+`define BC_OPCD		6'b010_000
+
+`define BCCTR_OPCD	6'b010_011
+`define BCCT_XLXO		10'b10000_10000
+
+`define BCLR_OPCD	6'b010_011
+`define BCLR_XLXO		10'b00000_10000
+
+`define CMP_OPCD	6'b011_111
+`define CMP_XXO		10'b00000_00000
+
+`define CMPI_OPCD	6'b001_011
+
+`define CMPL_OPCD	6'b011_111
+`define CMPL_XXO		10'b00001_00000
+
+`define CMPLI_OPCD	6'b001_010
+
+`define CNTLZW_OPCD	6'b011_111
+`define CNTLZW_XXO	10'b00000_11010
+
+`define CRAND_OPCD	6'b010_011
+`define CRAND_XLXO	10'b01000_00001
+
+`define CRNOR_OPCD	6'b010_011
+`define CRNOR_XLXO	10'b00001_00001
+
+`define CRXOR_OPCD	6'b010_011
+`define CRXOR_XLXO	10'b00110_00001
+
+`define DIVW_OPCD	6'b011_111
+`define DIVW_XOXO		9'b11110_1011
+
+`define DIVWU_OPCD	6'b011_111
+`define DIVWU_XOXO	9'b11100_1011
+
+`define EXTSB_OPCD	6'b011_111
+`define EXTSB_XXO	10'b11101_11010
+
+`define EXTSH_OPCD	6'b011_111
+`define EXTSH_XXO	10'b11100_11010
+
+`define LBZ_OPCD	6'b100_010
+
+`define LBZU_OPCD	6'b100_011
+
+`define LBZX_OPCD	6'b011_111
+`define LBZX_XXO		10'b00010_10111
+
+`define LBZUX_OPCD	6'b011_111
+`define LBZUX_XXO	10'b00011_10111
+
+`define LHA_OPCD	6'b101_010
+
+`define LHAU_OPCD	6'b101_011
+
+`define LHAX_OPCD	6'b011_111
+`define LHAX_XXO		10'b01010_10111
+
+`define LHAUX_OPCD	6'b011_111
+`define LHAUX_XXO	10'b01011_10111
+
+`define LHBRX_OPCD	6'b011_111
+`define LHBRX_XXO	10'b11000_10110
+
+`define LHZ_OPCD	6'b101_000
+
+`define LHZU_OPCD	6'b101_001
+
+`define LHZX_OPCD	6'b011_111
+`define LHZX_XXO		10'b01000_10111
+
+`define LHZUX_OPCD	6'b011_111
+`define LHZUX_XXO	10'b01001_10111
+
+`define LMW_OPCD	6'b101_110
+
+`define LWARX_OPCD	6'b011_111
+`define LWARX_XXO	10'b00000_10100
+
+`define LWBRX_OPCD	6'b011_111
+`define LWBRX_XXO	10'b10000_10110
+
+`define LWZ_OPCD	6'b100_000
+
+`define LWZU_OPCD	6'b1001_001
+
+`define LWZX_OPCD	6'b011_111
+`define LWZX_XXO		10'b00000_10111
+
+`define LWZUX_OPCD	6'b011_111
+`define LWZUX_XXO	10'b00001_10111
+
+`define MCRF_OPCD	6'b010_011
+`define MCRF_XLXO		10'b00000_00000
+
+`define MFCR_OPCD	6'b011_111
+`define MFCR_XLXO		10'b00000_10011
+
+`define MFMSR_OPCD	6'b011_111
+`define MFMSR_XXO	10'b00010_10011
+
+`define MFSPR_OPCD	6'b011_111
+`define MFSPR_XFXXO	10'b01010_10011
+
+`define MTCRF_OPCD	6'b011_111
+`define MTCRF_XFXXO	10'b00100_10000
+
+`define MTMSR_OPCD	6'b011_111
+`define MTMSR_XXO	10'b00100_10010
+
+`define MTSPR_OPCD	6'b011_111
+`define MTSPR_XFXXO	10'b01110_10011
+
+`define MULHW_OPCD	6'b011_111
+`define MULHW_XOXO	9'b00100_1011
+
+`define MULHWU_OPCD	6'b011_111
+`define MULHWU_XOXO	9'b00000_1011
+
+`define MULLI_OPCD	6'b000_111
+
+`define MULLW_OPCD	6'b011_111
+`define MULLW_XOXO	9'b01110_1011
+
+`define NAND_OPCD	6'b011_111
+`define NAND_XXO		10'b01110_11100
+
+`define NEG_OPCD	6'b011_111
+`define NEG_XOXO		9'b00110_1000
+
+`define NOR_OPCD	6'b011_111
+`define NOR_XXO		10'b00011_11100
+
+`define OR_OPCD		6'b011_111
+`define OR_XXO		10'b01101_11100
+
+`define ORC_OPCD	6'b011_111
+`define ORC_XXO		10'b01100_11100
+
+`define ORI_OPCD	6'b011_000
+
+`define ORIS_OPCD	6'b011_001
+
+`define RLWIMI_OPCD	6'b010_100
+
+`define RLWINM_OPCD	6'b010_101
+
+`define RLWNM_OPCD	6'b010_111
+
+`define SC_OPCD		6'b010_001
+
+`define SLW_OPCD	6'b011_111
+`define SLW_XXO		10'b00000_11000
+
+`define SRAW_OPCD	6'b011_111
+`define SRAW_XXO		10'b11000_11000
+
+`define SRAWI_OPCD	6'b011_111
+`define SRAWI_XXO	10'b11001_11000
+
+`define SRW_OPCD	6'b011_111
+`define SRW_XXO		10'b10000_11000
+
+`define STB_OPCD	6'b100_110
+
+`define STBU_OPCD	6'b100_111
+
+`define STBX_OPCD	6'b011_111
+`define STBX_XXO		10'b00110_10111
+
+`define STBUX_OPCD	6'b011_111
+`define STBUX_XXO	10'b00111_10111
+
+`define STH_OPCD	6'b101_100
+
+`define STHBRX_OPCD	6'b011_111
+`define STHBRX_XXO	10'b11100_10110
+
+`define STHU_OPCD	6'b101_101
+
+`define STHX_OPCD	6'b011_111
+`define STHX_XXO		10'b01100_10111
+
+`define STHUX_OPCD	6'b011_111
+`define STHUX_XXO	10'b01101_10111
+
+`define STMW_OPCD	6'b101_111
+
+`define STW_OPCD	6'b100_100
+
+`define STWBRX_OPCD	6'b011_111
+`define STWBRX_XXO	10'b10100_10110
+
+`define STWCX__OPCD	6'b011_111
+`define STWCX__XXO	10'b00100_10110
+
+`define STWU_OPCD	6'b100_101
+
+`define STWX_OPCD	6'b011_111
+`define STWX_XXO		10'b00100_10111
+
+`define STWUX_OPCD	6'b011_111
+`define STWUX_XXO	10'b00101_10111
+
+`define SUBF_OPCD	6'b011_111
+`define SUBF_XOXO		9'b00010_1000
+
+`define SUBFC_OPCD	6'b011_111
+`define SUBFC_XOXO	9'b00000_1000
+
+`define SUBFE_OPCD	6'b011_111
+`define SUBFE_XOXO	9'b01000_1000
+
+`define SUBFIC_OPCD	6'b001_000
+
+`define SUBFME_OPCD	6'b011_111
+`define SUBFME_XOXO	9'b01110_1000
+
+`define SUBFZE_OPCD	6'b011_111
+`define SUBFZE_XOXO	9'b01100_1000
+
+`define SYNC_OPCD	6'b011_111
+`define SYNC_XXO		10'b10010_10110
+
+`define TWI_OPCD	6'b000_011
+
+`define WRTEEI_OPCD	6'b011_111
+`define WRTEEI_XXO 	10'b00101_00011
+
+`define XOR_OPCD	6'b011_111
+`define XOR_XXO		10'b01001_11100
+
+`define XORI_OPCD	6'b011010

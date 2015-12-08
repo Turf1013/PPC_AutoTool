@@ -5,24 +5,24 @@
  */
 `include "arch_def.v"
 
-module PC(
-	clk, rst_n, PCWr, NPC, PC
+module PC (
+	clk, rst_n, wr, NPC, PC
 ); 
 
 	parameter RESET = 0;
 
 	input 				   clk;
 	input				   rst_n;
-	input				   PCWr;
+	input				   wr;
 	input  [0:`PC_WIDTH-1] NPC;
 	output [0:`PC_WIDTH-1] PC;
 	
 	reg [0:`PC_WIDTH-1] PC;
 	
-	always @(posedge clk or negedge rst_n) begin
-		if (!rst_n)
+	always @( posedge clk or negedge rst_n ) begin
+		if ( !rst_n )
 			PC <= RESET;
-		else if (PCWr)
+		else if ( wr )
 			PC <= NPC;
 	end // end always
 

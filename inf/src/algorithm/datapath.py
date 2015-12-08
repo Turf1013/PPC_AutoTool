@@ -304,6 +304,10 @@ class Datapath(object):
 		
 			
 	def __instanceToVerilogPerMod(self, mod, tabn):
+		linkn = mod.linkn()
+		if linkn == 0:
+			logging.debug("[linkn] %s(%d) create, but not Instance.\n" % (mod.name, linkn))
+			return ""
 		# add clk & rst_n
 		try:
 			mod.addLink(CFD.CLK, CFD.CLK)
@@ -322,6 +326,7 @@ class Datapath(object):
 		for istg in range(0, stgn-1):
 			self.pipeDictList.append( self.__GenPipePerStg(rtlAllSet, istg) )
 		self.pipeDictList.append(dict())
+	
 	
 	def __PipeRtlAtStg(self, istg):
 		ret = set()

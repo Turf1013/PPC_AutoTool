@@ -313,7 +313,7 @@ module insnConverter (
 		
 		else if ( lmw ) begin
 			if (~mw_r || PC_r!=PC) begin
-				dout_r = `INSTR_NOP;
+				dout_r = `NOP;
 			end
 			else begin
 				dout_r = {`LWZ_OPCD, D_RT_r, D_RA, D_D_r};
@@ -322,7 +322,7 @@ module insnConverter (
 		
 		else if ( stmw ) begin
 			if (~mw_r || PC_r!=PC) begin
-				dout_r = `INSTR_NOP;
+				dout_r = `NOP;
 			end
 			else begin
 				dout_r = {`STW_OPCD, D_RT_r, D_RA, D_D_r};
