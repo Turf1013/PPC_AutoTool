@@ -40,6 +40,10 @@
 `define ROTL_WIDTH 		5 
 `define ALU_D_WIDTH		8
 
+/**** About MDU ****/
+`define ROTL_WIDTH 		5 
+`define MDU_D_WIDTH		4
+
 /**** About MSR ****/
 `define MSR_WIDTH		32
 

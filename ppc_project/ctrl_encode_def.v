@@ -126,3 +126,16 @@
 `define ALU_AInOp_WIDTH	1
 `define ALU_AInOp_NOP	1'b0
 `define ALU_AInOp_ZERO	1'b1
+
+/**** About MDU ****/
+`define MDUOp_WIDTH		3
+`define MDUOp_MULH		3'd0
+`define MDUOp_MULHU		3'd1
+`define MDUOp_MULW		3'd2
+`define MDUOp_DIVW		3'd3
+`define MDUOp_DIVWU		3'd4
+
+/**** About MDU_DOut ****/
+`define MDU_DOutOp_WIDTH 	1
+`define MDU_DOutOp_NOP		1'd0
+`define MDU_DOutOp_OV		1'd1

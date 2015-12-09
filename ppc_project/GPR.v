@@ -6,8 +6,8 @@
 `include "arch_def.v"
  
 module GPR (
-	clk, rst_n, wr, raddr0, raddr1, raddr2
-	waddr, wd, rd0, rd1
+	clk, rst_n, wr, raddr0, raddr1, raddr2,
+	waddr, wd, rd0, rd1, rd2
 );
 
 	input 					  	clk;

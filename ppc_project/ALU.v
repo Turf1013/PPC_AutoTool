@@ -291,7 +291,7 @@ module ALU (
 	assign LT0 = (C <  0) ? 1'b1 : 1'b0;
 	assign GT0 = (C >  0) ? 1'b1 : 1'b0;
 	assign EQ0 = (C == 0) ? 1'b1 : 1'b0;
-	assign CR0 = {LT0, GT0, EQ0};
+	assign CR0_3 = {LT0, GT0, EQ0};
 	
 	// logic of CRX
 	reg [0:2] CRX_3;
