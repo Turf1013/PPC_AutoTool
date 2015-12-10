@@ -47,7 +47,7 @@ class Excel(object):
 		self.AE = Access_Excel(path)
 	
 	
-	def GenPipeLine(self, sheetName, regArgsList):
+	def GenPipeLine(self, sheetName, regArgsList, brList=[]):
 		self.AE.Open_rsheet(sheetName)
 		begRow, endRow = CFE.rtlBegRow, self.AE.Get_NRow()
 		begCol, endCol = CFE.rtlBegCol, self.AE.Get_NCol()
@@ -61,7 +61,7 @@ class Excel(object):
 		for args in regArgsList:
 			reg = Reg(*args)
 			regList.append(reg)
-		return PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg, regList=regList)
+		return PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg, regList=regList, brList=brList)
 		
 	
 	def GenAllRtl(self, sheetName):

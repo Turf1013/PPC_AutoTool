@@ -7,6 +7,7 @@ from ..role.stage import Stage
 from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
+from ..glob.glob import CFG
 import logging
 
 
@@ -410,9 +411,21 @@ class Datapath(object):
 				ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 		ret += pre + "\t" + "end\n"
 		if istg < rstg:
-			ret += pre + "\t" + "else if ( !clr_%s ) begin\n" % (self.pipeLine.StgNameAt(rstg))
-		else:
-			ret += pre + "\t" + "else begin\n"
+			# 1. check if stall
+			ret += pre + "\t" + "else if ( clr_%s ) begin\n" % (self.pipeLine.StgNameAt(rstg))
+			for outVar in pipeDict.iterkeys():
+				ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, outVar)
+			ret += pre + "\t" + "end\n"
+			# 2. check if support delaySlot
+			if not CFG.brDelaySlot:
+				ret += pre + "\t" + "else if ( %s_%s ) begin\n" % (CFG.BRFLUSH, self.pipeLine.StgNameAt(rstg))
+				if outVar.startswith(CFD.INSTR):
+					ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+				else:
+					ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
+				ret += pre + "\t" + "end\n"
+			# 3. add else
+		ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():
 			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
 		ret += pre + "\t" + "end\n"

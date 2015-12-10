@@ -35,6 +35,12 @@ if __name__ == "__main__":
 		"mips.v",
 		"control.v",
 	]
+	brList = [
+		"b",
+		"bc",
+		"bclr",
+		"bcctr",
+	]
 	
 	# remove ppc.v, mips.v, control.v
 	fileList = os.listdir(srcWorkDirectory)
@@ -53,7 +59,7 @@ if __name__ == "__main__":
 	# handle excel file
 	excelPath = os.path.join(srcWorkDirectory, excelName)
 	excel = Excel(path = excelPath)
-	pipeLine = excel.GenPipeLine(sheetName, regArgsList)
+	pipeLine = excel.GenPipeLine(sheetName, regArgsList, brList)
 	excelRtl = excel.GenAllRtl(sheetName)
 	
 	# FB algorithm

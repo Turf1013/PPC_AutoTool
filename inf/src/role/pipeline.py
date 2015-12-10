@@ -29,9 +29,10 @@ class BasePipeLine(object):
 class PipeLine(BasePipeLine):
 	
 	
-	def __init__(self, stgList, Rstg, Wstg, regList):
+	def __init__(self, stgList, Rstg, Wstg, regList, brList=[]):
 		super(PipeLine, self).__init__(stgList, Rstg, Wstg)
 		self.regList = regList
+		self.brList = map(lambda s:s.upper(), brList)
 		
 		
 	def findReg(self, regName):
@@ -40,4 +41,10 @@ class PipeLine(BasePipeLine):
 				return reg
 		raise ValueError, "%s not in pipeLine.regList" % (regName)
 		
-	
+		
+	def addBrList(self, iteratable):
+		for item in iteratable:
+			item = item.upper()
+			if item not in self.brList:
+				self.brList.append(item)
+				

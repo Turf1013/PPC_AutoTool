@@ -7,11 +7,11 @@ from ..util.rtlGenerator import RtlGenerator as RG
 from ..util.verilogGenerator import VerilogGenerator as VG
 from ..verilog.const_hdl import CFV
 from ..role.wire import WireSet, Wire
+from ..glob.glob import CFG
 
 class constForControl:
 	INSTR = "Instr"
-	INSTR_WIDTH = "[`INSTR_WIDTH-1:0]" 
-	
+	INSTR_WIDTH = "[`INSTR_WIDTH-1:0]"
 	
 class CFC(constForControl):
 	pass
@@ -42,6 +42,24 @@ class Control(object):
 			clrName = "clr_" + self.pipeLine.StgNameAt(istg)
 			self.portList.append(clrName)
 			self.wireSet.add( Wire(name=clrName, width=1, kind="reg", stg=istg) )
+		# add delay slot control signal
+		self.__delaySlot()
+		
+		
+	def __delaySlot(self):
+		if CFG.brDelaySlot or not self.pipeLine.brList:
+			return 
+		# not support Delay Slot
+		rstg = self.pipeLine.Rstg.id
+		stgName = self.pipeLine.Rstg.name
+		signalName = RP.DesToVar(CFG.BRFLUSH, suf=stgName)
+		cs = CtrlSignal(name=signalName, width=1, stg=rstg)
+		for brInsnName in self.pipeLine.brList:
+			cond = self.insnMap.find(brInsnName).condition(suf = stgName)
+			cs.add( CtrlTriple(cond=cond, op=1) )
+		self.CSList.append(cs)
+		self.portList.append(signalName)
+		self.wireSet.add( Wire(name=signalName, width=1, kind="reg", stg=rstg) )
 		
 		
 	def addCS(self, iterable):
@@ -49,6 +67,7 @@ class Control(object):
 			self.wireSet.add( Wire(name=cs.name, width=cs.width, kind="reg", stg=cs.stg) )
 			self.portList.append( cs.name )
 		self.CSList += list(iterable)
+		
 		
 	
 	def GenCS(self):
