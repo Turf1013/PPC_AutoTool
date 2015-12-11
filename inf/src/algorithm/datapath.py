@@ -420,10 +420,11 @@ class Datapath(object):
 			# 2. check if support delaySlot
 			if not CFG.brDelaySlot:
 				ret += pre + "\t" + "else if ( %s_%s ) begin\n" % (CFG.BRFLUSH, self.pipeLine.StgNameAt(rstg))
-				if outVar.startswith(CFD.INSTR):
-					ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
-				else:
-					ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
+				for outVar in pipeDict.iterkeys():
+					if outVar.startswith(CFD.INSTR):
+						ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+					else:
+						ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 				ret += pre + "\t" + "end\n"
 			# 3. add else
 		ret += pre + "\t" + "else begin\n"
