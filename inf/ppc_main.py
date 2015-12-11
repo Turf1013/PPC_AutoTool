@@ -8,6 +8,8 @@ from src.algorithm.FB import FB
 from src.algorithm.datapath import Datapath
 from src.algorithm.control import Control
 from src.patch.mipsPatch import mipsPatch
+from src.glob.glob import CFG
+
 
 def move(srcDir, desDir):
 	if os.path.exists(srcDir) and os.path.exists(desDir):
@@ -100,8 +102,9 @@ if __name__ == "__main__":
 	move(srcWorkDirectory, desWorkDirectory)
 	
 	
-	# patch mips
-	mp = mipsPatch(desWorkDirectory)
-	mp.PatchControl()
-	mp.PatchMips()
+	# mips need patch
+	if not CFG.PPC:
+		mp = mipsPatch(desWorkDirectory)
+		mp.PatchControl()
+		mp.PatchMips()
 	
