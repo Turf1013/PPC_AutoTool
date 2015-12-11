@@ -13,7 +13,7 @@ import logging
 
 class constForDatapath:
 	INSTR = "Instr"
-	ARCH = "mips"
+	ARCH = CFG.ARCH
 	CLK = "clk"
 	RST = "rst_n"
 	WIDTH = "WIDTH"
