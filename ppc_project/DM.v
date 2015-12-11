@@ -17,34 +17,36 @@ module DM (
 	input         		     clk;
 	input  [0:`DMBE_WIDTH-1] BE;
 	input         		     wr;
-	input  [0:`ARCH_WIDTH-1] addr;
+	input  [`ARCH_WIDTH-1:0] addr;
 	input  [0:`DM_WIDTH-1]   din;
 	output [0:`DM_WIDTH-1]   dout;
      
-	reg [`DM_WIDTH-1:0] DM[`DM_SIZE-1:0];
+	reg [`DM_WIDTH-1:0] dmem[`DM_SIZE-1:0];
+	
+	wire [`ARCH_WIDTH-1:0] addr_;
+	wire [`DM_DEPTH-1:0] haddr;
    
-	wire [0:`DM_DEPTH-3] haddr;
-   
-	assign haddr = addr[0:`DM_DEPTH-3];
+	assign addr_ = addr - `DM_ADDR_BASE;
+	assign haddr = addr_[`DM_DEPTH+1:2];
 	
 	integer i;
 	initial begin
 		for (i=0; i<`DM_SIZE; i=i+1)
-			DM[i] = 0;
+			dmem[i] = 0;
 	end
    
 	always @( posedge clk ) begin
 		if ( wr ) begin
-			if (BE[0]) DM[haddr][31:24] <= din[24:31];
-			if (BE[1]) DM[haddr][23:16] <= din[16:23];
-			if (BE[2]) DM[haddr][15:8 ] <= din[ 8:15];
-			if (BE[3]) DM[haddr][ 7:0 ] <= din[ 0:7 ];
+			if (BE[0]) dmem[haddr][31:24] <= din[24:31];
+			if (BE[1]) dmem[haddr][23:16] <= din[16:23];
+			if (BE[2]) dmem[haddr][15:8 ] <= din[ 8:15];
+			if (BE[3]) dmem[haddr][ 7:0 ] <= din[ 0:7 ];
 		end
 	end // end always
   
-  wire [`DM_WIDTH-1:0] tmp;
+	wire [`DM_WIDTH-1:0] tmp;
   
-	assign tmp = DM[haddr];
+	assign tmp = dmem[haddr];
 	assign dout = {tmp[7:0], tmp[15:8], tmp[23:16], tmp[31:24]};
     
 endmodule

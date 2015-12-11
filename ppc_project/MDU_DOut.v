@@ -7,8 +7,8 @@ module MDU_DOut (
 );
 	
 	input							OE;
-	input 	[0:`ALU_D_WIDTH-1]		D;
-	input	[0:`ALU_DOutOp_WIDTH-1]	Op;
+	input 	[0:`MDU_D_WIDTH-1]		D;
+	input	[0:`MDU_DOutOp_WIDTH-1]	Op;
 	input 	[0:`XER_WIDTH-1] 		XERrd;
 	input 	[0:`CR_WIDTH-1] 		CRrd;
 	output	[0:`XER_WIDTH-1] 		XERwd;

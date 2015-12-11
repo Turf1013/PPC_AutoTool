@@ -26,7 +26,7 @@ module MASK (
 	assign {from, to} = (MB > ME) ? {ME, MB}:{MB, ME};
 	
 	// use shift to get correct mask In the conditon of From & To
-	assign mtmp = (32'hffff_ffff << from) & (32'hffff_ffff >> (31-to));
+	assign mtmp = (`CONST_NEG1 >> from) & (`CONST_NEG1 << (5'd31 - to));
 	
 	// Get correct mask In the condition of MB & ME;
 	assign mask = (MB > ME) ? ~mtmp : mtmp;

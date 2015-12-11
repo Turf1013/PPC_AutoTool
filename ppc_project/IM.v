@@ -13,11 +13,12 @@ module IM (
     input  [`ARCH_WIDTH-1:0] addr;
     output [0:`IM_WIDTH-1] dout;
     
+	wire [`ARCH_WIDTH-1:0] addr_;
 	wire [`IM_DEPTH-1:0] im_addr;
-    reg [`IM_WIDTH-1:0] IM[`IM_SIZE-1:0];
+    reg [`IM_WIDTH-1:0] imem[`IM_SIZE-1:0];
 	
-	
-	assign im_addr = addr[`IM_DEPTH+1:2];
-	assign dout = IM[im_addr];
+	assign addr_ = addr - `IM_ADDR_BASE;
+	assign im_addr = addr_[`IM_DEPTH+1:2];
+	assign dout = imem[im_addr];
     
 endmodule

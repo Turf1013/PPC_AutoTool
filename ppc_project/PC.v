@@ -9,7 +9,7 @@ module PC (
 	clk, rst_n, wr, NPC, PC
 ); 
 
-	parameter RESET = 0;
+	// parameter RESET = 32'h1000_0100;
 
 	input 				   clk;
 	input				   rst_n;
@@ -21,7 +21,7 @@ module PC (
 	
 	always @( posedge clk or negedge rst_n ) begin
 		if ( !rst_n )
-			PC <= RESET;
+			PC <= `IM_ADDR_BASE;
 		else if ( wr )
 			PC <= NPC;
 	end // end always

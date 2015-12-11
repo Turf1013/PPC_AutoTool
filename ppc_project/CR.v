@@ -62,57 +62,64 @@ module CR_ALU (
 	//assign mask = (Op == `CR_ALUOp_MOV) ? (32'hf << BF): (32'h1 << BT);
 	//assign CRX = (CRrd >> BFA) & 32'hf;
 	
-	assign mask = ((Op == `CR_ALUOp_MOV) ? 32'hf : 32'h1) << BT;
-	assign CRX = (CRrd >> BA) & 32'hf;
+	wire [0:`CR_DEPTH-1] BA_, BT_;
+	
+	assign BA_ = 5'd31 - BA;
+	assign BT_ = 5'd31 - BT;
+	assign mask = ((Op == `CR_ALUOp_MOV) ? 32'hf : 32'h1) << BT_;
+	assign CRX = (CRrd >> BA_) & 32'hf;
 	
 	wire A, B;
 	reg Y;
+	
+	assign A = CRrd[BA];
+	assign B = CRrd[BB];
 	
 	always @( * ) begin
 		case ( Op )
 		
 			`CR_ALUOp_AND: begin
 				Y = A & B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_OR: begin
 				Y = A | B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_XOR: begin
 				Y = A ^ B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_NAND: begin
 				Y = ~(A & B);
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_NOR: begin
 				Y = ~(A | B);
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_EQV: begin
 				Y = A == B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_ANDC: begin
 				Y = A & ~B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_ORC: begin
 				Y = A | ~B;
-				C = (CRrd & ~mask) | ({31'd0, Y} << BT);
+				C = (CRrd & ~mask) | ({31'd0, Y} << BT_);
 			end
 			
 			`CR_ALUOp_MOV: begin
-				C = (CRrd & ~mask) | (CRX << BT);
+				C = (CRrd & ~mask) | (CRX << BT_);
 			end
 			
 			default: begin

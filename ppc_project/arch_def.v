@@ -56,7 +56,7 @@
 `define NPC_LI_WIDTH	24
 `define NPC_AA_WIDTH	1
 `define NPC_LK_WIDTH	1
-`define NPC_LI_RANGE	[0:24]
+`define NPC_LI_RANGE	[0:23]
 `define NPC_BO_RANGE	[0:4]
 `define NPC_BI_RANGE	[5:9]
 `define NPC_BD_RANGE	[10:23]
@@ -71,6 +71,7 @@
 `define IM_SIZE			1024
 `define IM_DEPTH		10
 `define IM_WIDTH		32
+`define IM_ADDR_BASE	32'h1000_0100
 
 
 /**** About DM ****/
@@ -78,7 +79,7 @@
 `define DM_DEPTH		10
 `define DM_WIDTH		32
 `define DMBE_WIDTH		4
-
+`define DM_ADDR_BASE	32'h1001_0000
 
 /**** About TOP ****/
 `define INSTR_WIDTH		32

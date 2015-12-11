@@ -6,7 +6,7 @@ module ALU_AIn (
 );
 
 	input 	[0:`ALU_AInOp_WIDTH-1] 	Op;
-	input 	[0:5]					RA;
+	input 	[0:4]					RA;
 	input 	[0:`ARCH_WIDTH-1] 		din;
 	output 	[0:`ARCH_WIDTH-1] 		dout;
 	

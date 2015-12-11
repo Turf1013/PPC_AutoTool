@@ -78,10 +78,13 @@ module ALU_DOut (
 
 	wire [0:`CR_WIDTH-1] mask;
 	reg [0:`CR_WIDTH-1] CRwd_r;
+	wire [0:2] BF_;
+	
+	assign BF_ = 3'd7 - BF;
 	
 	always @( * ) begin
 		if (Op == `ALU_DOutOp_CMP) begin
-			CRwd_r = (CRrd & ~mask) | ({28'd0, CRX} << {BF, 2'b0});
+			CRwd_r = (CRrd & ~mask) | ({28'd0, CRX} << {BF_, 2'b0});
 		end
 		else begin
 			CRwd_r = {CR0, CRrd[`CR0_WIDTH:`CR_WIDTH-1]};
@@ -91,6 +94,6 @@ module ALU_DOut (
 	assign CRwd = CRwd_r;
 	assign CR0 = {CR0_3, SO_r};
 	assign CRX = {CRX_3, SO_r};
-	assign mask = 32'hf << {BF, 2'b0};
+	assign mask = 32'hf << {BF_, 2'b0};
 
 endmodule
