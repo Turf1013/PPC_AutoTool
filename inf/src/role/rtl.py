@@ -23,25 +23,31 @@ class Rtl(object):
 	def __init__(self, val):
 		self.val = CFR.re_space.sub("", val)
 		
+		
 	def __hash__(self):
 		return hash(self.val)
 		
+		
 	def __str__(self):
 		return self.val
+			
 			
 	@classmethod
 	def getMod(cls, wire):
 		return wire.split(".")[0]
 		
+		
 	@classmethod
 	def getPort(cls, wire):
 		return wire.split(".")[-1]
+		
 		
 	@classmethod
 	def getModAndPort(cls, wire):
 		if "." not in wire:
 			return [None, wire]
 		return wire.split(".")
+	
 	
 	@classmethod
 	def isLinkRtl(cls, line):
@@ -51,6 +57,7 @@ class Rtl(object):
 	@classmethod
 	def isPipeRtl(cls, line):
 		return CFR.pipeSymbol in line
+		
 		
 	@classmethod
 	def isConstSrc(cls, src):
@@ -84,7 +91,7 @@ class LinkRtl(Rtl):
 		
 	def isCtrlLink(self):
 		for suf in CFR.ctrlSuffix:
-			if self.desPort.endswith(suf):
+			if suf in self.desPort:
 				return True
 		return False
 	

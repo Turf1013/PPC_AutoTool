@@ -32,7 +32,7 @@ class logBlock(object):
 	def toLog(self):
 		ret = ""
 		ret += "NIP %08x\n" % (self.NIP)
-		ret += "CR %08x LR %08x CTR %08x MSR %08x XER %08x" %\
+		ret += "CR %08x LR %08x CTR %08x MSR %08x XER %08x\n" %\
 				(self.CR, self.LR, self.CTR, self.MSR, self.XER)
 		for i in xrange(0, 32, 4):
 			ret += "GPR%02d" % (i)
