@@ -86,7 +86,7 @@ class FB(object):
 			for finsn in insnGrp.FinsnSet:
 				if binsn.addr is None and finsn.addr is None:
 					# no addr
-					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl)
+					cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition())
 					# if finsn.ctrl=="1'b1":
 						# cond = "%s && %s" % (binsn.condition(), finsn.condition())
 					# else:
@@ -96,7 +96,7 @@ class FB(object):
 					baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 					faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
 					addrCond = "(%s == %s)" % (baddr, faddr)
-					cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl, addrCond)
+					cond = "%s && %s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrlCondition(), addrCond)
 					# if finsn.ctrl=="1'b1":
 						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), addrCond)
 					# else:
@@ -288,7 +288,7 @@ class FB(object):
 		# the 1-st condition of send
 		for w in range(finsn.stg.id+1, wstg+1):
 			# add the predessor insn to insn groups
-			wInsn = StgInsn(insn=finsn.insn, stg=Stage(w, self.pipeLine.StgNameAt(w)), addr=finsn.addr, wd=finsn.wd)
+			wInsn = StgInsn(insn=finsn.insn, stg=Stage(w, self.pipeLine.StgNameAt(w)), addr=finsn.addr, wd=finsn.wd, ctrl=finsn.ctrl)
 			rwGrps[rstg].addInsn(wInsn)
 			# add the sendData to hazard's linkedIn
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
@@ -298,7 +298,7 @@ class FB(object):
 		mn = min(finsn.stg.id, binsn.stg.id)
 		w = finsn.stg + 1
 		stg = Stage(w, self.pipeLine.StgNameAt(w))
-		wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, wd=finsn.wd)
+		wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, wd=finsn.wd, ctrl=finsn.ctrl)
 		for r in range(rstg+1, mn+1):
 			rwGrps[r].addInsn(wInsn)
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
@@ -316,7 +316,7 @@ class FB(object):
 		if delta > 0:
 			for d in range(1, delta+1):
 				stg = Stage(rstg+d, self.pipeLine.StgNameAt(rstg+d))
-				wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr)
+				wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, ctrl=finsn.ctrl)
 				stallGrp.addInsn(wInsn)
 			
 			
@@ -346,6 +346,7 @@ class FB(object):
 			if stgId<0:
 				raise ValueError, "%s not appear in %s Pipe" % (wdRtl.src, insnName)
 			stg = Stage(id=stgId, name=self.pipeLine.StgNameAt(stgId))
+			logging.debug("[WStgInsn] reg = %s, ctrl = %s" % (regName, wrRtl.src))
 			si = StgInsn(insn=insn, stg=stg, addr=addr, wd=wdRtl.src, ctrl=wrRtl.src)
 			ret.append(si)
 		return ret

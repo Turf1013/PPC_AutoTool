@@ -134,7 +134,10 @@ class StgInsn(BaseStgInsn):
 		
 		
 	def ctrlCondition(self):
-		return RP.SrcToVar(self.ctrl)
+		if self.ctrl == "1'b1":
+			return RP.SrcToVar(self.ctrl)
+		else:
+			return RP.SrcToVar(self.ctrl, self.stg.name)
 		
 		
 class InsnPair(object):
