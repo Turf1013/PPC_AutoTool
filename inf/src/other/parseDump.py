@@ -100,8 +100,9 @@ class parseDump:
 									for ii in xrange(paddr, addr-4, 4):
 										ret.append(CFPD.NOP)
 								paddr = addr
-								code = "".join(dataList[1:5])
-								ret.append(code)
+								L = dataList[1:5]
+								data = "".join(L[::-1])
+								ret.append(data)
 					break
 		return ret
 		
@@ -190,6 +191,6 @@ if __name__ == "__main__":
 	srcFileName = "F:\Qt_prj\hdoj\data.in"
 	desFileName = "F:\Qt_prj\hdoj\data.out"
 	
-	L = parseDump.GenNormLog(srcFileName)
+	L = parseDump.GenData(srcFileName)
 	parseDump.WriteFile(desFileName, L)
 	
