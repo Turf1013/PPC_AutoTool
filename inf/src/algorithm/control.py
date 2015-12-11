@@ -11,7 +11,7 @@ from ..glob.glob import CFG
 
 class constForControl:
 	INSTR = "Instr"
-	INSTR_WIDTH = "[`INSTR_WIDTH-1:0]"
+	INSTR_WIDTH = CFG.INSTR_WIDTH
 	
 class CFC(constForControl):
 	pass
@@ -119,7 +119,7 @@ class Control(object):
 				# create a CT
 				insn = self.insnMap.find(insnName)
 				cond = insn.condition(suf = self.pipeLine.StgNameAt(istg))
-				op = rtl.src
+				op = RP.SrcToVar(rtl.src, self.pipeLine.StgNameAt(istg))
 				cs.add( CtrlTriple(cond=cond, op=op) )
 		return csDict.values()
 		

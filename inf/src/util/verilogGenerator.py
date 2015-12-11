@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re, math
 from ..verilog.const_hdl import CFV
+from ..glob.glob import CFG
 
 class constForVerilogGenerator:
 	RD 		= "rd"
@@ -64,6 +65,7 @@ class VerilogGenerator:
 	@classmethod
 	def GenClr(cls, suf=""):
 		return "%s_%s" % (CFVG.CLR, suf)
+	
 	
 	@classmethod
 	def GenMuxVerilog(cls, muxn):
@@ -132,6 +134,7 @@ class VerilogGenerator:
 		else:
 			return "\t" * tabn + "%s %s %s;\n" % (CFVG.INPUT, width, name)
 			
+			
 	@classmethod
 	def IntToRange(cls, x):
 		if isinstance(x, int):
@@ -143,4 +146,13 @@ class VerilogGenerator:
 	@classmethod
 	def GenInsnFieldDef(cls, fieldName):
 		return "`" + fieldName.upper()
+		
+		
+	@classmethod
+	def DefToRange(cls, d):
+		if CFG.PPC:
+			return "[0:%s-1]" % (d)
+		else:
+			return "[%s-1:0]" % (d)
+			
 		

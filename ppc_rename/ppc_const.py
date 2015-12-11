@@ -40,3 +40,7 @@ class ppcFieldConst:
 	FLM = "FLM"
 	SHH = "SHH"
 	SHL = "SHL"
+	NB = "NB"
+	BD = "BD"
+	MB = "MB"
+	ME = "ME"

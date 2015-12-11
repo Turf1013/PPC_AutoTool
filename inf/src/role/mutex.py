@@ -45,9 +45,11 @@ class Mutex(Module):
 	def widthRange(self):
 		if isinstance(self.width, int) or (isinstance(self.width, str) and CFM.re_Number.match(self.width)):
 			return VG.IntToRange(int(self.width))
+		elif isinstance(self.width, str) and self.width.startswith("`"):
+			return VG.DefToRange(self.width)
 		else:
 			logging.debug("[mux_width] %s %s\n" % (self.Iname, self.width))
-			return self.width
+			raise ValueError, "not valid width(%s) in %s" % (self.width, self.Iname)
 		
 	
 	def GenSelName(self, withStage=True):

@@ -258,17 +258,39 @@ class ppcInsnFormat:
 			ret += "wire [0:`%s_WIDTH-1] %s;\n" % (fieldName, fieldName)
 		return ret
 		
+	
+	@classmethod
+	def GenFormatFieldDef(cls):
+		lines = []
+		for formName, formDict in cls.fieldDictList:
+			line = "\n// define %s-Form" % (formName)
+			lines.append(line)
+			for fieldName, fieldRange in formDict.iteritems():
+				# define width
+				line = "`define %s%s_WIDTH %d" % (formName, fieldName, abs(fieldRange[0]-fieldRange[1])+1)
+				lines.append(line)
+				# define range
+				line = "`define %s%s [%d:%d]" % (formName, fieldName, fieldRange[0], fieldRange[1])
+				lines.append(line)
+		return "\n".join(lines)
+		
+		
+		
 		
 if __name__ == "__main__":
-	defLines = ppcInsnFormat.GenFormatDef()
-	wireLines = ppcInsnFormat.GenFormatWire()
-	assignLines = ppcInsnFormat.GenFormatAssign()
-	fileName = "F:\Qt_prj\hdoj\data.out"
+	# defLines = ppcInsnFormat.GenFormatDef()
+	# wireLines = ppcInsnFormat.GenFormatWire()
+	# assignLines = ppcInsnFormat.GenFormatAssign()
+	# fileName = "F:\Qt_prj\hdoj\data.out"
 	
-	with open(fileName, "w") as fout:
-		fout.write(defLines)
-		fout.write(wireLines)
-		fout.write(assignLines)
+	# with open(fileName, "w") as fout:
+		# fout.write(defLines)
+		# fout.write(wireLines)
+		# fout.write(assignLines)
 		
 	
+	line = 	ppcInsnFormat.GenFormatFieldDef()
+	desFileName = "F:\Qt_prj\hdoj\data.out"
+	with open(desFileName, "w") as fout:
+		fout.write(line)
 		

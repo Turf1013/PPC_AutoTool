@@ -18,7 +18,7 @@ class constForDatapath:
 	RST = "rst_n"
 	WIDTH = "WIDTH"
 	pipeIDict = {
-		"Instr": "[`INSTR_WIDTH-1:0]",
+		"Instr": CFG.INSTR_WIDTH,
 	}
 	
 	pipeRtlIgoreList = [
@@ -76,6 +76,7 @@ class Datapath(object):
 			pipeRtlSet -= pipeSet
 			self.__LinkModPerStg(linkRtlSet, pipeRtlSet, istg)
 			pipeSet |= pipeRtlSet
+			
 			
 	def __LinkModPerStg(self, linkRtlSet, pipeRtlSet, istg):
 		stgName = self.pipeLine.StgNameAt(istg)
