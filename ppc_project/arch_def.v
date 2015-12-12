@@ -27,7 +27,7 @@
 /**** About CR ****/
 `define CR_DEPTH		5
 `define CR_WIDTH		32
-`define CR0_WIDTH		8
+`define CR0_WIDTH		4
 `define CR_BF_WIDTH		3
 `define CR_BFA_WIDTH	3
 

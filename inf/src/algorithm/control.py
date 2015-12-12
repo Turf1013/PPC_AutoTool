@@ -54,6 +54,8 @@ class Control(object):
 		stgName = self.pipeLine.Rstg.name
 		signalName = RP.DesToVar(CFG.BRFLUSH, suf=stgName)
 		cs = CtrlSignal(name=signalName, width=1, stg=rstg)
+		# add 0 for patch
+		cs.add( CtrlTriple(cond="0", pri=10**5) )
 		for brInsnName in self.pipeLine.brList:
 			cond = self.insnMap.find(brInsnName).condition(suf = stgName)
 			cs.add( CtrlTriple(cond=cond, op=1) )
@@ -108,7 +110,7 @@ class Control(object):
 						clr_D comes from decode Insn@D,
 						so clr_D is not a part of ctrlSignal's condition
 					"""
-					if istg == rstg:
+					if istg <= rstg:
 						cs.add( CtrlTriple(cond="0", pri=10**5) )
 					else:
 						clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg) )
@@ -219,15 +221,16 @@ class Control(object):
 		
 		ret += pre + "//// same meaning as clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
 		ret += pre + "always @( * ) begin\n"
-		ret += pre + "\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg))
+		ret += pre + "\t" + "clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
 		ret += pre + "end // end always\n\n"
 		return ret
+		
 		
 	def instance(self, tabn = 1):
 		name = "control"
 		pre = "\t" * tabn
 		ret = ""
-		ret += "%s%s I_%s(\n" % (pre, name, name)
+		ret += "%s%s I_%s (\n" % (pre, name, name)
 		last = len(self.portList) - 1
 		for i,port in enumerate(self.portList):
 			if i == last:

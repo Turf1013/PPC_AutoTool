@@ -49,7 +49,10 @@ class Datapath(object):
 		# add clr_D to PCWr
 		pc = self.modMap.find("PC")
 		pcWrPort = pc.find("wr")
-		pc.addLink(pcWrPort, "~clr_%s" % (self.pipeLine.Rstg.name))
+		if CFG.IO:
+			pc.addLink(pcWrPort, "~stall")
+		else:
+			pc.addLink(pcWrPort, "~clr_%s" % (self.pipeLine.Rstg.name))
 		
 	
 		
@@ -224,6 +227,8 @@ class Datapath(object):
 							op = linkedIn.index(src)
 							tList.append( CtrlTriple(cond=cond, op=op) )
 				cs = CtrlSignal(name=selName, width=selN, stg=istg, iterable=tList)
+				# add 0 for patch
+				cs.add( CtrlTriple(cond="0", pri=10**5) )
 				retCSList.append(cs)
 				
 				### Add the selName to Wire 

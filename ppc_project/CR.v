@@ -67,7 +67,7 @@ module CR_ALU (
 	assign BA_ = 5'd31 - BA;
 	assign BT_ = 5'd31 - BT;
 	assign mask = ((Op == `CR_ALUOp_MOV) ? 32'hf : 32'h1) << BT_;
-	assign CRX = (CRrd >> BA_) & 32'hf;
+	assign CRX = ((CRrd >> BA_) & 32'hf)[`CR_WIDTH-`CR0_WIDTH:`CR_WIDTH-1];
 	
 	wire A, B;
 	reg Y;

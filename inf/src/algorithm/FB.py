@@ -225,7 +225,7 @@ class FB(object):
 				clr_D comes from decode Insn@D,
 				so clr_D is not a part of ctrlSignal's condition
 			"""
-			if istg == rstg:
+			if istg <= rstg:
 				cs.add( CtrlTriple(cond="0", pri=10**5) )
 			else:
 				clr = VG.GenClr(suf=self.pipeLine.StgNameAt(istg))
@@ -337,7 +337,7 @@ class FB(object):
 					wdRtl = rtl
 				elif rtl.des == wr:
 					wrRtl = rtl
-			if wdRtl is None or wrRtl is None:
+			if wrRtl is None or wdRtl is None:
 				continue
 			insn = self.insnMap.find(insnName)
 			logging.debug("[WStgInsn] insn = %s" % (insn.name))
