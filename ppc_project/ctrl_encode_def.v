@@ -32,6 +32,8 @@
 `define NPCOp_BC		3'd2
 `define NPCOp_BCCTR		3'd3
 `define NPCOp_BCLR		3'd4
+`define NPCOp_RFI		3'd5
+`define NPCOp_INT		3'd6
 
 
 /**** About DM ****/

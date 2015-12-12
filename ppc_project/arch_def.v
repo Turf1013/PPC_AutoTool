@@ -71,7 +71,7 @@
 `define IM_SIZE			1024
 `define IM_DEPTH		10
 `define IM_WIDTH		32
-`define IM_ADDR_BASE	32'h1000_0100
+`define IM_BASE_ADDR	32'h1000_0100
 
 
 /**** About DM ****/
@@ -79,7 +79,22 @@
 `define DM_DEPTH		10
 `define DM_WIDTH		32
 `define DMBE_WIDTH		4
-`define DM_ADDR_BASE	32'h1001_0000
+`define DM_BASE_ADDR	32'h1001_0000
+
+
+/**** About IO ****/
+`define IO_SIZE			1024
+`define IO_DEPTH		10
+`define IO_WIDTH		32
+`define IOBE_WIDTH		4
+`define	IO_SEL_RANGE	[16:23]
+`define IO_BASE_ADDR	32'h1002_0000
+`define TC0_BASE_ADDR	32'h1002_0000
+`define LED_BASE_ADDR	32'h1002_0100
+
+/**** About INT ****/
+`define INT_ENTRY_ADDR	32'h10000500
+
 
 /**** About TOP ****/
 `define INSTR_WIDTH		32

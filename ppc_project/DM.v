@@ -26,7 +26,7 @@ module DM (
 	wire [`ARCH_WIDTH-1:0] addr_;
 	wire [`DM_DEPTH-1:0] haddr;
    
-	assign addr_ = addr - `DM_ADDR_BASE;
+	assign addr_ = addr - `DM_BASE_ADDR;
 	assign haddr = addr_[`DM_DEPTH+1:2];
 	
 	integer i;

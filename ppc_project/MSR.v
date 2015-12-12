@@ -8,7 +8,7 @@
 `include "arch_def.v"
 
 module MSR (
-	clk, rst_n, wr, wd, rd
+	clk, rst_n, wr, wd, rd, EE
 );
 	
 	input 					clk;
@@ -16,6 +16,7 @@ module MSR (
 	input					wr;
 	input  [0:`MSR_WIDTH-1] wd;
 	output [0:`MSR_WIDTH-1] rd;
+	output					EE;
 	
 	/*******************/
 	// 16: EE, External enable;

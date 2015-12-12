@@ -21,7 +21,7 @@ module PC (
 	
 	always @( posedge clk or negedge rst_n ) begin
 		if ( !rst_n )
-			PC <= `IM_ADDR_BASE;
+			PC <= `IM_BASE_ADDR;
 		else if ( wr )
 			PC <= NPC;
 	end // end always

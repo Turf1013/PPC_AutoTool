@@ -9,7 +9,7 @@
 
 module NPC (
 	Imm26, Op, PC, PCB, CRrd,
-	CTRrd, LRrd, NPC, CTRwd, LRwd
+	CTRrd, LRrd, SRR0rd, NPC, CTRwd, LRwd
 );
 
 	input  [0:25] 				Imm26;
@@ -19,6 +19,7 @@ module NPC (
 	input  [0:`CR_WIDTH-1]	  	CRrd;
 	input  [0:`CTR_WIDTH-1]	  	CTRrd;
 	input  [0:`LR_WIDTH-1]	  	LRrd;
+	input  [0:`SPR_WIDTH-1]		SRR0rd;
 	output [0:`PC_WIDTH-1]    	NPC;
 	output [0:`CTR_WIDTH-1]   	CTRwd;
 	output [0:`LR_WIDTH-1]	  	LRwd;
@@ -99,6 +100,14 @@ module NPC (
 					NPC = {LRrd[0:`LR_WIDTH-3], 2'b00};
 				else
 					NPC = PCB_PLUS4;
+			end
+			
+			`NPCOp_INT: begin
+				NPC = `INT_ENTRY_ADDR;
+			end
+			
+			`NPCOp_RFI: begin
+				NPC = SRR0rd;
 			end
 			
 			default: begin

@@ -17,7 +17,7 @@ module IM (
 	wire [`IM_DEPTH-1:0] im_addr;
     reg [`IM_WIDTH-1:0] imem[`IM_SIZE-1:0];
 	
-	assign addr_ = addr - `IM_ADDR_BASE;
+	assign addr_ = addr - `IM_BASE_ADDR;
 	assign im_addr = addr_[`IM_DEPTH+1:2];
 	assign dout = imem[im_addr];
     
