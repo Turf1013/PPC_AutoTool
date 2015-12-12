@@ -406,10 +406,8 @@ class Datapath(object):
 		ret = ""
 		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
 		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
-		if istg >= rstg:
-			ret += pre + "\t" + "if ( !rst_n || clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg))
-		else:
-			ret += pre + "\t" + "if ( !rst_n ) begin\n"
+		# handle reset
+		ret += pre + "\t" + "if ( !rst_n ) begin\n"
 		for outVar in pipeDict.iterkeys():
 			if outVar.startswith(CFD.INSTR):
 				ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
@@ -418,7 +416,7 @@ class Datapath(object):
 		ret += pre + "\t" + "end\n"
 		if istg < rstg:
 			# 1. check if stall
-			ret += pre + "\t" + "else if ( clr_%s ) begin\n" % (self.pipeLine.StgNameAt(rstg))
+			ret += pre + "\t" + "else if ( stall ) begin\n"
 			for outVar in pipeDict.iterkeys():
 				ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, outVar)
 			ret += pre + "\t" + "end\n"
@@ -432,6 +430,26 @@ class Datapath(object):
 						ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 				ret += pre + "\t" + "end\n"
 			# 3. add else
+			
+		else:
+			# handle clr
+			"(1) clear but still pipe the result; "
+			ret += pre + "\t" + "else if ( clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg))
+			for outVar, inVar in pipeDict.iteritems():
+				if outVar.startswith(CFD.INSTR):
+					ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+				else:
+					ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
+			ret += pre + "\t" + "end\n"
+			"(2) clear all the value"
+			# ret += pre + "\t" + "else if ( clr_%s ) begin\n" % (self.pipeLine.stgNameAt(istg))
+			# for outVar, inVar in pipeDict.iteritems():
+				# if outVar.startswith(CFD.INSTR):
+					# ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+				# else:
+					# ret += pre + "\t\t" + "%s <= 0;\n" % (outVar6)
+			# ret += pre + "\t" + "end\n"
+			
 		ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():
 			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)

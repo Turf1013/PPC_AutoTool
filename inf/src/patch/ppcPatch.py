@@ -9,7 +9,7 @@ class constForMipsPatch:
 	PPC_FILE = PPC + ".v"
 	CONTROL_FILE = CONTROL + ".v"
 	CsNameList = [
-		["SPR_wd0_W_Pmux_sel_W", "NPC_PCB_W"],
+		["SPR_wd0_W_Pmux_sel_W", "PC_PC_W"],
 		["SPR_wd1_W_Pmux_sel_W", "MSR_rd_W"],
 		["SPR_waddr0_W_Pmux_sel_W", "`SRR0_ADDR"],
 		["SPR_waddr1_W_Pmux_sel_W", "`SRR1_ADDR"],
@@ -25,7 +25,20 @@ class constForMipsPatch:
 	csPrefix = "/*********   Logic of "
 	clrDPrefix = "//// same meaning as clr_D ="
 	wirePrefix = "// wire"
-	
+	INTBLOCK = """
+	// logic of INT
+	always @(posedge clk or negedge rst_n) begin
+		if ( !rst_n ) begin
+			INTE_INT_E <= 1'b0;
+			INTE_INT_M <= 1'b0;
+			INTE_INT_W <= 1'b0;
+		end
+		else begin
+			INTE_INT_E <= INTE_INT_D;
+			INTE_INT_M <= INTE_INT_E;
+			INTE_INT_W <= INTE_INT_M;
+		end
+	end // end always\n"""
 	
 class CFMP(constForMipsPatch):
 	pass
@@ -222,12 +235,44 @@ class ppcPatch:
 		s2 = line[:lpos+1] + "LED_dis" + line[rpos:]
 		self.ppcLines = self.ppcLines[:i] + [s1] + self.ppcLines[i:j] + [s2] + self.ppcLines[j+1:]
 		
+		
+	def	__patchINT(self):
+		L = []
+		i = 0
+		nLine = len(self.ppcLines)
+		found = False
+		while i < nLine:
+			rawLine = self.ppcLines[i]
+			line = rawLine.lstrip()
+			if found:
+				if line.startswith(".INT"):
+					found = False
+					L.append("\t\t.INT(INTE_INT_D),\n")
+					i += 1
+					
+			elif line.startswith(CFMP.wirePrefix):
+				L.append(rawLine)
+				# L.append("\twire INTE_INT_D;\n");
+				L.append("\treg INTE_INT_E, INTE_INT_M, INTE_INT_W;\n");
+				i += 1
+				
+			elif line.startswith("INTE I_INTE"):
+				found = True
+				
+			elif line.startswith("endmodule"):
+				L.append(CFMP.INTBLOCK)
+				
+			L.append(self.ppcLines[i])
+			i += 1
+		self.ppcLines = L
+		
 			
 	def PatchPpc(self):
 		if not ( CFG.PPC and CFG.IO ):
 			return
 		self.__patchCtrl()
 		self.__patchLed()
+		self.__patchINT()
 		with open(os.path.join(self.workDirectory, CFMP.PPC_FILE), "w") as fout:
 			fout.write("".join(self.ppcLines))
 	

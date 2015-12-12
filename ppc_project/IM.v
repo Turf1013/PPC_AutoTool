@@ -7,9 +7,10 @@
 `include "arch_def.v"
 
 module IM (
-	addr, dout
+	clk, addr, dout
 );
     
+	input clk;
     input  [`ARCH_WIDTH-1:0] addr;
     output [0:`IM_WIDTH-1] dout;
     

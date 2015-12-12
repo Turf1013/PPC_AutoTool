@@ -8,11 +8,12 @@
 `include "arch_def.v"
 
 module MSR (
-	clk, rst_n, wr, wd, rd, EE
+	clk, rst_n, wr, wd, rd, EE, INT
 );
 	
 	input 					clk;
 	input 					rst_n;
+	input					INT;
 	input					wr;
 	input  [0:`MSR_WIDTH-1] wd;
 	output [0:`MSR_WIDTH-1] rd;
@@ -31,6 +32,9 @@ module MSR (
 			EE <= 0;
 			ME <= 0;
 			LE <= 0;
+		end
+		else if (INT) begin
+			EE <= 1'b0;
 		end
 		else if ( wr ) begin
 			EE <= wd[16];

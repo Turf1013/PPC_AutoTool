@@ -99,34 +99,38 @@ module TC8253 (
     reg out_r;
     
     always @( posedge clk or negedge rst_n ) begin
-       if (!rst_n)
-          out_r <= 1'b1;
-       else if (we_mode)
-          out_r <= 1'b1;
-       else if (!stop) begin       
-          case ( MODE[2:0] )
-             3'b001: begin            // MODE0: Interrupt Signal Generator
-                if (cnt == 32'd0)
-                   out_r <= 1'b0;
-                else
-                   out_r <= 1'b1;      
-             end
-             3'b011: begin            // MODE1: Frequency Timing Generator
-                if (cnt == 32'd1)
-                   out_r <= 1'b0;
-                else
-                   out_r <= 1'b1;
-             end   
-             3'b101: begin            // MODE2: Sequare Wave Generator
-                if (cnt > { 1'b0,INIT_CNT[31:1] })
-                   out_r <= 1'b1;
-                else
-                   out_r <= 1'b0;
-             end
-             default: out_r <= 1'b1;      
-          endcase
-       end
-       else   ; 
+		if (!rst_n)
+			out_r <= 1'b0;
+		else if (we_mode)
+			out_r <= 1'b0;
+		else if (!stop) begin       
+			case ( MODE[2:0] )
+				3'b001: begin            // MODE0: Interrupt Signal Generator
+					if (cnt == 32'd0)
+						out_r <= 1'b1;
+					else
+						out_r <= 1'b0;      
+				end
+				3'b011: begin            // MODE1: Frequency Timing Generator
+					if (cnt == 32'd1)
+						out_r <= 1'b1;
+					else
+						out_r <= 1'b0;
+				end   
+				3'b101: begin            // MODE2: Sequare Wave Generator
+					if (cnt > { 1'b0, INIT_CNT[31:1] })
+						out_r <= 1'b0;
+					else
+						out_r <= 1'b1;
+				end
+				default: begin
+					out_r <= 1'b1;      
+				end
+			endcase
+		end
+		else begin
+			out_r <= out_r;
+		end
     end // end always
     
     

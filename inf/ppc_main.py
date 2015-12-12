@@ -7,7 +7,7 @@ from src.routine.vfile import VFile
 from src.algorithm.FB import FB
 from src.algorithm.datapath import Datapath
 from src.algorithm.control import Control
-from src.patch.mipsPatch import mipsPatch
+from src.patch.ppcPatch import ppcPatch
 from src.glob.glob import CFG
 
 
@@ -42,6 +42,7 @@ if __name__ == "__main__":
 		"bc",
 		"bclr",
 		"bcctr",
+		"rfi",
 	]
 	
 	# remove ppc.v, mips.v, control.v
@@ -98,13 +99,13 @@ if __name__ == "__main__":
 	vFile.GenCtrlVFile(header=includeHead, code=ctrlCode)
 	vFile.GenPPCVFile(header=includeHead, code=dpCode, topFileName="ppc.v")
 	
-	logging.debug("[N of bpmux] %s\n" % (len(muxFromFB)))
+	
+	# ppc with INT need patch
+	if CFG.PPC and CFG.IO:
+		pp = ppcPatch(srcWorkDirectory)
+		pp.PatchControl()
+		pp.PatchPpc()
+	
+	# logging.debug("[N of bpmux] %s\n" % (len(muxFromFB)))
 	move(srcWorkDirectory, desWorkDirectory)
-	
-	
-	# mips need patch
-	if not CFG.PPC:
-		mp = mipsPatch(desWorkDirectory)
-		mp.PatchControl()
-		mp.PatchMips()
 	

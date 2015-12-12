@@ -31,7 +31,7 @@ module IOU (
     TC8253 TC0 (
 		.clk(clk),
 		.rst_n(rst_n),
-        .addr(addr[`ARCH_WIDTH-2:`ARCH_WIDTH-1]),
+        .addr(addr[`ARCH_WIDTH-4:`ARCH_WIDTH-3]),
 		.we(we_TC0),
 		.wd(din),
         .TC8253_data(TC0_data),
