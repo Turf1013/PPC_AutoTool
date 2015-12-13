@@ -25,6 +25,8 @@ class constForMipsPatch:
 	csPrefix = "/*********   Logic of "
 	clrDPrefix = "//// same meaning as clr_D ="
 	wirePrefix = "// wire"
+	inputPrefix = "// input"
+	outputPrefix = "// output"
 	INTBLOCK = """
 	// logic of INT
 	always @(posedge clk or negedge rst_n) begin
@@ -39,6 +41,14 @@ class constForMipsPatch:
 			INTE_INT_W <= INTE_INT_M;
 		end
 	end // end always\n"""
+	IOPortList = [
+		"LED_dis",
+		"hsync",
+		"vsync",
+		"ps2_clk",
+		"rgb",
+		"ps2_data",
+	]
 	
 class CFMP(constForMipsPatch):
 	pass
@@ -213,27 +223,67 @@ class ppcPatch:
 		self.ppcLines = self.ppcLines[:i] + L + self.ppcLines[i:]
 		
 		
-	def __patchLed(self):
+	def __findIO(self, name):
+		return name in CFMP.IOPortList
+	
+	
+	def __patchIO(self):
 		i = 0
 		nLine = len(self.ppcLines)
+		L = []
 		while i < nLine:
-			line = self.ppcLines[i].lstrip()
-			if line.startswith(CFMP.wirePrefix):
+			rawLine = self.ppcLines[i]
+			line = rawLine.lstrip()
+			if line.startswith("module"):
+				# add port delcare
+				L.append(rawLine)
+				line = "LED_dis, hsync, vsync, rgb, ps2_clk, ps2_data,\n"
+				L.append(line)
+				
+			elif line.startswith(CFMP.inputPrefix):
+				L.append(rawLine)
+				# add LED_dis
+				line = "\tinput [7:0] LED_dis;\n"
+				L.append(line)
+				# add ps2_clk, ps2_data
+				line = "\tinput ps2_clk, ps2_data;\n"
+				L.append(line)
+				
+			elif line.startswith(CFMP.outputPrefix):
+				L.append(rawLine)
+				# add hsync & vsync
+				line = "\toutput hsync, vsync;\n"
+				L.append(line)
+				# add rgb
+				line = "\toutput [7:0] rgb;\n"
+				L.append(line)
+				
+			elif line.startswith("SysBridge I_SysBridge"):
+				L.append(rawLine)
 				i += 1
-				break
+				while True:
+					rawLine = self.ppcLines[i]
+					line = rawLine.lstrip()
+					if line.startswith("."):
+						portName = line[1:line.index("(")]
+						if self.__findIO(portName):
+							# replace 0 by input or output
+							line = rawLine[:rawLine.index("(")+1] + portName + rawLine[rawLine.rindex(")"):]
+							L.append(line)
+						else:
+							L.append(rawLine)
+							
+					else:
+						L.append(rawLine)
+						break
+						
+					i += 1
+				
+			else:
+				L.append(rawLine)
 			i += 1
-		j = i
-		while j < nLine:
-			line = self.ppcLines[j].lstrip()
-			if line.startswith(".LED_dis"):
-				break
-			j += 1
-		s1 = "\twire [7:0] LED_dis;\n"
-		line = self.ppcLines[j]
-		lpos = line.index("(")
-		rpos = line.rindex(")")
-		s2 = line[:lpos+1] + "LED_dis" + line[rpos:]
-		self.ppcLines = self.ppcLines[:i] + [s1] + self.ppcLines[i:j] + [s2] + self.ppcLines[j+1:]
+			
+		self.ppcLines = L
 		
 		
 	def	__patchINT(self):
@@ -271,8 +321,8 @@ class ppcPatch:
 		if not ( CFG.PPC and CFG.IO ):
 			return
 		self.__patchCtrl()
-		self.__patchLed()
 		self.__patchINT()
+		self.__patchIO()
 		with open(os.path.join(self.workDirectory, CFMP.PPC_FILE), "w") as fout:
 			fout.write("".join(self.ppcLines))
 	

@@ -1,7 +1,8 @@
 `include "arch_def.v"
 
 module SysBridge (
-	clk, rst_n, addr, din, BE, dout, wr, LED_dis, hw_int
+	clk, rst_n, addr, din, BE, dout, wr, hw_int,
+	LED_dis, hsync, vsync, rgb, ps2_clk, ps2_data
 );
 
 	input						clk;
@@ -13,6 +14,11 @@ module SysBridge (
 	output	[0:`ARCH_WIDTH-1] 	dout;
 	output	[7:0]				LED_dis;
 	output						hw_int;
+	output	[7:0]				rgb;
+	output						hsync;
+	output						vsync;
+	input						ps2_clk;
+	input						ps2_data;
 	
  
 	reg [0:`ARCH_WIDTH-1]	dout;
@@ -62,7 +68,12 @@ module SysBridge (
 		.din(din), 
 		.dout(IOrd),
 		.LED_dis(LED_dis), 
-		.hw_int(hw_int)
+		.hw_int(hw_int),
+		.hsync(hsync),
+		.vsync(vsync),
+		.rgb(rgb),
+		.ps2_clk(ps2_clk),
+		.ps2_data(ps2_data)
 	);
 
 endmodule

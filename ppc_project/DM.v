@@ -18,7 +18,8 @@ module DM (
 	input  [0:`DMBE_WIDTH-1] BE;
 	input         		     wr;
 	input  [`ARCH_WIDTH-1:0] addr;
-	input  [0:`DM_WIDTH-1]   din;
+	// input  [0:`DM_WIDTH-1]   din;
+	input  [`DM_WIDTH-1:0]   din;
 	output [0:`DM_WIDTH-1]   dout;
      
 	reg [`DM_WIDTH-1:0] dmem[`DM_SIZE-1:0];
@@ -37,18 +38,23 @@ module DM (
    
 	always @( posedge clk ) begin
 		if ( wr ) begin
-			if (BE[0]) dmem[haddr][31:24] <= din[24:31];
-			if (BE[1]) dmem[haddr][23:16] <= din[16:23];
-			if (BE[2]) dmem[haddr][15:8 ] <= din[ 8:15];
-			if (BE[3]) dmem[haddr][ 7:0 ] <= din[ 0:7 ];
+			// if (BE[0]) dmem[haddr][31:24] <= din[24:31];
+			// if (BE[1]) dmem[haddr][23:16] <= din[16:23];
+			// if (BE[2]) dmem[haddr][15:8 ] <= din[ 8:15];
+			// if (BE[3]) dmem[haddr][ 7:0 ] <= din[ 0:7 ];
+			if (BE[0]) dmem[haddr][31:24] <= din[31:24];
+			if (BE[1]) dmem[haddr][23:16] <= din[23:16];
+			if (BE[2]) dmem[haddr][15:8 ] <= din[15:8 ];
+			if (BE[3]) dmem[haddr][ 7:0 ] <= din[ 7:0 ];
 		end
 	end // end always
   
 	wire [`DM_WIDTH-1:0] tmp;
   
 	assign tmp = dmem[haddr];
-	assign dout = {tmp[7:0], tmp[15:8], tmp[23:16], tmp[31:24]};
-    
+	// assign dout = {tmp[7:0], tmp[15:8], tmp[23:16], tmp[31:24]};
+    assign dout = tmp;
+	
 endmodule
 
 module DMIn_BE (

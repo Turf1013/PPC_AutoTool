@@ -71,7 +71,7 @@
 `define IM_SIZE			1024
 `define IM_DEPTH		10
 `define IM_WIDTH		32
-`define IM_BASE_ADDR	32'h1000_0100
+`define IM_BASE_ADDR	32'h1000_0000
 
 
 /**** About DM ****/
@@ -90,10 +90,19 @@
 `define	IO_SEL_RANGE	[16:23]
 `define IO_BASE_ADDR	32'h1002_0000
 `define TC0_BASE_ADDR	32'h1002_0000
+`define TC0_HIGH_ADDR	8'h00
 `define LED_BASE_ADDR	32'h1002_0100
+`define LED_HIGH_ADDR	8'h01
+`define KBD_BASE_ADDR	32'h1002_0200
+`define KBD_HIGH_ADDR	8'h02
+`define VGA_BASE_ADDR	32'h1002_0300
+`define VGA_HIGH_ADDR	8'h03
+`define GCM_BASE_ADDR	32'h1002_1000
+`define GCM_HIGH_ADDR	8'h10
+
 
 /**** About INT ****/
-`define INT_ENTRY_ADDR	32'h10000500
+`define INT_ENTRY_ADDR	32'h10000100
 
 
 /**** About TOP ****/

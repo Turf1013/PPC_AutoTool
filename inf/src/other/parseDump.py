@@ -1,5 +1,6 @@
 import re
 import os
+from ..glob.glob import CFG
 
 class constForParseDump:
 	prefix = "10000100:	"
@@ -101,7 +102,10 @@ class parseDump:
 										ret.append(CFPD.NOP)
 								paddr = addr
 								L = dataList[1:5]
-								data = "".join(L[::-1])
+								if CFG.BigEndian:
+									data = "".join(L[::-1])
+								else:
+									data = "".join(L)
 								ret.append(data)
 					break
 		return ret
@@ -186,11 +190,5 @@ class parseDump:
 		with open(fileName, "w") as fout:
 			fout.write(lines)
 			
-		
-if __name__ == "__main__":
-	srcFileName = "F:\Qt_prj\hdoj\data.in"
-	desFileName = "F:\Qt_prj\hdoj\data.out"
-	
-	L = parseDump.GenCode(srcFileName)
-	parseDump.WriteFile(desFileName, L)
+
 	
