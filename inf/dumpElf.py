@@ -5,6 +5,6 @@ if __name__ == "__main__":
 	srcFileName = "F:\Qt_prj\hdoj\data.in"
 	desFileName = "F:\Qt_prj\hdoj\data.out"
 	
-	L = parseDump.GenData(srcFileName)
+	L = parseDump.GenCode(srcFileName)
 	parseDump.WriteFile(desFileName, L)
 	

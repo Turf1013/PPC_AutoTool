@@ -237,20 +237,20 @@ class ppcPatch:
 			if line.startswith("module"):
 				# add port delcare
 				L.append(rawLine)
-				line = "LED_dis, hsync, vsync, rgb, ps2_clk, ps2_data,\n"
+				line = "\tLED_dis, hsync, vsync, rgb, ps2_clk, ps2_data,\n"
 				L.append(line)
 				
 			elif line.startswith(CFMP.inputPrefix):
 				L.append(rawLine)
-				# add LED_dis
-				line = "\tinput [7:0] LED_dis;\n"
-				L.append(line)
 				# add ps2_clk, ps2_data
 				line = "\tinput ps2_clk, ps2_data;\n"
 				L.append(line)
 				
 			elif line.startswith(CFMP.outputPrefix):
 				L.append(rawLine)
+				# add LED_dis
+				line = "\toutput [7:0] LED_dis;\n"
+				L.append(line)
 				# add hsync & vsync
 				line = "\toutput hsync, vsync;\n"
 				L.append(line)
