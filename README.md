@@ -11,6 +11,7 @@ Included
 + Geass: v1.0, auto tool for solving the hezard, testing only By MIPS ISA. 	(discard)
 + Gargoyle: a auto tool for generating HDL code for pipeline.				(discard)
 + inf: v0.1, automatic pipeline microprocessor with HDL-implementing.		(updating)
++ PPC: PowerPC C project for writing code in PPC.							(updating)
 + IG: automatic generator test program which covers all hazard.				(updating)
 + Mandrill: a checking tool for specific insn in different ways
 + TestData: a collection of test File
