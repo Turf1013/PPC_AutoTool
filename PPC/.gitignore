@@ -6,6 +6,7 @@ Desktop.ini
 # C:
 *.o
 *.o.gkd
+*.elf
 *.elf.txt
 *.bin
 *.dep
