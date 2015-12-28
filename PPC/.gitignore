@@ -4,8 +4,9 @@ ehthumbs.db
 Desktop.ini
 
 # C:
-*.o[.gkd]
-*.elf[.txt]
+*.o
+*.o.gkd
+*.elf.txt
 *.bin
 *.dep
 *.txt
