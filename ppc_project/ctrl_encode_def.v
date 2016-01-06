@@ -79,6 +79,7 @@
 `define ALUOp_RLIM	5'd20
 `define ALUOp_MOVB	5'd21
 `define ALUOp_NEG	5'd22
+`define ALUOp_EQV	5'd23
 
 `define CNTZ_00    32'b1xxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx
 `define CNTZ_01    32'b01xx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx

@@ -226,6 +226,11 @@ module ALU (
 				CA_r = 0;
 				OV_r = 0;
 			end
+			`ALUOp_EQV: begin
+				C = (srcA == srcB) ? 32'd1:32'd0;
+				CA_r = 0;
+				OV_r = 0;
+			end
 			`ALUOp_RLIM: begin
 				C = (rotv & mask) | (srcB & ~mask);
 				CA_r = 0;

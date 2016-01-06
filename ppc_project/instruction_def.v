@@ -63,6 +63,21 @@
 `define CRXOR_OPCD	6'b010_011
 `define CRXOR_XLXO	10'b00110_00001
 
+`define CROR_OPCD	6'b010_011
+`define CROR_XLXO	10'b01110_00001
+
+`define CRNAND_OPCD	6'd19
+`define CRNAND_XLXO	10'd225
+
+`define CREQV_OPCD	6'd19
+`define CREQV_XLXO	10'd289
+
+`define CRANDC_OPCD	6'd19
+`define CRANDC_XLXO	10'd129
+
+`define CRORC_OPCD	6'd19
+`define CRORC_XLXO	10'd417
+
 `define DIVW_OPCD	6'b011_111
 `define DIVW_XOXO	9'b11110_1011
 
@@ -255,6 +270,16 @@
 `define SUBFZE_OPCD	6'b011_111
 `define SUBFZE_XOXO	9'b01100_1000
 
+`define XOR_OPCD	6'b011_111
+`define XOR_XXO		10'b01001_11100
+
+`define XORI_OPCD	6'b011010
+
+`define XORIS_OPCD	6'b011011
+
+`define EQV_OPCD	6'b31
+`define EQV_XXO		10'b284
+
 `define SYNC_OPCD	6'b011_111
 `define SYNC_XXO	10'b10010_10110
 
@@ -262,13 +287,6 @@
 
 `define WRTEEI_OPCD	6'b011_111
 `define WRTEEI_XXO 	10'b00101_00011
-
-`define XOR_OPCD	6'b011_111
-`define XOR_XXO		10'b01001_11100
-
-`define XORI_OPCD	6'b011010
-
-`define XORIS_OPCD	6'b011011
 
 `define RFI_OPCD	6'b010_011
 `define RFI_XLXO	10'b00001_10010
