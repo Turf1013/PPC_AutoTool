@@ -8,7 +8,28 @@
 		`insn.coe`: the code of instruction
 		`data.coe`: the value of defined global data
 */
-#include <bits/stdc++.h>
+#include <iostream>
+#include <sstream>
+#include <ftream>
+#include <string>
+#include <map>
+#include <queue>
+#include <set>
+#include <stack>
+#include <vector>
+#include <deque>
+#include <bitset>
+#include <algorithm>
+#include <cstdio>
+#include <cmath>
+#include <ctime>
+#include <cstring>
+#include <climits>
+#include <cctype>
+#include <cassert>
+#include <functional>
+#include <iterator>
+#include <iomanip>
 using namespace std;
 
 #define sti				set<int>

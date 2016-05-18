@@ -1,0 +1,502 @@
+%-*- coding:UTF-8 -*-
+% PPC自动化算法v5.tex
+\documentclass[UTF8]{ctexart}
+\usepackage{geometry}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{dsfont}
+\usepackage{amsthm}
+\usepackage{listings} %插入代码
+\usepackage{xcolor} %代码高亮
+\usepackage{blkarray}
+\usepackage{diagbox}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{varwidth}
+\usepackage{float}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage[all,pdf]{xy}
+\usepackage{verbatim}   %comment
+\usepackage{cases}
+\usepackage{clrscode3e}	% need clrscode3e package which is not included in CTex.
+\usepackage{hyperref}
+\usepackage{bm}
+
+\geometry{screen}
+\hypersetup{
+    colorlinks=true,
+    bookmarks=true,
+    bookmarksopen=false,
+    %pdfpagemode=FullScreen,
+    pdfstartview=fit,
+    pdftitle={DNA-Align},
+    pdfauthor={Trasier}
+}
+
+% THEOREM Environments --------------------------------------------------------
+\newtheorem{thm}{Theorem}[subsection]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{prob}[thm]{Problem}
+\newtheorem{mthm}[thm]{Main Theorem}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+\numberwithin{equation}{subsection}
+% MATH ------------------------------------------------------------------------
+\DeclareMathOperator{\RE}{Re}
+\DeclareMathOperator{\IM}{Im}
+\DeclareMathOperator{\ess}{ess}
+\newcommand{\eps}{\varepsilon}
+%\newcommand{\To}{\longrightarrow}  conflict with \package{clrscode3e}p
+\newcommand{\h}{\mathcal{H}}
+\newcommand{\s}{\mathcal{S}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\BOP}{\mathbf{B}}
+\newcommand{\BH}{\mathbf{B}(\mathcal{H})}
+\newcommand{\KH}{\mathcal{K}(\mathcal{H})}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Field}{\mathbb{F}}
+\newcommand{\RPlus}{\Real^{+}}
+\newcommand{\Polar}{\mathcal{P}_{\s}}
+\newcommand{\Poly}{\mathcal{P}(E)}
+\newcommand{\EssD}{\mathcal{D}}
+\newcommand{\Lom}{\mathcal{L}}
+\newcommand{\States}{\mathcal{T}}
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\seq}[1]{\left<#1\right>}
+\newcommand{\norm}[1]{\left\Vert#1\right\Vert}
+\newcommand{\essnorm}[1]{\norm{#1}_{\ess}}
+
+
+% Some setup
+\pagestyle{plain}
+\geometry{a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm}
+\CTEXsetup[format={\raggedright\bfseries\Large}]{section}
+\lstset{numbers=left, %设置行号位置
+        numberstyle=\small, %设置行号大小
+        keywordstyle=\color{blue}, %设置关键字颜色
+        commentstyle=\color{purple}, %设置注释颜色
+        %frame=single, %设置边框格式
+        escapeinside=``, %逃逸字符(1左面的键)，用于显示中文
+        breaklines, %自动折行
+        extendedchars=false, %解决代码跨页时，章节标题，页眉等汉字不显示的问题
+        %xleftmargin=2em,xrightmargin=2em, aboveskip=1em, %设置边距
+        tabsize=4, %设置tab空格数
+        showspaces=false %不显示空格
+       }
+
+% About math
+\newcommand{\rmnum}[1]{\romannumeral #1}
+\newcommand{\Emph}{\textbf}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcommand{\resetcounter}{\setcounter{equation}{0}}
+\newcommand{\equsuf}[1][x]{\equiv_{\textit{Suff(#1)}}}	
+\newcommand{\Suff}{\textit{Suff}}
+\newcommand{\len}[1][x]{\textit{length}_{#1}}
+
+% section deeep to 3 1.1.1
+\setcounter{secnumdepth}{3}
+
+\begin{document}
+
+\title{\Huge 流水线自动化的算法设计}
+\vspace{2cm}
+\author{\Large Trasier}
+\date{\today}
+\maketitle
+
+
+\section{Introduction}
+\label{sec:intro}
+	
+	流水线微处理器的设计和实现不能说很困难，但却很复杂。
+	设计流水线微处理器的难点之一在于解决冲突，而随着流水线阶段的增加，
+	冲突的种类和数量会急剧增加。而人工考虑如何解决冲突需要花费大量的时间和精力，
+	仍难免会存在错误。而最终实现的微处理器代码具有大量类似或者相近的逻辑，
+	因此，我们不禁产生这样的思考：能不能根据一定的输入，自动生成基于该输入规范的
+	流水线微处理器。同时，能不能保证这一实现的正确性。为此，显然需要开发这样一个算法：
+	即以流水线微处理器的设计规范作为输入，输出使用Verilog语言描述的流水线微处理器。
+	
+
+\section{Notations}
+\label{sec:notation}
+	
+	
+	
+	使用$Insns$表示指令集合，
+	使用$Insns_{MC}$表示Mutli-Cycle类指令集合，
+	使用$Insns_{Br}$表示分支类指令。
+	
+	使用$Stages$表示流水线微处理器的阶段集合，使用$|Stages|$表示流水线微处理器的阶段数目。	\\
+	
+	使用$Modules$表示流水线微处理器设计的核心模块。
+	使用$Port$表示模块的端口，使用$Port_I$表示输入端口，使用$Port_O$表示输出端口。
+	
+
+\section{Tool Introduction}
+\label{sec:ppc_algov5}
+
+\subsection{Introduction}
+	
+	前几个版本的算法的核心思想是正向解决问题，即由\Emph{RTL}找到所有可能的指令组合，
+	从而指定何时的冲突处理策略。存在的隐患是是否正确处理了冲突对以及多条写指令-单条读指令的情况就一定正确处理了冲突。
+	
+	v5的算法从另一个角度思考问题。不同的流水线冲突处理的策略都具有相同的目的，
+	即正确处理流水线处理器中的所有可能冲突，那么，可能的冲突到底有哪些？
+	我们是否能直接构造这些冲突。
+	若我们可以构造这些冲突，那么直接制定针对这些冲突的处理策略即可。
+	这个过程其实是由仿真测试、发现问题并修改设计的过程。
+	我们可以将之理解为：初始时，我们没有设计；然后，我们知道了所有可能的冲突情况，
+	我们针对这个情况设计微处理器。因为，我们了解到的是全集的情况，从而我们的策略也一定是完备的。
+	
+	那么问题变成为如何找到所有的冲突情况，如何通过旁路和阻塞技术最优的处理冲突。
+
+	
+\subsection{Framework}
+
+	按照功能及耦合性可以大致分成三个\Emph{Layer}。见图~\ref{fig:v5_architecture}。
+	\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.6]{v5_arch.png}
+    \caption{v5基本框架}
+	\label{fig:v5_architecture}
+	\end{figure}
+	
+	\begin{itemize}
+	
+		\item \Emph{RTL}层
+		
+		RTL层主要包含算法的输入，其中包括的\Emph{JSON}格式的RTL信息，流水线规范设计，配置文件信息等内容。
+		需要具备的基本功能包括对RTL的解析、分类，对规范设计的解析等。
+		
+		\item \Emph{Algorithm}层
+		
+		Algorithm层主要包含将RTL信息自动转化为Verilog代码的核心算法，即该层次起承上启下的左右。
+		以RTL层作为输入，其输出作为Verilog层的依据。
+		其中算法主要针对如下几个方面进行讨论：
+		\begin{enumerate}[(1)]
+			
+			\item 如何自动生成控制信号？
+			
+			\item 如何自动生成端口MUX？
+			
+			\item 如何处理基本冲突？
+			
+			\item 如何处理\Emph{Multi-Cycle}指令引发的冲突？
+			
+			\item 如何支持中断系统？
+			
+		\end{enumerate}
+		在正确处理上述几个问题后，算法以预先提供的\Emph{核心模块}的RTL作为基本模块，
+		自动构建完整的\Emph{控制器}和\Emph{数据通路}，最终可得到完整的处理器的Verilog实现。
+		
+		在Algorithm层，对如下几个方面具备一定的优化能力：
+		\begin{enumerate}[(1)]
+		
+			\item 控制表达式的整合
+			
+			\item 低利用率MUX的分离
+			
+			\item 协议的提取
+			
+		\end{enumerate}
+		同时，将围绕如下几个方面进行验证：
+		\begin{enumerate}[(1)]
+		
+			\item 冲突命中的验证
+			
+			\item 算法正确性的验证
+			
+			\item 流水线正确性的形式化验证
+			
+		\end{enumerate}
+		
+		
+		\item \Emph{Verilog}层
+		
+		在Verilog层主要进行对Verilog代码的仿真和性能进行测试。其中主要功能包括
+		冲突覆盖用例生成、使用ISE-QEMU-CrossCompile工具链进行自动仿真测试、解析综合性能仿真报告。
+		
+	
+	\end{itemize}
+		
+\subsection{Find All Hazard}
+
+	流水线冲突主要包含三类：
+	\begin{enumerate}[(1)]
+	
+		\item 控制冲突
+		
+		\item 部件冲突
+		
+		\item 读写冲突
+		
+	\end{enumerate}
+	
+	控制冲突主要发生在分支指令时，往往采用固定策略进行处理，如支持延迟槽、分支预测等。
+	这里\Emph{PowerPC}体系结构是不支持延迟槽的，分支预测可选，这里选择为不支持。
+	实际上，控制冲突的解决策略是固化的，一旦确定了分支类指令及相应的处理策略。
+	则控制冲突的处理策略和电路逻辑基本上是固定的。
+	
+	部件冲突往往采用部件并行解决，当某些情况不支持部件并行时，往往引入\Emph{busy}控制信号解决该类冲突。
+	在基于\Emph{PowerPC}体系结构的流水线微处理器的设计中，当多条乘除法指令连续发射时，会引发该类冲突。
+	因此，为需要\Emph{Multi-Cycle}完成执行的核心部件增加\Emph{busy}控制信号并增加相应的控制逻辑是有效的处理策略。
+	
+	上述两类冲突均采用固化的策略进行处理，更主要的是往往采用阻塞辅助解决。
+	然而，对于读写冲突，即可以使用旁路转发机制也可以使用阻塞机制进行处理。
+	% 可以调研读写冲突的比重
+	由于读写操作几乎是任何微处理器最普遍的操作，因此读写冲突在流水线冲突中占据较大比重。
+	故正确地处理该类冲突时流水线微处理器的自动化设计的关键。
+	
+	那么问题转化成流水线微处理器中，究竟有多少读写冲突？
+	不放假定当前设计的流水线级数为$n$，ISA的数量为$|S| = c$。
+	根据流水线处理器的定义可知，在任何时刻微处理器中都一定存在$n$条指令，这里$nop$指令或者$flushed$指令均算做内。
+	因此，假设我们可以构造长度为$n$的排列，并且枚举所有排列中包含冲突的情况。
+	那么我们就得到了所有的冲突。显然仅粗略观察至少包含$c^n$种情况（显然不只这些种，考虑寄存器地址）。
+	这已经是个近似天文的数字了。那么我们如何快速地去表达流水线冲突。
+	
+	显然这里可以使用状态压缩，即我并不关心这$n$条指令的汇编具体是什么样的。
+	我更关注于我是否覆盖了所有的冲突组合。
+	因此，使用3个状态表示指令的状态：0表示不相关；1表示相关的读指令；2表示相关的写指令。
+	对于不相关的指令我们毫不关心。因此，所有的冲突情况都可以写成长度为$n$、由$[0, 1 ,2]$组成的序列。
+	显然当流水线级数处在一定规模内时，这个序列是可枚举的。
+	
+	从而我们找到了一种映射方式方式：将所有的冲突情况使用排列表示。
+	那么为了还原所有的冲突情况，我们仅仅需要对$[1, 2]$所在位置的指令进行枚举。
+	考虑$c \in [100, 500]$这个情况还是太多了，但是万幸的是我们可以对指令类型进行简单的预处理。
+	因为很多指令的$RTL$几乎是相同的。经验上看我们可以将指令规模降低为$[10,20]$。
+	这样所有的冲突情况一定是可枚举的。
+	
+	从更加细粒度的角度来看，我们仍然需要考虑几个维度：
+	\begin{itemize}
+	
+		\item 寄存器类型
+		
+		\item 读指令的读通道
+		
+		\item 写指令的写通道
+		
+	\end{itemize}
+	这里，寄存器的类型必然是需要枚举的。然而，
+	对于\Emph{读指令的读通道}和\Emph{写指令的写通道}我们不必枚举，我们可以假定最坏情况：
+	即\Emph{所有}读指令的\Emph{所有}读通道与\Emph{所有}写指令的\Emph{所有}写通道相关。
+	若其中部分通道不相关，则一定满足冲突产生条件故不产生转发或阻塞。
+	因此，可以看出我们的冲突种类是完备的。
+	
+	由这些冲突序列，我们可以对是否正确处理\Emph{冲突对}就意味着正确处理任意\Emph{冲突对}组合进行验证。
+	同时，也会发现不满足的情况并对原始假设进行修改。
+
+\subsection{Solve Hazard Optimal}
+	
+	旁路转发和阻塞是解决上述冲突的主要方法。
+	通过指令集合的RTL语义可以得到满足转发的最早阶段，将该阶段作为分割点。
+	选择旁路转发和阻塞策略。对于每种冲突，探索如何插入旁路转发多路选择器进行转发。
+	在必须的阶段插入多路选择器，并判定它可以覆盖的冲突情况。
+	因此，原问题转化为精确覆盖问题。
+	即使用最少的多路选择器覆盖全部的冲突。
+	故可以使用Dancing Links解得最优解。
+	
+\subsection{Handle Input}
+
+	刚结束的编程之美让我了解到JSON，一直以来的几个版本都使用\Emph{Excel}作为\Emph{RTL}的载体。
+	它存在的问题是极度依赖于第三方库或者微软产品。
+	这也导致一直用python开发，这是个脚本语言，导致可读性比较差。
+	同时，\Emph{RTL}的语法和语义都过于简单。
+	使用较复杂的语法和语义可以让\Emph{RTL}更灵活。
+	而JSON可以很好的解决这个问题。
+	
+	
+\section{Layer RTL}
+\label{sec:layer_rtl}
+	
+\subsection{RTL-JSON}	
+
+	以文本的格式保存RTL的JSON数据，每个JSON数据间以空行分割。每个JSON其实是一个字典，应该至少包含如下关键字：
+	\begin{itemize}
+	
+		\item \Emph{Insns}表示当前类别的指令集合
+		
+		\item $\mathbf{P_k}, k \in [1, |Stages|)$表示第$k$阶段的该类别的RTL描述
+		
+	\end{itemize}
+	除上述外，可以采用其他关键字指定同类别共同的RTL及指令集间不同的RTL。
+	
+	除RTL的JSON信息外，还应当提供处理器的设计规范，同样采用JSON格式。仅包含一个字典，应该至少包含如下几个方面：
+	\begin{itemize}
+	
+		\item \Emph{Modules}表示核心模块
+		
+		\item \Emph{Stages}表示流水线微处理器的阶段集合
+		
+		\item \Emph{Insns}表示定制的指令集合且满足$Insns_{Spec} \subseteq Insns_{RTL}$
+		
+		\item \Emph{Br-Insns}表示分支类指令的集合
+		
+		\item \Emph{MC-Insns}表示Mutli-Cycle类指令的集合
+		
+	\end{itemize}
+	
+	此外，若需要生成得到的微处理器支持中断系统，还应当指令中断系统的JSON格式。
+	
+	\Emph{RTLParse}即针对RTL的解析，
+	JSON的格式设计与解析密不可分，因此将其划分为同一个模块，可以自定义构建JSON格式的解析。
+	而\Emph{RTLCollection}针对不同类别的RTL归类并构建模型，其中至少需要包含操作类RTL。
+	\Emph{SpecParse}即解析微处理器规范的JSON数据。
+	
+	在RTL层，需要构建RTLs\_Set用来投放每个阶段的RTL语句，
+	同时，需要建立如下模型:
+	\begin{itemize}
+		
+		\item \Emph{pipeline}
+		
+		\item \Emph{instruction}
+		
+		\item \Emph{module}
+		
+	\end{itemize}
+	
+\section{Layer Algorithm}
+\label{sec:layer_algorithm}
+
+	\Emph{Layer Algorithm}的主要任务是实现流水线自动化技术的核心算法，解决与此相关的关键问题。
+	该层的算法可以根据微处理器需要支持的关键技术进行修改，其实可以将该层划分为两个子层：
+	\begin{itemize}	
+		
+		\item \Emph{Automation}, 流水线自动化核心算法
+		
+		\item \Emph{Description}, 使用HDL语言进行描述
+	
+	\end{itemize}
+	
+\subsection{Core Module}
+
+\subsubsection{Merge Multiplexer}
+
+	完整的流水线微处理器的数据通路由控制器、核心模块、多路选择器、流水线寄存器及其它必要电路组成。
+	多路选择器是其中的重要组成部分，并且数量较多。因此，如何合理并正确的整合多路选择器是流水线自动化技术的难点之一。
+	
+	从功能上看，可以将多路选择器分为两类：
+	\begin{itemize}
+	
+		\item \Emph{Port Mux}端口多路选择器，即用来从多个核心模块的输入中选择其一
+		
+		\item \Emph{Bypass Mux}旁路转发多路选择器，即用来从多个旁路转发数据中选择其一
+		
+	\end{itemize}
+	
+	这里第一类旁路选择器可以直接通过RTL得到，通过解析RTL，
+	我们可以得到对于某个模块的输入端口有多少种输入来源，当输入来源数量超过1时，
+	显然该端口前需要放置至少一个多路选择器。
+	
+	而第二类旁路选择器的获得与冲突处理耦合度较大，因此，需要依赖于冲突处理策略才可以得到。
+	
+\subsubsection{Hazard}	
+	
+	这个版本的冲突处理的实现应该相对简单，并且相对清晰。
+	
+	\begin{mthm}
+		对于任何冲突均可以使用阻塞技术进行处理，仅部分冲突可以使用旁路技术处理。
+	\end{mthm}
+	
+	\begin{cor}
+	\label{cor:hazard_handle_principle}
+		对于任何冲突若不能使用旁路技术进行处理，则一定可以使用阻塞进行处理。
+	\end{cor}
+	
+	\Emph{控制冲突}可以通过由预先定义的分支类指令，构建相应的分支处理策略进行处理，
+	这其实是\Emph{half-hard-code}，因为分支策略相对固定，这里我们采用不支持延迟槽，
+	静态预测分支一定不发生。
+	
+	\Emph{部件冲突}仅仅发生在多条乘除类指令连续发射时，这类冲突产生的原因在于乘除法运算需要多个周期完成执行。
+	因此，若当前乘除队列非空，后续发射了另一条乘除类指令后。由于当前\kw{MDU}被占用，因此存在部件冲突。
+	显然，处理该类冲突的基本策略是对\Emph{Multi-Cycle}部件增加\id{Busy}信号，
+	当\id{Busy}信号为真时，应当阻塞流水线。
+	
+	首先，通过测试用例覆盖我们可以得到所有的冲突组合，将其建模为\Emph{Hop}。
+	由推论~\ref{cor:hazard_handle_principle}可以将必须使用阻塞处理的排列组合建模为\Emph{StallHazard}，
+	并且进行整合。同理，将可以使用旁路转发解决的冲突建模为\Emph{BypassHazard}，并进行归纳和整合。
+	
+	由推论~\ref{cor:hazard_handle_principle}反向思考，阻塞的数量已经是最优解，仅仅能够增加不能减少。
+	然而，冗余的是\Emph{Bypass Mux}。而这显然是一个精确覆盖问题，即我们需要使用最少的\Emph{Bypass Mux}。
+	并仍能够覆盖所有的冲突组合。显然，可以使用\Emph{Dancing Links}处理此问题，关键难点是如何构建\Emph{solution}。
+	
+\subsubsection{Multi-Cycle}	
+
+	仅仅使用\id{Busy}信号机制即可以支持\Emph{Multi-Cycle}指令，然而存在的问题是性能较低，
+	因为乘除类运算指令往往需要十个甚至几十个周期完成执行。
+	因此，采用\Emph{“顺序发射，乱序执行”}技术可以一定程度上提高性能。
+	
+	该技术指指令仍然按照原有顺序进行发射，但是指令的执行顺序与原始顺序不同，但仍然保证不影响程序的相关性。
+	这里存在如下几个问题：
+	\begin{enumerate}[(1)]
+		
+		\item MC指令与不相关指令同时完成执行阶段引发部件冲突
+		
+		这里的部件冲突其实指的是两条指令不可能同时进入流水线寄存器，因此需要新增加阻塞条件，
+		即这里的后续指令至少需要阻塞1个周期
+		
+		\item 如何保存MC指令的信息
+		
+		这里可以采用影子寄存器技术，可以针对流水线寄存器设置影子寄存器。也可以对单独对指令进行影子寄存，
+		并结合分布式译码。技术的难点在于恢复数据信息
+		
+		\item 如何处理MC指令与后续指令的冲突
+		
+		显然当MC指令进入影子寄存器后，并不在控制器的指令输入集中，因此需要重新考虑影子寄存器中的指令
+		与后续指令间的冲突。
+		
+	\end{enumerate}
+	
+	显然，这个技术很靠谱，但是我们需要实际的去考量采用这个技术是不是能提高性能。如何估算？
+	可以简单的通过MC指令的频度估算性能的提高
+
+\subsubsection{Interrupt}	
+
+	目前全部做成\Emph{Hard Code}，需要进一步对中断机制及中断类型进行抽象。
+	
+	
+\subsubsection{Core Module}
+	
+\subsubsection{Controller}
+
+\subsubsection{Datapath}
+
+\subsubsection{Expression Merge}
+
+\subsubsection{Mux Seperate}
+
+\subsubsection{Protocol Extract}
+
+\subsubsection{Hit Verification}
+
+\subsubsection{Algorithm Verification}
+
+\subsubsection{Formal Verification}
+	
+\section{Layer Verilog}
+\label{sec:layer_verilog}	
+
+\subsection{Case Generator}
+
+\subsection{Tool Chains}
+
+\subsection{Auto Simulate}p
+
+\subsection{Performance Experiment}
+	
+\end{document}
+
+	
