@@ -1,6 +1,6 @@
 %-*- coding:UTF-8 -*-
 % PPC自动化算法v5.tex
-\documentclass[UTF8]{ctexart}
+\documentclass[hyperref,UTF8]{ctexart}
 \usepackage{geometry}
 \usepackage{enumerate}
 \usepackage{amsmath}
@@ -33,7 +33,7 @@
     bookmarksopen=false,
     %pdfpagemode=FullScreen,
     pdfstartview=fit,
-    pdftitle={DNA-Align},
+    pdftitle={Auto-PPC},
     pdfauthor={Trasier}
 }
 
@@ -368,6 +368,32 @@
 		
 	\end{itemize}
 	
+\subsection{Interface}
+	
+	\begin{table}[H]
+    \centering
+	\caption{Layer\-RTL相关}
+	\begin{tabular}{|c|c|c|}
+    \hline
+		名称	&	描述	&	返回值		\\
+    \hline
+		\proc{dumpRtl}	& 返回每条指令的RTL	&	{"add":[[rtls@P0], [rtls@P1], $\cdots$ [rtls@Pk]]}	\\
+		\proc{dumpSpec}	& 返回微处理器的specification	& {"stage":[stageNames], $\cdots$}	\\
+    \hline
+	\end{tabular}
+	\end{table}
+	
+\subsection{Task}
+
+	\begin{enumerate}[(1)]
+	
+		\item 参考\href{https://github.com/Turf1013/PPC_AutoTool/blob/zyx_testBin/Last/json.format}{json.format}的格式，
+		定制RTL及微处理器Specification的格式
+		
+		\item 参考EXCEL设计较为复杂的文法，可以参考CMU论文的附录
+		
+	\end{enumerate}
+	
 \section{Layer Algorithm}
 \label{sec:layer_algorithm}
 
@@ -470,30 +496,144 @@
 	
 \subsubsection{Core Module}
 	
+	核心模块主要由如下几个部分组成
+	\begin{itemize}	
+		\item \kw{PC}, \kw{NPC}
+		\item \kw{GPR}, \kw{SPR}
+		\item \kw{CR}, \kw{CR\_ALU}
+		\item \kw{ALU}, \kw{MDU}
+		\item \kw{IM}, \kw{DM}
+		\item \kw{Converter}
+	\end{itemize}
+	
 \subsubsection{Controller}
+
+	控制器的主要逻辑包括
+	\begin{enumerate}[(1)]
+		
+		\item 写信号的控制逻辑
+		
+		\item 核心模块操作信号的控制逻辑
+		
+		\item Port\ Mux的片选信号
+		
+		\item Bypass\ Mux的片选信号
+		
+		\item 阻塞信号的控制逻辑
+		
+		\item Flush信号的控制逻辑
+		
+		\item 中断系统相关信号
+		
+	\end{enumerate}
 
 \subsubsection{Datapath}
 
+	数据通路的主要逻辑是实例化相关核心模块、控制器，并在需要位置插入多路选择器。
+	除此外，数据通路还应该实例化流水线寄存器。并潜在的包含部分的额外逻辑。数据通路的生成完全依赖于
+	其他模块的完成。
+
 \subsubsection{Expression Merge}
+	
+	\begin{defn}
+	\label{defn:expression_merge}
+	\Emph{Expression Merge} 指的是将整个工程的电路逻辑表达式进行分析，并经过一定合理的分析选择一定频度的表达式进行合并。
+	再保持原有时钟频率规模的前提下实现资源的降低。
+	\end{defn}
+	
+	做\Emph{Expression Merge}的契机主要是自动工具生成的流水线微处理器，远远大于同等指令规模的MIPS微处理器。
+	因此，我们不禁思考生成的微处理器的资源规模是否和自动生成verilog代码的策略有关。后续实验会围绕这个问题进行讨论。
+	对于生成的微处理器，尤其是控制器模块，包含大量的组合逻辑。因此，并且由于冲突条件的存在。导致很多子电路出现的
+	频度很高。因此，通过统计这全局控制逻辑的表达式，并对高频的表达式进行合并，从而将并行电路转化为级联电路。
+	显然，这样的策略可以实现减少资源的目的，但是过度的进行\Emph{Expression Merge}一定会较大程度上降低主频，这显然是个负效应。
+	因此，我们需要选择合理的标准来执行这个操作。
+	
 
 \subsubsection{Mux Seperate}
 
+	\begin{defn}
+	\label{defn:mux_seperate}
+	\Emph{Mux Seperate} 指的是将一个较多端口未使用的多路选择器转换为几个多路选择器的级联，一定程度上减少了所需资源。
+	\end{defn}
+	
+	做\Emph{Mux Seperate}的契机主要是随着流水线阶段的增加、指令规模的增加，\Emph{Datapath}中会产生越来越多的Mux。
+	然而，并不是每个Mux的利用率都是100\%。因为很多Mux的数据端口并不需要被使用，而多路选择器会随着端口的增加急剧增加。
+	因此，将较多端口未使用的Mux拆分成几个小规模的多路选择器的级联可以在保持原有逻辑正确的前提下，较大规模降低资源使用。
+	同时，保持原有的主频。
+
 \subsubsection{Protocol Extract}
+
+	\href{https://users.ece.cmu.edu/~jhoe/distribution/2010/nurvitadhi.pdf}{CMU}的论文很好的贡献是对
+	冲突处理协议的总结。这个协议其实就是实现\Emph{旁路}和\Emph{阻塞}机制需要哪些控制信号，并且这些控制
+	信号的功能都是什么，逻辑由哪些控制。为了支持\Emph{Cache}和\Emph{MMU}是否需要对协议进行修改。
 
 \subsubsection{Hit Verification}
 
+	处理流水线冲突的技术有很多种，你的设计中可以混合使用多种技术。但是，这并不能保证一个核心问题：
+	你考虑了所有可能的冲突以及你处理的所有的冲突。那么我们能不能再设计阶段就对冲突进行模拟和验证。
+	我们将这样的验证成为\Emph{Hit Verification}。
+	
+	\begin{defn}
+	\label{defn:hit_verify}
+	\Emph{Hit Verification}指在设计阶段对冲突处理策略是否可以覆盖所有可能的冲突组合进行验证，验证的主要
+	目的是为了检测冲突处理的完备性。
+	\end{defn}
+	
+	显然，正确的流水线微处理器的Hit Verification一定是正确的。我认为Hit Verification应该主要包含如下两个部分：
+	\begin{itemize}
+		\item 输入的文法设计
+		\item 冲突组合序列生成
+		\item 冲突覆盖性检测
+	\end{itemize}
+	\href{https://github.com/Turf1013/PPC_AutoTool/tree/master/IG}{IG}是目前实现的冲突序列生成的工具。
+	理论上生成所有指令的组合更具备全面性，但是由于这里仅仅是对覆盖完备性的验证。并不是对指令功能的验证。
+	因此，只要能够验证完备性即可。这里可以提取参数\Emph{覆盖率}用来衡量设计的优劣。
+
 \subsubsection{Algorithm Verification}
 
+	算法的验证主要包含如下几个方面：
+	\begin{enumerate}[(1)]
+		\item 算法确实可以解决流水线冲突的覆盖问题
+		\item 得到的解决策略确实是最优的
+	\end{enumerate}
+
 \subsubsection{Formal Verification}
+
+	基本思路是模型检测。
 	
 \section{Layer Verilog}
 \label{sec:layer_verilog}	
 
 \subsection{Case Generator}
 
-\subsection{Tool Chains}
+	覆盖所有可能冲突的序列是验证处理器正确性的基础，同时也是验证阶段的关键之一。任何无法通过完备测试用例的设计，
+	不足以进行后续阶段的测试。\href{https://github.com/Turf1013/PPC_AutoTool/tree/master/IG}{Case Generator}已经
+	实现了所需要的基本功能。理论上可以生成所有指令的冲突组合，同时也支持指令集的定义。
 
-\subsection{Auto Simulate}p
+\subsection{Tool Chains}
+	
+	新的工具链主要包括如下工具：
+	\begin{itemize}
+		\item \Emph{Last} 自动化工具，自动生成Verilog代码
+		\item \Emph{Hit} 覆盖检测工具，检测处理器的设计能否覆盖潜在的所有冲突
+		\item \Emph{IG} 测试用例生成工具，生成汇编级的测试用例
+		\item \Emph{AS} 自动仿真工具，使用Tcl自动进行仿真，同时对比Qemu的log进行验证
+		\item \Emph{PE} 将通过上述仿真测试的工程丢到性能实验中进行实验，并提取实验报告
+	\end{itemize}
+	
+\subsection{Auto Simulate}
+
+	\href{https://github.com/Turf1013/PPC_AutoTool/tree/master/PPC}{PowerPC交叉开发环境}是使用C语言进行交叉开发验证的环境，
+	其中
+	\href{https://github.com/Turf1013/PPC_AutoTool/blob/master/PPC/global/powerpc.lds}{powerpc.lds}是数据段、代码段等的基地址；
+	
+	\href{https://github.com/Turf1013/PPC_AutoTool/blob/master/PPC/global/Makefile.global}{Makefile.global}是全局的Makefile文件，
+	包含所需要的库函数，如果需要增加库函数，同时需要修改该文件；
+	
+	\href{https://github.com/Turf1013/PPC_AutoTool/blob/master/PPC/global/int_entry.S}{int\_entry.S}是PowerPC的中断处理框架，
+	其中\proc{handle\_hw\_int}需要在C程序中实现。
+	
+	预先提供部分C程序作为测试集，目前拟采用算法为主。数据随机生成即可，因此库函数还需要实现这样一个伪随机数。
 
 \subsection{Performance Experiment}
 	

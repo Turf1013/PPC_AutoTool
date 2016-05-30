@@ -1,0 +1,19 @@
+# Windows:
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux;
+*.bk
+*~
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+log*
+tmp*
+dist
+build
+
