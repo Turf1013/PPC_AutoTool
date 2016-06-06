@@ -43,7 +43,7 @@ class Stage(object):
 		if isinstance(other, int):
 			return self.id == other
 		elif isinstance(other, Stage):
-			return self.id + other.id
+			return self.id == other.id
 		else:
 			raise TypeError, "Stage cmp Error"
 		

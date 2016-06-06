@@ -1,0 +1,129 @@
+# -*- coding: utf-8 -*-
+import logging
+import decorator import accepts, returns
+
+class constForVerilog:
+	INPUT = 1
+	OUPUT = 0
+	MODULE = "module"
+	ENDMODULE = "endmodule"
+	OP = "+-*/"
+	moduleIgnoreList = [
+		"FF",
+		"FFW",
+		"mux2",
+		"mux4",
+		"mux8",
+		"mux16",
+		"mux32",
+		"mux64",
+	]
+	DEFINE = "`define"
+	
+	
+class CFV(constForVerilog):
+	pass
+
+
+class Parser:
+	
+	@staticmethod
+	@accepts(str)
+	@returns(dict)
+	def ParseDefnDict(filename):
+		ret = dict()
+		with open(filename, "r") as fin:
+			for line in fin:
+				line = line.strip()
+				if not line.startswith(CFV.DEFINE):
+					continue
+				L = line.split()
+				if len(L) != 3:
+					continue
+				ret[L[1]] = L[2]
+		return ret
+		
+	
+	@staticmethod
+	@accepts(str, dict)
+	@returns(int)
+	def ParseExp(s, d):
+		s = "".join(s.split())
+		n, i, e, var = len(s), 0, "", ""
+		while i < n:
+			if s[i] in '(':
+				e += s[i]
+			elif s[i] in ')+-*/':
+				if var.isdigit():
+					e += var
+				elif var:
+					assert var in d
+					e += str(d[var])
+				e += s[i]
+				var = ''
+			else:
+				var += s[i]
+			i += 1
+		if var.isdigit():
+			e += var
+		else:
+			assert var in d
+			e += str(d[var])
+		
+		return eval(e)
+		
+
+	@staticmethod
+	@accepts(str, dict)
+	@returns(int)
+	def ParseWidth(exp, widthDict):
+		"""
+			widthDict is a `defn dict` parse from `_def.v`, we just want `INT`.
+			some supported type of exp:
+			1. [31:0]
+			2. [`INSTR-1:0]
+			3. [`WA*(`WB+`WC)-X:`WA+Y]
+		"""
+		lexp, rexp = exp.split(':')
+		return abs(Parser.ParseExp(lexp, widthDict) - Parser.ParseExp(rexp, widthDict)) + 1
+
+
+	@staticmethod
+	def ParseModule(lines, widthDict):
+		modName = lines[0].split()[1]
+		portList = []
+		for line in lines[1:]:
+			L = line.split()
+			if L[0] == 'input':
+				dir = CFV.INPUT
+			elif L[0] == 'output':
+				dir = CFV.OUTPUT
+			else:
+				continue
+			if L[1].startswith('['):
+				assert L[1].endswith(']')
+				width = ParseWidth(L[1][1:-1], widthDict)
+				subline = "".join(L[2:])
+			else:
+				subline = "".join(L[1:])
+				width = 1
+			
+			portNames = map(lambda s:s[:-1] if s.endswith(';') else s, subline.split(','))
+			portList += map(lambda name: Port(name, dir, width), portNames)
+		return modMame, portList
+			
+	
+	
+		
+class Generator:
+		
+		
+	@staticmethod
+	def GenInsnFieldDefn(fieldName):
+		return "`" + fieldName.upper()
+		
+	
+class verilog(Parser, Generator):
+	pass
+	
+	
