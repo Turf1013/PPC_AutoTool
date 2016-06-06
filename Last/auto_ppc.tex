@@ -377,8 +377,8 @@
     \hline
 		名称	&	描述	&	返回值		\\
     \hline
-		\proc{dumpRtl}	& 返回每条指令的RTL	&	{"add":[[rtls@P0], [rtls@P1], $\cdots$ [rtls@Pk]]}	\\
-		\proc{dumpSpec}	& 返回微处理器的specification	& {"stage":[stageNames], $\cdots$}	\\
+		\proc{dumpRtl}	& 返回每条指令的RTL	&	\{'add':[[rtls@P0], [rtls@P1], $\cdots$ [rtls@Pk]]\}	\\
+		\proc{dumpSpec}	& 返回微处理器的specification	& \{'stage':[stageNames], $\cdots$\}	\\
     \hline
 	\end{tabular}
 	\end{table}
@@ -407,7 +407,7 @@
 	
 	\end{itemize}
 	
-\subsection{Core Module}
+\subsection{Core Function}
 
 \subsubsection{Merge Multiplexer}
 
@@ -600,6 +600,105 @@
 \subsubsection{Formal Verification}
 
 	基本思路是模型检测。
+	
+
+\subsection{Cover算法}	
+\label{subsec:algo_cover}
+
+\subsubsection{Introduction}
+	
+	Cover算法首先对\Emph{读写冲突}的状态进行抽象得到集合\id{Q}，因此对于任意\id{n}阶流水线的所有指令状态的排列总数
+	\id{P_{hazard}}，一定有
+	\[
+		|P_{hazard}| \le |Q|^{n}.
+	\]
+	显然，可以使用\Emph{预处理全排列}并\Emph{剪枝}的方法找到所有\Emph{有效}的冲突序列。这样的集合一定是一个完备的集合。
+	证明依赖于\Emph{全排列的完备性}。
+	
+	在此基础上，Cover算法旨在解决如下几个问题：
+	\begin{enumerate}[(1)]
+	
+		\item 生成完备的冲突序列
+		
+		\item 针对特定的冲突序列，生成处理策略
+		
+		\item 选择若干种最优策略组合，实现完备的冲突处理策略
+		
+	\end{enumerate}
+	
+\subsubsection{完备的冲突序列}
+	
+	不妨定义$p = [x_1, \cdots, x_n]$表示有效的冲突序列，其中$x_1$表示处在最后一个阶段的指令状态，$x_n$表示刚刚进入流水线的指令状态。
+	
+	\begin{defn}
+	\label{defn:valid_perm}
+	有效的冲突序列指
+	\end{defn}
+	
+	令\id{rStg}表示读寄存器最早的阶段，
+	不妨令$rIdx$表示$x_{rIdx} = Q_r, \text{ 并且 } \forall i < rIdx, x_i \neq Q_r$，相似地，令
+		  $wIdx$表示$x_{wIdx} = Q_w, \text{ 并且 } \forall i < wIdx, x_i \neq Q_w$。
+	
+	\begin{thm}
+	\label{thm:valid_perm_property}
+	任意有效的冲突序列必定满足如下性质：
+	\begin{enumerate}[(1)]
+		
+		\item
+		\begin{equation}
+			\forall i, x_i \notin \{Q_r, Q_w\}, i \le n - rStg		\label{equ:cover_begin}
+		\end{equation}
+		
+		\item
+		\begin{equation}
+			\exists i, j, x_i = Q_r, x_j = Q_w						\label{equ:cover_exists}
+		\end{equation}
+		
+		\item
+		\begin{equation}
+			\forall i, x_i = Q_w, \exists j, j > i \text{ and } x_j = Q_r	\label{equ:cover_rwcomp}
+		\end{equation}
+		
+	\end{enumerate}
+	\end{thm}
+	
+	\begin{proof}
+	\label{proof:valid_perm_property}
+		
+		性质~\ref{equ:cover_begin}是显然的，由\Emph{流水线}设计的一般思路。$rStg$阶段前的指令一定不包含读操作和写操作。
+		而该序列是逆序的，因此任何$n-rStg$阶段后的状态一定不含$Q_r$和$Q_w$。
+		
+		性质~\ref{equ:cover_exists}也同样简单可证，由\Emph{数据冒险}定义可知在有效的序列中一定同时含有$Q_r$和$Q_w$。
+		
+		不妨令$P$表示经过上述两次过滤余下的排列，不妨令$P'$表示满足性质~\ref{equ:cover_rwcomp}的排列的集合，将分为如下两个部分进行证明：
+		\begin{itemize}
+			\item $\forall p \in P'$, \id{p}是无效的
+			
+			\item $P \setminus P' \supseteq P_{hazard}$
+		\end{itemize}
+		根据定义可知有$\exists i, x_i = Q_w, \forall j>i, x_j \neq Q_r$。这意味着对于处在$i$所在阶段的前驱指令，没有后继指令。
+		显然，这条指令并不在冲突集合中，因此是无效的。
+		
+		而正因为这条指令并不在冲突集合中，那么将所有满足~\ref{equ:cover_exists}的$x_i$全部替换为$Q_n$，并不影响整体的完备性。
+		而这样一个排列$p \notin P'$，那么$p \in P \setminus P'$
+		
+	\end{proof}
+	
+	
+	% 这里注意排列的定义，这里使用排列是不准确的。
+	使用\Emph{DFS}可以得到对于状态集合\id{Q}的任意可重复排列，使用如下剪枝策略可得到集合$P$并且有$P \supseteq P_{hazard}$.
+	\begin{enumerate}
+	
+		\item 根据~\ref{equ:cover_begin}过滤任何\Emph{读写状态}在$n-rStg$后面阶段的序列。
+		
+		\item 根据~\ref{equ:cover_exists}过滤任何不同时包含\Emph{读写状态}的序列。
+		
+		\item 根据~\ref{equ:cover_rwcomp}过滤任何\Emph{写状态}后没有\Emph{读状态}的序列。
+		
+	\end{enumerate}
+	
+	
+	
 	
 \section{Layer Verilog}
 \label{sec:layer_verilog}	
