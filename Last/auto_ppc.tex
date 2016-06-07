@@ -134,8 +134,6 @@
 \section{Notations}
 \label{sec:notation}
 	
-	
-	
 	使用$Insns$表示指令集合，
 	使用$Insns_{MC}$表示Mutli-Cycle类指令集合，
 	使用$Insns_{Br}$表示分支类指令。
@@ -144,6 +142,8 @@
 	
 	使用$Modules$表示流水线微处理器设计的核心模块。
 	使用$Port$表示模块的端口，使用$Port_I$表示输入端口，使用$Port_O$表示输出端口。
+	
+	使用$T_I$表示指令\id{I}在流水线中的存活时间，实际意义为指令\id{I}在流水线中经过了几个阶段。
 	
 
 \section{Tool Introduction}
@@ -697,6 +697,163 @@
 		
 	\end{enumerate}
 	
+\subsubsection{如何看待指令}
+
+	正确处理流水线冲突的关键在于正确理解指令及指令间的关系。对于任意一条指令可能会包含如下几种操作：
+	\begin{itemize}
+		\item \Emph{读}某些寄存器的值
+		\item \Emph{使用}某些寄存器的值
+		\item \Emph{写回}某些寄存器的值
+	\end{itemize}
+	因此，我们不妨做如下限制：
+	\begin{itemize}
+		\item 统一在$rStg$阶段读取各个寄存器的值
+		\item 统一在$wStg$阶段写回各个寄存器的值
+		\item $wStg$阶段为流水线的最后一个阶段
+	\end{itemize}
+	同时，定义$U_{R_i}$表示使用寄存器\id{R}的端口\id{i}的数据的阶段的集合，令$uStg_{R_i} = \min U_{R_i}$。
+	定义$E_{R}$表示完成写回结果计算的阶段。
+	显然一定可以构造满足$rStg < wStg$的流水线结构。
+	
+	显然有如下结论
+	\begin{lem}
+	\label{lem:insn_operator}
+	正确的流水线微处理器一定满足如下性质：
+	\begin{enumerate}[(1)]
+	
+		\item $wStg$的写回值一定是该条指令的正确结果
+		
+		\item 若$rStg$的读取值并不是正确结果，那么最晚在$uStg_{R_i}$阶段，正确结果将通过\Emph{旁路}转发获取。
+		
+	\end{enumerate}
+	\end{lem}
+	
+	定义寄存器集合为$\mathcal{R}$，指令集合为$\mathcal{I}$。
+	从而可以继续对排列$P \setminus P'$进行剪枝。
+	\begin{enumerate}[(1)]
+		
+		\item
+		\begin{equation}
+			\forall R \in \mathcal{R}, \forall I \in \mathcal{I}, rIdx \le U_{R_i}, i \in \attrib{R}{channel}	\label{equ:cover_insn_ustg}
+		\end{equation}
+		
+	\end{enumerate}
+	
+	\begin{proof}
+	不妨令$rIdx > U_{R_i}$，由性质~\ref{lem:insn_operator}指令\id{I}处在阶段$U_{R_i}$阶段时已经获得正确结果。即该结果一定为所有相关前驱指令的
+	正确回写数据，那么处在$rIdx$的数据直接使用经过流水线寄存器的数值即可以保证指令的正确性。故此时的转发是冗余的。
+	\end{proof}
+	
+	
+\subsubsection{正确的处理策略}	
+
+	\begin{mthm}
+	\label{mthm:hazard_strategy}
+	使用\Emph{阻塞}机制可以处理\Emph{所有}数据冒险，但影响整体性能。
+	使用\Emph{旁路}机制可以处理\Emph{部分}数据冒险，对整体性能影响可忽略。
+	\end{mthm}
+	
+	由主定理~\ref{mthm:hazard_strategy}可以得到如下冲突处理策略
+	\begin{thm}
+	\label{thm:hazard_strategy}
+	尽可能使用旁路解决数据冒险，否则使用阻塞机制
+	\end{thm}
+	
+	定理~\ref{thm:hazard_strategy}的基本思路是尽可能降低对微处理器整体性能的影响，故应该尽可能不适用阻塞。
+	
+
+	首先考虑最简单的冲突排列$p_0$满足
+	\[
+		\Big|{Q_i| Q_i=Q_r}\Big| = 1, \Big|{Q_i| Q_i = Q_w}\Big|=1.
+	\]
+	即存在唯一的冲突对，同时假定冲突寄存器为R，则针对上述冲突组合使用如下策略解决冲突：
+	\begin{equation}
+	\label{equ:hazard_pair}
+		H(rIdx, wIdx) = \left\{
+		\begin{aligned}
+			&\text{转发}, 		&	wIdx \in (E_{R}, wStg]	\\
+			&\text{未来转发}, 	&	wIdx-rIdx > E_R - U_{R_i}, i \in \attrib{R}{channel}	\\
+			&\text{阻塞},		&   \text{otherwise}		
+		\end{aligned}
+		\right .
+	\end{equation}
+	
+	\begin{proof}
+	首先证明当$wIdx \in (E_R, wStg]$时，可以使用转发机制处理该冲突。即证当$wIdx \ge E_R + 1$时，可以使用转发机制。
+	显然当前驱指令处在$E_R$阶段时已经得到正确结果，一个时钟周期后该数据准备好可以转发。故此时转发的数据一定是正确结果。
+	
+	再证当$wIdx \le E_R$并且$wIdx-rIdx \le E_R - U_{R_i}$时，后继指令在未来阶段可以通过旁路获得该数据。
+	显然对于前驱指令再经过$E_R - wIdx$个周期数据计算完毕，显然再经过$\Delta_w = E_R - wIdx + 1$个周期这个数据已经可以转发。
+	而对于后继指令再经过$\Delta_r = U_{R_i} - rIdx$个周期数据需要准备好。那么，显然当$\Delta_w \le \Delta_r$时，再$\Delta_w$
+	个周期后即可以通过旁路获得正确结果。即
+	\[
+		E_R - wIdx + 1 \le U_{R_i} - rIdx \Rightarrow
+			wIdx - rIdx \ge E_R + 1 - U_{R_i} \Rightarrow
+			wIdx - rIdx > E_R - U_{R_i}
+	\].
+	
+	显然当$wIdx - rIdx \le E_R - U_{R_i}$时，无法通过旁路进行数据转发。必须通过阻塞将后继指令\Emph{持续阻塞}在\id{rStg}阶段
+	直到$wIdx' = E_R - U_{R_i} + 1 + rIdx$为止，则显然需要阻塞$\Delta = E_R - U_{R_i} + 1 + rIdx - wIdx$个周期。
+    \end{proof}
+	
+	根据定理~\ref{thm:hazard_strategy}上述针对某个寄存器\id{R}的冲突对的处理是最优的。然而，这并不意味这着已经正确处理了最简冲突排列。
+	因为存在两条指令的冲突源于超过1种寄存器。如两条连续发射的$\id{adde}$指令。对于不同的寄存器，数据转发互不影响。因此，仅仅需要考虑
+	阻塞机制的影响。而阻塞其实是众多阻塞产生条件的或逻辑，故满足任意寄存器引起的阻塞条件。那么该指令一定停留在\id{rStg}阶段。同时，
+	因为这是读数据的唯一阶段。即将离开流水线的指令一定将数据写回寄存器中。故下阶段无需通过转发获取数据，可直接从寄存器中读取。
+	
+	显然多种寄存器引发的冲突亦可以直接由上述的策略协同完成。
+	
+	然后，考虑稍难的对于单条读指令多条写指令的情况。即排列$p_1$满足
+	\[
+		\Big|{Q_i| Q_i=Q_r}\Big| = 1, \Big|{Q_i| Q_i = Q_w}\Big| > 1.
+	\]
+	上述排列形如$\cdots, Q_w, \cdots, Q_w, \cdots, Q_r, \cdots$。那么，一定可以找到
+	\[
+		\exists k, x_k = Q_w, \text{ 并且 } \forall i>k, x_i \neq Q_w.
+	\]
+	
+	\begin{lem}
+	\label{lem:hazard_n21}
+	\[
+		\forall p_1 \in \mathcal{P}_1, H(rIdx, \attrib{x_k}{idx})\text{即为最优的冲突处理策略}.
+	\]
+	\end{lem}
+	
+	\begin{proof}
+	首先，不妨考虑正确的冲突处理策略，即$\bigcup_{x_i = Q_w} {H(rIdx, \attrib{x_i}{idx})}$.
+	
+	那么，可能存在多种转发数据通过旁路向某个特定流水线阶段发送的情况，而后继指令恰恰处在这个阶段。因此，核心问题是后继指令如何选择转发的数据
+	作为自己的寄存器操作数。显然，一定使用最近的前驱指令转发的结果才能保证执行的正确性。因此，在设计\Emph{多对一}情况的冲突时，需要考虑前驱指令
+	的优先级。在流水线中存活时间$T$越长的指令优先级越低。
+	
+	其次，考虑阻塞的情况，对于处在\id{rStg}阶段的指令，存在多条前驱指令因为数据冒险导致后继指令阻塞。而阻塞的时间分别为$\Delta_1, \Delta_2, \cdots$。
+	显然，根据~\ref{mthm:hazard_strategy}选择$\max \{\Delta_1, \Delta_2, \cdots \}$个周期进行阻塞。这样一个冲突处理方案一定是正确的。
+	
+	那么问题变成能否找到$\Delta$使得阻塞$\Delta$周期与阻塞$\max \{\Delta_1, \Delta_2, \cdots \}$的结果等价，
+	即阻塞$\Delta$个周期得到的结果是正确的，同时$\nexists \Delta' < \Delta$使得阻塞$\Delta'$个周期可以得到正确结果。
+	显然，这样的$\Delta$一定是最优的。
+	
+	由~\ref{lem:hazard_n21}可知，即证$\Delta = \attrib{H(rIdx, \attrib{x_k}{idx})}{\Delta}$。即阻塞周期仅仅与$\attrib{x_k}{idx}$所在阶段有关。
+	
+	不妨令$\attrib{H(rIdx, \attrib{x_k}{idx})}{\Delta} = \Delta_k$，可分两种情况进行讨论：
+	\begin{enumerate}[(1)]
+	
+		\item $\{\Delta_1, \Delta_2, \cdots \} \setminus \{\Delta_k\} \le \Delta_k$
+		
+		显然阻塞$\max \{\Delta_1, \Delta_2, \cdots \} = \Delta_k$一定是正确的，仅需证明该种情况是最优的。
+		对于处于$\attrib{x_k}{idx}$阶段的指令存活时间最短，因此它的写回数值才是正确结果。
+		而为了这样的结果，由~\ref{equ:hazard_pair}的证明过程可知，
+		至少需要等待$\Delta_k$个周期，这意味着任何$\Delta' < \Delta_k$不能保证获取结果一定正确。故此时，最优解为$\Delta_k$
+		
+		\item $\{\Delta_1, \Delta_2, \cdots \} \setminus \{\Delta_k\} > \Delta_k$
+		
+		同理可以证明$\forall \Delta' < \Delta_k$无法保证得到处于$\attrib{x_k}{idx}$阶段的正确结果，
+		而$\max \{\Delta_1, \Delta_2, \cdots \} \ge \Delta_k$，那么$\Delta_k$一定是最优解。
+	
+	\end{enumerate}
+	
+	综合转发与阻塞两种情况，对于多条前驱指令与单条后继指令昌盛冲突的情况，仅仅考虑存活时间最短的前驱指令的冲突策略即为最优解决策略。
+	\end{proof}
 	
 	
 	
