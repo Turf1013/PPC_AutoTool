@@ -856,6 +856,82 @@
 	\end{proof}
 	
 	
+	现在不妨考虑更复杂的冲突组合，即多条前驱指令与多天后继指令发生冲突。即满足如下排列的冲突：
+	\[
+		p_2 = \cdots, Q_r, \cdots, Q_r, \cdots, Q_w, \cdots, Q_r, \cdots, Q_w
+	\]
+	显然$p_1,p_0 \in \mathcal{P}_2$。
+	
+	\begin{lem}
+	\label{lem:hazard_n2n}
+	\[
+		\forall p_2 \in \mathcal{P}_1,
+			\bigcup_{x_i = Q_r} {H(rIdx, \attrib{x_k}{idx})}
+				\text{即为最优的冲突处理策略}.
+	\]
+	\end{lem}
+	
+	\begin{proof}
+	即证
+	\[
+		\forall x_i = Q_r, \exists k = \min \{k | x_k = Q_w\}.
+			H = \bigcup {H(rIdx, \attrib{x_k}{idx})}
+	\]
+	
+	对于每个$x_i = Q_r$，合理的冲突策略是排在其后的存活时间最短的$x_k = Q_w$组合得到的$H$函数。不妨先假定这个策略是正确的，
+	仅需证明这个策略是最优的。可以使用反证法，一定存在$H'$策略优于其中的某个$H_k$函数，这与~\ref{lem:hazard_n21}的结论相矛盾。
+	根据反证法这个策略一定是最优的。
+	
+	因此仅需证明这个策略是证明的，简单从排列看结论显然正确。但这里的trick是$Q_w$所在阶段的指令也可能与后续指令产生冲突。
+	即存在数据的转发是传递的这样的可能。即排列$Q_r, \cdots, Q_w, \cdots, Q_w$这样的排列。
+	那么根据~\ref{mthm:hazard_strategy}的阻塞策略可知，$Q_w$一定不再$rStg$阶段。这意味着该指令后续一定可以得到正确的数据计算结果，
+	那么无论$Q_r$所在指令根据$\Delta$阻塞或者转发得到的数据也一定是正确的。
+	
+	综上可知，若干读写指令的任意排列也一定可以得到正确的冲突解决策略。
+	\end{proof}
+	
+	
+	为了探讨更难的冲突情况， 不妨引入如下定义：
+	\begin{defn}
+	\label{defn:hazard_set}
+	% 这里使用连通块，概念上是错误的，故称为连通集合。
+	将流水线中的每条指令看成图上的点\id{V}, 假设任意两条指令$u, v$间产生冲突，则产生无向边$(u, v)$。
+	我们不妨称图中的任意连通集合为冲突集合\id{S}。
+	\end{defn}
+	
+	根据冲突集合的定义，我们可以得到如下结论：
+	\begin{thm}
+	\label{thm:hazard_set}
+	直接组合若干个不相交集合$S_k$的冲突解决策略$H_k$，可以得到对应排列的包含这$k$个不相交冲突集合的解决策略。
+	\end{thm}
+	
+	我们不妨称~\ref{thm:hazard_set}为\Emph{冲突的结合律}。即若干个完全不互相依赖的冲突集合的解决策略即为这若干个集合解决策略的直接组合。
+	不妨令整个流水线中包含$k$个冲突集合$S_1, S_2, \cdots, S_k$，并令集合$S_i$中包含元素$\{x_{i1}, x_{i2}, \cdots\}$.
+	那么显然，全部排列一定由$\bigcup_{i=1}^{k} \{x_{i1}, x_{i2}, \cdots\}$及若干个不相关状态集合$\{y_1, y_2, \cdots \}$构成。
+	同时令各个集合对应的冲突解决策略为$H_1, H_2, \cdots, H_k$，即证冲突集合$S = \bigcup_{i=1}^k {S^i}$的冲突解决策略为
+	$\bigcup_{i=1}^k {H_i}$。
+	p
+	% 总感觉这个证明太弱了，需要思考
+	由于$k$个集合互不相交，那么这意味着$k$个$H$策略互不影响。因此，直接保持现有的冲突解决电路的设计一定可以解决这些冲突。
+	
+	
+\subsubsection{算法伪代码}	
+	
+	冲突对的解决策略
+	\begin{codebox}
+    \Procname{$\proc{Hazard-Pair}(rIdx, wIdx, U, E, \mathcal{R})$}
+	\li \For $i \gets 1$ \To $|\mathcal{R}|$
+	\li	\Do
+			$R \gets \mathcal{R}[i]$
+	\li		\If $wIdx \ge E_R$ and $wIdx \le wStg$
+	\li			\Then \proc{AddBypass}
+	\li		\ElseIf $wIdx \text{ - } rIdx > E_R \text{ - } U_{R_i}$
+	\li			\Then \proc{FutureBypass}
+	\li		\ElseNoIf
+				\proc{AddStall}
+			\Then
+		\End
+    \end{codebox}
 	
 \section{Layer Verilog}
 \label{sec:layer_verilog}	
