@@ -729,7 +729,10 @@
 	\end{lem}
 	
 	定义寄存器集合为$\mathcal{R}$，指令集合为$\mathcal{I}$。
-	从而可以继续对排列$P \setminus P'$进行剪枝。
+	从而可以继续对排列$P \setminus P'$进行剪枝：
+	\begin{thm}
+	\label{thm:valid_perm_property_I}
+	针对指令\id{I}有效的冲突排列还应该包含如下性质：
 	\begin{enumerate}[(1)]
 		
 		\item
@@ -738,10 +741,13 @@
 		\end{equation}
 		
 	\end{enumerate}
+	\end{thm}
 	
 	\begin{proof}
+	首先证明性质~\ref{equ:cover_insn_ustg}，
 	不妨令$rIdx > U_{R_i}$，由性质~\ref{lem:insn_operator}指令\id{I}处在阶段$U_{R_i}$阶段时已经获得正确结果。即该结果一定为所有相关前驱指令的
 	正确回写数据，那么处在$rIdx$的数据直接使用经过流水线寄存器的数值即可以保证指令的正确性。故此时的转发是冗余的。
+	
 	\end{proof}
 	
 	
@@ -919,19 +925,197 @@
 	
 	冲突对的解决策略
 	\begin{codebox}
-    \Procname{$\proc{Hazard-Pair}(rIdx, wIdx, U, E, \mathcal{R})$}
-	\li \For $i \gets 1$ \To $|\mathcal{R}|$
-	\li	\Do
-			$R \gets \mathcal{R}[i]$
+    \Procname{$\proc{Hazard-Pair}(rIdx, wIdx, U_{R_i}, E_R, R)$}
 	\li		\If $wIdx \ge E_R$ and $wIdx \le wStg$
 	\li			\Then \proc{AddBypass}
 	\li		\ElseIf $wIdx \text{ - } rIdx > E_R \text{ - } U_{R_i}$
 	\li			\Then \proc{FutureBypass}
 	\li		\ElseNoIf
 				\proc{AddStall}
-			\Then
-		\End
+			\End
     \end{codebox}
+	
+	
+	基于排列的解决策略
+	\begin{codebox}
+	\Procname{$\proc{Hazard-Permu}(P_{hazard})$}
+	\li	\For \id{p} \kw{In} $P_{hazard}$
+	\li	\Do
+			\For $i \gets 1$ \To $nStg$
+	\li		\Do
+				\If $p_i \neq Q_r$
+	\li				\Then \kw{Continue}
+					\End
+	\li			$rIdx \gets i$
+	\li			$wIdx \gets	\proc{FindwIdx}(p, i)$
+	\li			\For \id{R} \kw{In} $\mathcal{R}$
+	\li				\Do
+						\For \id{c} \kw{In} \attrib{R}{channel}
+	\li					\Do
+							\For \id{I_r} \kw{In} $\mathcal{I}$
+	\li							\Do
+									\If $\attrib{I_r}{U_{R_i}} < rIdx$
+	\li								\Then \kw{Continue}
+									\End
+	\li								\For \id{I_w} \kw{In} $\mathcal{I}$
+	\li									\Do
+											$\proc{Hazard-Pair}(rIdx, wIdx, \attrib{I_r}{U_{R_i}}, \attrib{I_w}{E_R}, \mathcal{R})$
+										\End
+								\End
+						\End
+					\End
+			\End
+		\End
+	\end{codebox}
+	
+\subsection{ExLiter算法}
+
+\subsubsection{Introduction}
+
+	由于自动化工具并不考虑最终实现的资源利用率及时钟频率等情况，那么可能由于代码风格等原因导致
+	最终的实现消耗较多的资源。\Emph{ExLiter}算法旨在对生成的RAW代码进一步精简和优化。
+	主要针对\Emph{控制器}实现围绕如下几个部分进行优化：
+	\begin{enumerate}[(1)]
+		\item 过多的代码行数
+		\item 过多重复的逻辑表达式
+	\end{enumerate}
+    为了解决上述问题，引入如下定义：
+    \begin{defn}
+    \label{defn:least_exp}
+    \Emph{最小表达式}指仅包含一种逻辑操作的表达式。
+    \end{defn}
+    显然，$a==c, |a, ~a$都满足定义~\ref{defn:least_exp}。
+    而表达式$~a\&\&b, a\&\&b$均不满足。
+
+\subsubsection{基本思路}
+	
+	\Emph{control.v}是一个绝对的结构化文档，因此，直接从RAW代码上进行优化是一个非常好的策略。
+	毕竟自动化工具本身的逻辑已经很复杂，把问题抛给另一个工具或者脚本可以减轻开发人员你的负担。
+	首先，需要说明的是实现不同的$\proc{toVerilog}$函数意味着不同的结构化控制器。
+	仅就我的实现而言控制器代码主要包含如下几个部分：
+	\begin{itemize}
+		\item module声明
+		\item 输入输出声明
+		\item 辅助变量声明
+		\item always块，每个always块对应唯一的控制信号的逻辑
+	\end{itemize}
+	
+	代码精简的基本思路如下：
+	\begin{enumerate}[(1)]
+	
+		\item 将同类型宽度相同的信号声明合并成一行
+		
+		读入所有的声明：\kw{input}, \kw{output}, \kw{reg}, \kw{wire}。
+		由于\kw{wire}声明的优先级更高，
+		因此可以直接从\kw{wire}的声明集合中去掉与\kw{reg}集合的并集。
+		对于每个类型分别按照宽度排序，宽度相同的直接一行输出。
+		
+		\item always块内部逻辑的精简
+		
+		直接去掉括号，提取每条\kw{If}条件内的最小表达式，将表达式离散化后是。
+		将每条\kw{If}语句表示成一条向量，并且根据表达式中部分常量表达剪枝。
+		根据不同的片选信号的值，对向量进行压缩。压缩算法是贪心，即不断的选择频度最大的最小表达式
+		作为公共前缀，其实质是构建一棵\Emph{trie}树。
+		\begin{lem}
+		\label{lem:always_compress}
+		对于表达式集合
+		\begin{equation*}
+        \begin{split}
+			&S = \{V_2 = \{x_0, x_1, \cdots, \}, V_2 = \{y_0, y_1, \cdots, \}, \cdots, \},
+				\text{其中}x_0, x_1, \cdots, y_0, y_1 \in A.  \\
+				&\text{并且}\alpha = \max \{\sum_{j=1}^{|S|} \{a_i \in V_j\} | a_i \in A\}
+        \end{split}
+		\end{equation*}
+		那么$S$表示的表达式必定可以写成
+		\begin{equation}
+		\label{equ:compress_method}
+			\Big( \alpha \ \&\&\  \proc{Compress}(\{V' \setminus \alpha | \alpha \in V', \forall V' \in S\}) \Big) \ ||\
+			\Big( \proc{Compress}(\{V' | \alpha \notin V', \forall V' \in S \}) \Big)
+		\end{equation}
+		\end{lem}
+		
+		\begin{proof}
+		~\ref{equ:compress_method}的压缩方法的正确性是显而易见的。
+		\end{proof}
+		
+	\end{enumerate}
+	
+	% Expression Merge其实就是不断地调节参数，找到最好的阈值。可能非单调，可以学习一下看看趋势。直接给个结论就好了。
+	显然程序中很多最小表达式出现的频度极高，因此可以考虑将部分高频的极小表达式替换为辅助变量，这样在一定程度上
+	可以降低资源使用率，但是对时间性能产生影响。因此，我们可以根据综合报告选择合适的阈值进行\Emph{Expression Merge}。
+	这里我们先假设两者间的关系是单调的，否则会选择到局部最优解而非全局最优。代码优化的基本步骤：
+	\begin{enumerate}[(1)]
+		
+		\item 离散化最小表达式
+		
+		\item 统计每个离散点的频度
+		
+		\item 选定前\id{k-top}个离散点，建立变量进行替换
+		
+		\item 根据control.v的综合报告选择合适的\id{k-top}值
+		
+	\end{enumerate}
+	
+
+\subsubsection{算法伪代码}
+
+	声明精简的伪代码
+	\begin{codebox}
+	\Procname{$\proc{LiterStatement}(lines)$}
+	\li	\For \id{line} \kw{In} \id{lines}
+	\li		\Do
+				$type, width, var = \proc{split}(line)$
+	\li			\proc{Push}$(E[type], [width, var])$
+			\End
+	\li	\For \id{var} \kw{In} $E[\const{wire}]$
+	\li		\Do
+				\proc{Remove}$(E[\const{reg}], var)$
+			\End
+	\li	\For type \kw{In} $\{\const{input}, \const{output}, \const{reg}, \const{wire}\}$
+	\li		\Do
+				\proc{Sort}$(E[type])$ By Width
+	\li			\proc{AddStatement}$(E[type])$
+			\End
+	\end{codebox}
+	
+	always块内精简的伪代码
+	\begin{codebox}
+	\Procname{$\proc{LiterCond}(S, A)$}
+	\li	$C \gets [0] * |A|$
+	\li	\For \id{V} \kw{In} \id{S}
+	\li		\Do	
+				\For \id{a} \kw{In} \id{V}
+	\li				\Do
+						$i \gets \proc{find}(A, a)$
+	\li					$C[i] \gets C[i] + 1$
+					\End
+			\End
+	\li $\alpha \gets \proc{argmax}(C)$
+	\li $S_0, S_1 \gets \varnothing, \varnothing$
+	\li	\For \id{V} \kw{In} \id{S}
+	\li		\Do
+				\If	$\alpha$ \kw{In} \id{V}
+	\li				\Then	$\proc{Append}(S_0, V)$
+	\li			\Else		$\proc{Append}(S_1, V)$
+					\End
+			\End
+	\li	$lcond \gets \alpha \ \&\&\ \big(\proc{LiterCond}(S_0, A)\big)$
+	\li	$rcond \gets \proc{LiterCond}(S_1, A)$
+	\li	\Return $\big(lcond\big) \ ||\ \big(rcond\big)$
+	\end{codebox}
+	
+	\begin{codebox}
+	\Procname{$\proc{LiterAlways}(lines)$}
+	\li	$values = \proc{ExtractValue}(lines)$
+	\li	$A = \proc{Discret}(lines)$
+	\li	\For \id{val} \kw{In} \id{values}
+	\li		\Do
+				$L \gets \proc{ExtractCond}(val)$
+	\li			$S \gets \proc{TransferVector}(L, A)$
+	\li			$cond \gets \proc{LiterCond}(S, A)$
+	\li			$\proc{AddVerilog}(cond, val)$
+			\End
+	\end{codebox}
 	
 \section{Layer Verilog}
 \label{sec:layer_verilog}	
