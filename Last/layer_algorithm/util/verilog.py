@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-import decorator import accepts, returns
+from decorator import accepts, returns
 
 class constForVerilog:
 	INPUT = 1
@@ -19,7 +19,7 @@ class constForVerilog:
 		"mux64",
 	]
 	DEFINE = "`define"
-	
+	DEFINE_SUFFIX = "_def"
 	
 class CFV(constForVerilog):
 	pass
@@ -117,13 +117,23 @@ class Parser:
 		
 class Generator:
 		
-		
 	@staticmethod
 	def GenInsnFieldDefn(fieldName):
 		return "`" + fieldName.upper()
 		
+		
+class Judger:
 	
-class verilog(Parser, Generator):
+	@staticmethod
+	def isVerilogFile(filename):
+		return filename.endswith('.v')
+	
+	@staticmethod
+	def isDefineFile(filename):
+		return Judger.isVerilogFile(filename) and filename[:-2].endswith(CFV.DEFINE_SUFFIX)
+		
+	
+class verilog(Parser, Generator, Judger):
 	pass
 	
 	

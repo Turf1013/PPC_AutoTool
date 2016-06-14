@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-import ..util.decorator import accepts, returns
+from ..util.decorator import accepts, returns
 
 
 class Stage(object):
