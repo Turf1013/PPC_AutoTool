@@ -20,6 +20,12 @@ class constForVerilog:
 	]
 	DEFINE = "`define"
 	DEFINE_SUFFIX = "_def"
+	re_rtlConst = re.compile(r"`\w+|\d+")
+	re_rtlVariable = re.compile(r"[\`\'\.\w]+")
+	re_rtlNumber = re.compile(r"^\d+$")
+	re_hdlNumber = re.compile(r"^\d+'(b[01]+|d\d+|h[a-f\d]+)$")
+	re_hdlConst  = re.compile(r"^`[\_\w]+$")
+
 	
 class CFV(constForVerilog):
 	pass
@@ -122,6 +128,7 @@ class Generator:
 		return "`" + fieldName.upper()
 		
 		
+		
 class Judger:
 	
 	@staticmethod
@@ -133,7 +140,35 @@ class Judger:
 		return Judger.isVerilogFile(filename) and filename[:-2].endswith(CFV.DEFINE_SUFFIX)
 		
 	
-class verilog(Parser, Generator, Judger):
+class Transfer:
+		
+	@staticmethod
+	def SrcToVar(src, suf=""):
+		def repl(matchobj):
+			val = matchobj.group(0)
+			if CFV.re_rtlConst.match(val):
+				return val
+			else:
+				return val + "_" + suf
+		return CFV.re_rtlVariable.sub(repl, src.replace(".", "_"))
+		
+	
+	@staticmethod
+	def DesToVar(des, suf=""):
+		if suf:
+			return des.replace(".", "_") + "_" + suf
+		else:
+			return des.replace(".", "_")
+			
+			
+	@staticmethod
+	def SrcToList(src):
+		m = CFV.re_rtlVariable.findall(src)
+		m = filter(lambda s:not (CFV.re_rtlNumber.match(s) or CFV.re_hdlNumber.match(s) or CFV.re_hdlConst.match(s)), m)
+		return m
+	
+	
+class verilog(Parser, Generator, Judger, Transfer):
 	pass
 	
 	

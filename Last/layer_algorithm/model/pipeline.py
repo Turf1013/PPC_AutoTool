@@ -59,12 +59,12 @@ class BasePipeline(object):
 	@accepts(object, (set,list))
 	def __init__(self, stgList):
 		self.stgList = tuple(stgList)
-		self.stgn = len(stgList)
+		self.nstg = len(stgList)
 	
 	
 	@accepts(object, int)
 	def stgAt(self, idx):
-		assert idx>=0 and idx<self.stgn
+		assert idx>=0 and idx<self.nstg
 		return self.stgList[idx]
 		
 		
@@ -90,7 +90,7 @@ class BasePipeline(object):
 		
 		
 	def __len__(self):
-		return self.stgn
+		return self.nstg
 		
 		
 	def __iter__(self):
