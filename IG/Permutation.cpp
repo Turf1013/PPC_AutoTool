@@ -40,7 +40,8 @@ void Permutation::getPermutation(vector<vi>& vc) {
 
 void Permutation::dfs(vector<vi>& vc, int d) {
 	if (d == n) {
-		vc.pb(vi(a, a+n));
+		if (judge())
+			vc.pb(vi(a, a+n));
 		return ;
 	}
 
@@ -54,3 +55,21 @@ void Permutation::dfs(vector<vi>& vc, int d) {
 	}
 }
 
+bool Permutation::judge() {
+	// \prune 1: stage index before ID only can be NOP
+	int i = 0, j = n -1;
+	for (i=0; i<rstg; ++i) if (a[i] != NOP)	return false;
+	for (; i<n; ++i) if (a[i] != NOP) break;
+	// \prune 2: there must be read or write
+	if (i >= n) return false;
+	// \prune 3: foreach read there must be a write ahead of read
+	for (; j>i; --j) {
+		if (a[j] == WRITE) break;
+		if (a[j] == READ) return false;
+	}
+	for (; i<n; ++i)  {
+		if (a[i] == READ) break;
+		if (a[i] == WRITE) return false;
+	}
+	return i < j;
+}

@@ -19,6 +19,7 @@ public:
 
 private:
 	void dfs(vector<vi>& vc, int d);
+	bool judge();
 
 public:
 	static const int maxn = 10;
@@ -26,6 +27,7 @@ public:
 	static const int NOP = 0;
 	static const int READ = 1;
 	static const int WRITE = 2;
+	static const int rstg = 1;
 
 private:
 	int a[maxn];

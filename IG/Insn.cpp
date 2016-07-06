@@ -8,7 +8,7 @@
 #include "Insn.h"
 
 Insn::Insn(string name, int rn):
-	name(name), rn(rn)	{
+	rn(rn), name(name)	{
 	// TODO Auto-generated constructor stub
 	r1 = r2 = r3 = imm = label = 0;
 }
