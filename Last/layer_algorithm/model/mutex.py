@@ -40,6 +40,10 @@ class Mutex(Module):
 		for i, linkPort in enumerate(linkedIn):
 			self.addLink(iterable[i], linkPort)
 		
+		
+	def __hash__(self):
+		return self.Iname
+		
 	
 	def GenSelName(self, withStage=True):
 		if withStage:

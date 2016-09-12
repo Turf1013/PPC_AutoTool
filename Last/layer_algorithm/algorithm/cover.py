@@ -45,6 +45,7 @@ class Cover(BaseCover):
 		self.proc = proc
 		self.rStg = proc.ppl.rStg
 		self.wStg = proc.ppl.wStg
+		self.hazardDict = dict()
 		
 		
 	def hasHazard(self, p):
@@ -122,5 +123,6 @@ class Cover(BaseCover):
 	def FutureBypass(self, rIdx, wIdx, rInsn, wInsn, reg):
 		pass
 		
-	def AddStall(self, rIdx,wIdx, rInsn, wInsn, reg):
+		
+	def AddStall(self, rIdx, wIdx, rInsn, wInsn, reg):
 		
