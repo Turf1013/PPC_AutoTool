@@ -10,6 +10,7 @@ module ALU (
 
 	wire signed [31:0] A, B;
 	reg signed [31:0] C;
+	reg [31:0] tmp;
 
 	integer    i;
 
@@ -36,10 +37,11 @@ module ALU (
 			`ALUOp_LT0:  C = (A <  0) ? 32'd1 : 32'd0; 	// Less than 0
 			`ALUOp_LE0:  C = (A <= 0) ? 32'd1 : 32'd0; 	// Less than & equal 0
 			`ALUOp_SRA: begin                          	// SRA/SRAV
-				for(i=1; i<=A[4:0]; i=i+1)
-					C[32-i] = B[31];
-				for(i=31-A[4:0]; i>=0; i=i-1)
-					C[i] = B[i+A[4:0]];
+				// for(i=1; i<=A[4:0]; i=i+1)
+					// C[32-i] = B[31];
+				// for(i=31-A[4:0]; i>=0; i=i-1)
+					// C[i] = B[i+A[4:0]];
+				{tmp, C} = {{32{B[31]}}, B} >> A[4:0];
 			end                             
 			default:   C = 32'd0;                	   // Undefined
 		endcase

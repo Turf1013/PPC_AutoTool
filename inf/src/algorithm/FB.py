@@ -278,9 +278,36 @@ class FB(object):
 			retCsList.append(cs)
 			retMuxList.append(mux)
 		return retCsList, retMuxList
+	
+	
+	def __HandleInsnPair(self, finsn, binsn, rwGrps, stallGrp):
+		# self.__HandleInsnPair_fast(finsn, binsn, rwGrps, stallGrp)
+		self.__HandleInsnPair_slow(finsn, binsn, rwGrps, stallGrp)
+	
+	
+	def __HandleInsnPair_slow(self, finsn, binsn, rwGrps, stallGrp):
+		if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
+			logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
+		wbstg = self.pipeLine.Wstg.id
+		dstg = self.pipeLine.Rstg.id
+		ustg = binsn.stg.id
+		estg = finsn.stg.id
+		for rstg in xrange(dstg, ustg+1):
+			for wstg in xrange(rstg+1, wbstg+1):
+				if wstg>estg:
+					wInsn = StgInsn(insn=finsn.insn, stg=Stage(wstg, self.pipeLine.StgNameAt(wstg)), addr=finsn.addr, wd=finsn.wd, ctrl=finsn.ctrl)
+					rwGrps[rstg].addInsn(wInsn)
+					# add the sendData to hazard's linkedIn
+					sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(wstg))
+					rwGrps[rstg].addLink(sendData)
+				else:
+					stg = Stage(wstg, self.pipeLine.StgNameAt(wstg))
+					wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, ctrl=finsn.ctrl)
+					stallGrp.addInsn(wInsn)
+
 		
 				
-	def __HandleInsnPair(self, finsn, binsn, rwGrps, stallGrp):
+	def __HandleInsnPair_fast(self, finsn, binsn, rwGrps, stallGrp):
 		if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
 			logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
 		wstg = self.pipeLine.Wstg.id

@@ -1,11 +1,11 @@
 
 class constForGlobal:
-	PPC = True
+	PPC = False
 	ARCH = "ppc" if PPC else "mips"
 	brDelaySlot = False
 	BRFLUSH = "BrFlush"
 	INSTR_WIDTH = "[0:`INSTR_WIDTH-1]" if PPC else "[`INSTR_WIDHT-1:0]"
-	IO = True
+	IO = False
 	BigEndian = False
 	
 class CFG(constForGlobal):

@@ -1,11 +1,12 @@
 `include "arch_def.v"
 
 module IM (
-	addr, dout
+	clk, addr, dout
 );
     
+	input clk;
     input [`PC_WIDTH-1:0] addr;
-    input [`IM_WIDTH-1:0] dout;
+    output [`IM_WIDTH-1:0] dout;
 	
     wire [`IM_DEPTH-1:0] im_addr;
 	
