@@ -19,7 +19,8 @@ def move(srcDir, desDir):
 
 if __name__ == "__main__":
 	srcWorkDirectory = "F:\mips_project"
-	desWorkDirectory = "E:\mips_project"
+	# desWorkDirectory = "E:\mips_project"
+	desWorkDirectory = "E:\mips_project_slow"
 	excelName = "mips_pipeline.xls"
 	sheetName = "rtl"
 	insnFileName = "instruction_def.v"
