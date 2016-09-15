@@ -8,3 +8,5 @@ control.v
 ppc.v
 mips.v
 
+# windows:
+*.bak
