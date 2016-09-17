@@ -109,3 +109,5 @@ if __name__ == "__main__":
 	# logging.debug("[N of bpmux] %s\n" % (len(muxFromFB)))
 	move(srcWorkDirectory, desWorkDirectory)
 	
+	logging.debug("[N of hazard pairs] %s\n" % (fb.nHazardPair))
+	

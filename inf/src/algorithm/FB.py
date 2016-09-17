@@ -51,6 +51,7 @@ class FB(object):
 		self.insnMap = insnMap
 		self.stallHazard = Stall_Hazard()
 		self.needBypass = set()
+		self.nHazardPair = 0
 	
 	def __str__(self):
 		return "Forward and Backward Algorithm"
@@ -119,7 +120,7 @@ class FB(object):
 		
 			
 	def __HandleHazardPerReg(self, reg):
-		logging.debug("[reg] reg = %s, rn = %s, wn = %s\n" % (reg.name, reg.rn, reg.wn))
+		# logging.debug("[reg] reg = %s, rn = %s, wn = %s\n" % (reg.name, reg.rn, reg.wn))
 		regName = reg.name
 		wInsnList = []
 		rInsnList = []
@@ -281,13 +282,13 @@ class FB(object):
 	
 	
 	def __HandleInsnPair(self, finsn, binsn, rwGrps, stallGrp):
-		# self.__HandleInsnPair_fast(finsn, binsn, rwGrps, stallGrp)
-		self.__HandleInsnPair_slow(finsn, binsn, rwGrps, stallGrp)
+		self.__HandleInsnPair_fast(finsn, binsn, rwGrps, stallGrp)
+		# self.__HandleInsnPair_slow(finsn, binsn, rwGrps, stallGrp)
 	
 	
 	def __HandleInsnPair_slow(self, finsn, binsn, rwGrps, stallGrp):
-		if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
-			logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
+		# if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
+			# logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
 		wbstg = self.pipeLine.Wstg.id
 		dstg = self.pipeLine.Rstg.id
 		ustg = binsn.stg.id
@@ -304,12 +305,13 @@ class FB(object):
 					stg = Stage(wstg, self.pipeLine.StgNameAt(wstg))
 					wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, ctrl=finsn.ctrl)
 					stallGrp.addInsn(wInsn)
-
+				# update hazard pair
+				self.nHazardPair += 1
 		
 				
 	def __HandleInsnPair_fast(self, finsn, binsn, rwGrps, stallGrp):
-		if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
-			logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
+		# if finsn.insn.name.upper()=="LW" and binsn.insn.name.upper()=="ORI":
+			# logging.debug("[Lw-Ori] wp = %d, rp = %d\n" % (finsn.stg.id, binsn.stg.id))
 		wstg = self.pipeLine.Wstg.id
 		rstg = self.pipeLine.Rstg.id
 		# the 1-st condition of send
@@ -320,6 +322,9 @@ class FB(object):
 			# add the sendData to hazard's linkedIn
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
 			rwGrps[rstg].addLink(sendData)
+			
+			# update hazard pair
+			self.nHazardPair += 1
 		
 		# the 2-nd condition of send
 		mn = min(finsn.stg.id, binsn.stg.id)
@@ -330,6 +335,9 @@ class FB(object):
 			rwGrps[r].addInsn(wInsn)
 			sendData = RP.SrcToVar(src=finsn.wd, stg=self.pipeLine.StgNameAt(w))
 			rwGrps[r].addLink(sendData)
+			
+			# update hazard pair
+			self.nHazardPair += 1
 		
 		# the 3-rd condition of send (useless)
 		# for r in range(mn+1, binsn.stg.id+1):
@@ -345,7 +353,9 @@ class FB(object):
 				stg = Stage(rstg+d, self.pipeLine.StgNameAt(rstg+d))
 				wInsn = StgInsn(insn=finsn.insn, stg=stg, addr=finsn.addr, ctrl=finsn.ctrl)
 				stallGrp.addInsn(wInsn)
-			
+				
+				# update hazard pair
+				self.nHazardPair += 1
 			
 		
 	def __GenWStgInsn(self, regName, index=""):

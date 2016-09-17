@@ -188,8 +188,8 @@ def blockToAssign(desPort, condDict):
 	# ret += "\t\t(%s) ? 0:\n" % (zeroCond)
 	for bp in keys:
 		insnDict = condDict[bp]
-		rInsnCond = "(%s)" % (" & ".join(insnDict['rInsn']))
-		wInsnCond = "(%s)" % (" & ".join(insnDict['wInsn']))
+		rInsnCond = "(%s)" % (" | ".join(insnDict['rInsn']))
+		wInsnCond = "(%s)" % (" | ".join(insnDict['wInsn']))
 		if bp.addr:
 			cond = "clr_%s & %s &\n\t\t\t %s &\n\t\t\t %s" % (bp.stg, bp.addr, rInsnCond, wInsnCond)
 		else:
@@ -258,7 +258,7 @@ def compressStall(lines, expDict):
 		
 def compressNormal(lines, assignDict):
 	# Instr_E`OP == `MTHI_OP && Instr_E`FUNCT == `MTHI_FUNCT
-	pat = re.compile("Instr_(?P<stage>\w+)`OP == `(?P<Insn>\w+)_OP(\s*&&\s*Instr_\w+`FUNCT == `(?P<Insn2>\w+)_FUNCT)?")
+	pat = re.compile("Instr_(?P<stage>\w+)`OPCD == `(?P<Insn>\w+)_OPCD(\s*&&\s*Instr_\w+`\w+ == `(?P<Insn2>\w+)_\w+)?")
 	ret = []
 	def expRepl(mobj):
 		return update(mobj.group(0), assignDict)
@@ -333,7 +333,8 @@ def getWidth(condDict, portName):
 		return "[0:0]"
 	if "Op" in portName:
 		prefix = portName[:portName.index("Op")+2]
-		return prefix + "_WIDTH"
+		prefix = prefix[:-3] + "Op"
+		return "[0:`%s_WIDTH-1]" % (prefix)
 	return "[0:0]"
 	
 	
@@ -355,16 +356,17 @@ def compressAlways(lines):
 	while i < n:
 		if "if" in lines[i]:
 			cond = getCond(lines[i])
-			val = getVal(lines[i+1])
+			if cond != '0':
+				val = getVal(lines[i+1])
+				if val not in condDict:
+					condDict[val] = []
+				condDict[val].append(cond)
 			i += 2
-			if val not in condDict:
-				condDict[val] = []
-			condDict[val].append(cond)
 		else:
 			i += 1
 	width = getWidth(condDict, portName)
 	ret = ""
-	ret += "\twire %s %s_tmp;" % (width, portName)
+	ret += "\twire %s %s_tmp;\n" % (width, portName)
 	ret += "\tassign %s_tmp =\n" % (portName)
 	for res, condList in condDict.iteritems():
 		ret += "\t\t(%s) ? %s:\n" % (toCondition(condList), res)
@@ -374,12 +376,13 @@ def compressAlways(lines):
 	ret += "\tend // end always\n\n"
 	return ret;
 	
+	
 def compressAgain(lines):
 	n = len(lines)
 	i = 0
 	ret = []
 	while i < n:
-		if "Logic" in lines[i] and not ("Bmux" in lines[i] or "stall" in lines[i]):
+		if "Logic" in lines[i] and "Bmux" not in lines[i] and "stall" not in lines[i]:
 			j = i
 			while i < n:
 				line = lines[i].strip()
@@ -412,13 +415,13 @@ def mergeAssign(lines, assigns):
 	
 def compress(lines):
 	assignDict = dict()
+	tmp = []
 	ret = compressExp(lines, assignDict)
-	print len(assignDict)
+	tmp += genAssign(assignDict)
+	assignDict.clear()
 	ret = compressBypass(ret, assignDict)
-	print len(assignDict)
 	ret = compressStall(ret, assignDict)
-	print len(assignDict)
-	tmp = genAssign(assignDict)
+	tmp += genAssign(assignDict)
 	ret = compressAgain(ret)
 	ret = mergeAssign(ret, tmp)
 	return ret
