@@ -1,5 +1,6 @@
 `include "arch_def.v"
 `include "ctrl_encode_def.v"
+`include "SPR_def.v"
 
 module MDU (
 	A, B, Op, C, D
@@ -14,24 +15,28 @@ module MDU (
 	reg [0:`ARCH_WIDTH-1] C;
 	wire [0:`ARCH_WIDTH*2-1] Div_result, Mul_result;
 	reg flag;
+	reg OV;
    
     // Divide Array Unit
-    DivUnit #(`ARCH_WIDTH) DivUnit (
-		.srcA(A),
-		.srcB(B),
-		.ctrl(flag),
-		.Div_result(Div_result)
-	);  
+    // DivUnit #(`ARCH_WIDTH) DivUnit (
+		// .srcA(A),
+		// .srcB(B),
+		// .ctrl(flag),
+		// .Div_result(Div_result)
+	// );  
+	wire [0:`ARCH_WIDTH-1] div_q, div_d;
+	assign Div_result = {div_q, div_d};
+	assign div_q = A / B;
+	assign div_d = A % B;
 	 
 	 // Multiply Array	Unit	            
-    MultUnit #(`ARCH_WIDTH) MulUnit (
-		.srcA(A),
-		.srcB(B),
-		.ctrl(flag),
-		.Mul_result(Mul_result)
-	);
-	
-	reg OV;
+    // MultUnit #(`ARCH_WIDTH) MulUnit (
+		// .srcA(A),
+		// .srcB(B),
+		// .ctrl(flag),
+		// .Mul_result(Mul_result)
+	// );
+	assign Mul_result = {{32{A[0]}}, A} * {{32{B[0]}}, B};
 				          
     always @ ( * ) begin
 		case ( Op )

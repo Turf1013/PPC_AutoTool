@@ -23,7 +23,7 @@
 `define INSTR_AA	[30]
 `define INSTR_LK	[31]
 `define INSTR_OPCD_WIDTH 6`define INSTR_XO_WIDTH 10
- 
+
 /**** About CR ****/
 `define CR_DEPTH		5
 `define CR_WIDTH		32

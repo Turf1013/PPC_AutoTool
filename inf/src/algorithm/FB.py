@@ -396,7 +396,14 @@ class FB(object):
 			for rtl in rtlList[i]:
 				if rtl.src == src:
 					return i
-		return -1		
+		# print self.pipeLine.stgn
+		linkRtl = self.excelRtl.linkRtl
+		rtlList = linkRtl[insnName]
+		for i in xrange(self.pipeLine.stgn):
+			for rtl in rtlList[i]:
+				if rtl.src == src:
+					return i - 1
+		return -1
 		
 		
 	def __GenRStgInsn(self, regName, index=""):

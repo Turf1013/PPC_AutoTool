@@ -79,7 +79,7 @@
 `define ALUOp_RLIM	5'd20
 `define ALUOp_MOVB	5'd21
 `define ALUOp_NEG	5'd22
-`define ALUOp_EQV	5'd23
+`define ALUOp_EQV	5'd22
 
 `define CNTZ_00    32'b1xxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx
 `define CNTZ_01    32'b01xx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx_xxxx
@@ -142,3 +142,9 @@
 `define MDU_DOutOp_WIDTH 	1
 `define MDU_DOutOp_NOP		1'd0
 `define MDU_DOutOp_OV		1'd1
+
+/**** About Reserve ****/
+`define ReserveOp_WIDTH		2
+`define ReserveOp_NONE		2'd0
+`define ReserveOp_ST		2'd1
+`define ReserveOp_LD		2'd2

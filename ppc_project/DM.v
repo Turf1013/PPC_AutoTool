@@ -22,6 +22,7 @@ module DM (
 	input  [`DM_WIDTH-1:0]   din;
 	output [0:`DM_WIDTH-1]   dout;
      
+	/* 
 	reg [`DM_WIDTH-1:0] dmem[`DM_SIZE-1:0];
 	
 	wire [`ARCH_WIDTH-1:0] addr_;
@@ -54,6 +55,21 @@ module DM (
 	assign tmp = dmem[haddr];
 	// assign dout = {tmp[7:0], tmp[15:8], tmp[23:16], tmp[31:24]};
     assign dout = tmp;
+	*/
+	
+	wire [3:0] wea;
+	
+	assign wea = {4{wr}} & BE;
+//----------- Begin Cut here for INSTANTIATION Template ---// INST_TAG
+dram dram (
+  .clka(clk), // input clka
+  .wea(wea), // input [3 : 0] wea
+  .addra(addr[11:2]), // input [9 : 0] addra
+  .dina(din), // input [31 : 0] dina
+  .douta(dout) // output [31 : 0] douta
+);
+// INST_TAG_END ------ End INSTANTIATION Template ---------
+		
 	
 endmodule
 
@@ -157,16 +173,16 @@ module DMOut_ME (
 			
 			`DMOut_MEOp_LH: begin
 				if (laddr[0])
-					dout = {16'd0, din[16:31]};
-				else
 					dout = {16'd0, din[0:15]};
+				else
+					dout = {16'd0, din[16:31]};
 			end
 			
 			`DMOut_MEOp_LHA: begin
 				if (laddr[0])
-					dout = {{16{din[16]}}, din[16:31]};
-				else
 					dout = {{16{din[0 ]}}, din[0:15]};
+				else
+					dout = {{16{din[16]}}, din[16:31]};
 			end
 			
 			`DMOut_MEOp_LHBR: begin
@@ -178,10 +194,10 @@ module DMOut_ME (
 			
 			`DMOut_MEOp_LB: begin
 				case (laddr)
-					2'd0: dout = {24'd0, din[ 0:7 ]};
-					2'd1: dout = {24'd0, din[ 8:15]};
-					2'd2: dout = {24'd0, din[16:23]};
-					2'd3: dout = {24'd0, din[24:31]};
+					2'd3: dout = {24'd0, din[ 0:7 ]};
+					2'd2: dout = {24'd0, din[ 8:15]};
+					2'd1: dout = {24'd0, din[16:23]};
+					2'd0: dout = {24'd0, din[24:31]};
 				endcase
 			end
 			

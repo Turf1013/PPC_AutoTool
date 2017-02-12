@@ -9,7 +9,9 @@ from src.algorithm.datapath import Datapath
 from src.algorithm.control import Control
 from src.patch.ppcPatch import ppcPatch
 from src.glob.glob import CFG
-
+from src.compress.compress_ppc import fetch as compressFetch
+from src.compress.compress_ppc import dump as compressDump
+from src.compress.compress_ppc import compress as compressCtrl
 
 def move(srcDir, desDir):
 	if os.path.exists(srcDir) and os.path.exists(desDir):
@@ -18,6 +20,13 @@ def move(srcDir, desDir):
 			if fileName.endswith(".v"):
 				shutil.copyfile(os.path.join(srcDir, fileName), os.path.join(desDir, fileName))
 
+				
+def compress(desDir, filename):
+	filepath = os.path.join(desDir, filename)
+	lines = compressFetch(filepath)
+	lines = compressCtrl(lines)
+	compressDump(filepath, lines)
+	
 
 if __name__ == "__main__":
 	srcWorkDirectory = "F:\ppc_project"
@@ -110,4 +119,7 @@ if __name__ == "__main__":
 	move(srcWorkDirectory, desWorkDirectory)
 	
 	logging.debug("[N of hazard pairs] %s\n" % (fb.nHazardPair))
+	
+	# compress the control for better performance
+	compress(desWorkDirectory, "control.v")
 	

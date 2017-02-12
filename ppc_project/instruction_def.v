@@ -290,3 +290,29 @@
 
 `define RFI_OPCD	6'b010_011
 `define RFI_XLXO	10'b00001_10010
+
+`define LDU_OPCD	6'b111_010
+
+`define LDUX_OPCD	6'b011_111
+`define LDUX_XXO	10'b00001_10101
+
+`define LWAUX_OPCD	6'b011_111
+`define LWAUX_XXO	10'b01011_10101
+
+`define STDU_OPCD	6'b111_110
+
+`define STDUX_OPCD	6'b011_111
+`define STDUX_XXO	10'b00101_10101
+
+`define LD_OPCD		6'b111_010
+
+`define LDX_OPCD	6'b011_111
+`define LDX_XXO		10'b00000_10101
+
+`define	STD_OPCD	6'b111_110
+
+`define STDX_OPCD	6'b011_111
+`define STDX_XXO	10'b00100_10101
+
+`define LWAX_OPCD	6'b011_111
+`define LWAX_XXO	10'b01010_10101

@@ -50,14 +50,13 @@ endmodule
 module ALU (
 	A, B, Op, C, D, 
 	rotn, MB, ME,
-	XERrd, CRrd
+	XERrd
 );
 	
 	input 	[0:`ARCH_WIDTH-1]  	A, B;
 	input	[0:`ALUOp_WIDTH-1] 	Op;
 	input	[0:`ROTL_WIDTH-1]	rotn, MB, ME;
 	input	[0:`XER_WIDTH-1]	XERrd;
-	input 	[0:`CR_WIDTH-1]		CRrd;
 	output	[0:`ARCH_WIDTH-1] 	C;
 	output	[0:`ALU_D_WIDTH-1]	D;
 	
@@ -226,13 +225,13 @@ module ALU (
 				CA_r = 0;
 				OV_r = 0;
 			end
-			`ALUOp_EQV: begin
-				C = (srcA == srcB) ? 32'd1:32'd0;
+			`ALUOp_RLIM: begin
+				C = (rotv & mask) | (srcB & ~mask);
 				CA_r = 0;
 				OV_r = 0;
 			end
-			`ALUOp_RLIM: begin
-				C = (rotv & mask) | (srcB & ~mask);
+			`ALUOp_EQV: begin
+				C = srcA == srcB ? 32'b1:32'b0;
 				CA_r = 0;
 				OV_r = 0;
 			end
