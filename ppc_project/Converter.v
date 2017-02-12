@@ -55,13 +55,13 @@ module insnConverter (
 	*	parse the insn
 	*/
 	// wire D-Form
-	wire [0:`DRT_WIDTH-1] D_RT;
-	wire [0:`DD_WIDTH-1] D_D;
-	wire [0:`DRS_WIDTH-1] D_RS;
-	wire [0:`DRD_WIDTH-1] D_RD;
-	wire [0:`DSI_WIDTH-1] D_SI;
-	wire [0:`DRA_WIDTH-1] D_RA;
-	wire [0:`DOPCD_WIDTH-1] D_OPCD;
+	wire [0:`DRT_WIDTH-1] DRT;
+	wire [0:`DD_WIDTH-1] DD;
+	wire [0:`DRS_WIDTH-1] DRS;
+	wire [0:`DRD_WIDTH-1] DRD;
+	wire [0:`DSI_WIDTH-1] DSI;
+	wire [0:`DRA_WIDTH-1] DRA;
+	wire [0:`DOPCD_WIDTH-1] DOPCD;
 
 	// wire DS-Form
 	wire [0:`DSRT_WIDTH-1] DS_RT;
@@ -73,56 +73,56 @@ module insnConverter (
 	wire [0:`DSDS_WIDTH-1] DS_DS;
 
 	// wire X-Form
-	wire [0:`XRT_WIDTH-1] X_RT;
-	wire [0:`XRS_WIDTH-1] X_RS;
-	wire [0:`XOPCD_WIDTH-1] X_OPCD;
-	wire [0:`XRA_WIDTH-1] X_RA;
-	wire [0:`XRB_WIDTH-1] X_RB;
-	wire [0:`XXO_WIDTH-1] X_XO;
+	wire [0:`XRT_WIDTH-1] XRT;
+	wire [0:`XRS_WIDTH-1] XRS;
+	wire [0:`XOPCD_WIDTH-1] XOPCD;
+	wire [0:`XRA_WIDTH-1] XRA;
+	wire [0:`XRB_WIDTH-1] XRB;
+	wire [0:`XXO_WIDTH-1] XXO;
 
 	// wire XO-Form
-	wire [0:`XORT_WIDTH-1] XO_RT;
-	wire [0:`XOXO_WIDTH-1] XO_XO;
-	wire [0:`XOOE_WIDTH-1] XO_OE;
-	wire [0:`XORA_WIDTH-1] XO_RA;
-	wire [0:`XORB_WIDTH-1] XO_RB;
-	wire [0:`XORc_WIDTH-1] XO_Rc;
-	wire [0:`XOOPCD_WIDTH-1] XO_OPCD;
+	wire [0:`XORT_WIDTH-1] XORT;
+	wire [0:`XOXO_WIDTH-1] XOXO;
+	wire [0:`XOOE_WIDTH-1] XOOE;
+	wire [0:`XORA_WIDTH-1] XORA;
+	wire [0:`XORB_WIDTH-1] XORB;
+	wire [0:`XORc_WIDTH-1] XORc;
+	wire [0:`XOOPCD_WIDTH-1] XOOPCD;
 	
 	// assign D-Form
-	assign D_RT = instr`DRT;
-	assign D_D = instr`DD;
-	assign D_RS = instr`DRS;
-	assign D_RD = instr`DRD;
-	assign D_SI = instr`DSI;
-	assign D_RA = instr`DRA;
-	assign D_OPCD = instr`DOPCD;
+	assign DRT = instr`DRT;
+	assign DD = instr`DD;
+	assign DRS = instr`DRS;
+	assign DRD = instr`DRD;
+	assign DSI = instr`DSI;
+	assign DRA = instr`DRA;
+	assign DOPCD = instr`DOPCD;
 
 	// assign DS-Form
-	assign DS_RT = instr`DSRT;
-	assign DS_XO = instr`DSXO;
-	assign DS_RS = instr`DSRS;
-	assign DS_RD = instr`DSRD;
-	assign DS_RA = instr`DSRA;
-	assign DS_OPCD = instr`DSOPCD;
-	assign DS_DS = instr`DSDS;
+	assign DSRT = instr`DSRT;
+	assign DSXO = instr`DSXO;
+	assign DSRS = instr`DSRS;
+	assign DSRD = instr`DSRD;
+	assign DSRA = instr`DSRA;
+	assign DSOPCD = instr`DSOPCD;
+	assign DSDS = instr`DSDS;
 
 	// assign X-Form
-	assign X_RT = instr`XRT;
-	assign X_RS = instr`XRS;
-	assign X_OPCD = instr`XOPCD;
-	assign X_RA = instr`XRA;
-	assign X_RB = instr`XRB;
-	assign X_XO = instr`XXO;
+	assign XRT = instr`XRT;
+	assign XRS = instr`XRS;
+	assign XOPCD = instr`XOPCD;
+	assign XRA = instr`XRA;
+	assign XRB = instr`XRB;
+	assign XXO = instr`XXO;
 
 	// assign XO-Form
-	assign XO_RT = instr`XORT;
-	assign XO_XO = instr`XOXO;
-	assign XO_OE = instr`XOOE;
-	assign XO_RA = instr`XORA;
-	assign XO_RB = instr`XORB;
-	assign XO_Rc = instr`XORc;
-	assign XO_OPCD = instr`XOOPCD;
+	assign XORT = instr`XORT;
+	assign XOXO = instr`XOXO;
+	assign XOOE = instr`XOOE;
+	assign XORA = instr`XORA;
+	assign XORB = instr`XORB;
+	assign XORc = instr`XORc;
+	assign XOOPCD = instr`XOOPCD;
 	
 	//// handle load or store with update insn
 	wire update, mw;
@@ -136,178 +136,178 @@ module insnConverter (
 	reg [4:0] cnt, cnt_r;
 	reg mw_r;
 	reg [0:`PC_WIDTH-1] PC_r;
-	reg [0:`DRT_WIDTH-1] D_RT_r;
-	reg [0:`DD_WIDTH-1] D_D_r;
+	reg [0:`DRT_WIDTH-1] DRT_r;
+	reg [0:`DD_WIDTH-1] DD_r;
 	
 	always @( * ) begin
 		if ( lbzu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LBZ_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`LBZ_OPCD, DRT, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRT, DRA, DD};
 			end
 		end
 		
 		else if ( ldu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LD_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`LD_OPCD, DRT, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRT, DRA, DD};
 			end
 		end
 		
 		else if ( lhau ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LHA_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`LHA_OPCD, DRT, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRT, DRA, DD};
 			end
 		end
 		
 		else if ( lhzu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LHZ_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`LHZ_OPCD, DRT, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRT, DRA, DD};
 			end
 		end
 		
 		else if ( lwzu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LWZ_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`LWZ_OPCD, DRT, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RT, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRT, DRA, DD};
 			end
 		end
 		
 		else if ( lbzux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LBZX_OPCD, X_RT, X_RA, X_RB, `LBZX_XXO, 1'b0};
+				dout_r = {`LBZX_OPCD, XRT, XRA, XRB, `LBZX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( ldux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LDX_OPCD, X_RT, X_RA, X_RB, `LDX_XXO, 1'b0};
+				dout_r = {`LDX_OPCD, XRT, XRA, XRB, `LDX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( lhaux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LHAX_OPCD, X_RT, X_RA, X_RB, `LHAX_XXO, 1'b0};
+				dout_r = {`LHAX_OPCD, XRT, XRA, XRB, `LHAX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( lhzux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LHZX_OPCD, X_RT, X_RA, X_RB, `LHZX_XXO, 1'b0};
+				dout_r = {`LHZX_OPCD, XRT, XRA, XRB, `LHZX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( lwzux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LWZX_OPCD, X_RT, X_RA, X_RB, `LWZX_XXO, 1'b0};
+				dout_r = {`LWZX_OPCD, XRT, XRA, XRB, `LWZX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( lwaux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`LWAX_OPCD, X_RT, X_RA, X_RB, `LWAX_XXO, 1'b0};
+				dout_r = {`LWAX_OPCD, XRT, XRA, XRB, `LWAX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RT, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRT, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( stbu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STB_OPCD, D_RS, D_RA, D_D};
+				dout_r = {`STB_OPCD, DRS, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RA, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRA, DRA, DD};
 			end
 		end
 		
 		else if ( stdu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STD_OPCD, D_RS, D_RA, D_D};
+				dout_r = {`STD_OPCD, DRS, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RA, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRA, DRA, DD};
 			end
 		end
 		
 		else if ( sthu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STH_OPCD, D_RS, D_RA, D_D};
+				dout_r = {`STH_OPCD, DRS, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RA, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRA, DRA, DD};
 			end
 		end
 		
 		else if ( stwu ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STW_OPCD, D_RS, D_RA, D_D};
+				dout_r = {`STW_OPCD, DRS, DRA, DD};
 			end
 			else begin
-				dout_r = {`ADDI_OPCD, D_RA, D_RA, D_D};
+				dout_r = {`ADDI_OPCD, DRA, DRA, DD};
 			end
 		end
 		
 		else if ( stbux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STBX_OPCD, X_RS, X_RA, X_RB, `STBX_XXO, 1'b0};
+				dout_r = {`STBX_OPCD, XRS, XRA, XRB, `STBX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RA, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRA, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( stdux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STDX_OPCD, X_RS, X_RA, X_RB, `STDX_XXO, 1'b0};
+				dout_r = {`STDX_OPCD, XRS, XRA, XRB, `STDX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RA, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRA, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( sthux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STHX_OPCD, X_RS, X_RA, X_RB, `STHX_XXO, 1'b0};
+				dout_r = {`STHX_OPCD, XRS, XRA, XRB, `STHX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RA, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRA, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
 		else if ( stwux ) begin
 			if ( ~stall_update_r ) begin
-				dout_r = {`STWX_OPCD, X_RS, X_RA, X_RB, `STWX_XXO, 1'b0};
+				dout_r = {`STWX_OPCD, XRS, XRA, XRB, `STWX_XXO, 1'b0};
 			end
 			else begin
-				dout_r = {`ADD_OPCD, X_RA, X_RA, X_RB, 1'b0, `ADD_XOXO, 1'b0};
+				dout_r = {`ADD_OPCD, XRA, XRA, XRB, 1'b0, `ADD_XOXO, 1'b0};
 			end
 		end
 		
@@ -316,7 +316,7 @@ module insnConverter (
 				dout_r = `NOP;
 			end
 			else begin
-				dout_r = {`LWZ_OPCD, D_RT_r, D_RA, D_D_r};
+				dout_r = {`LWZ_OPCD, DRT_r, DRA, DD_r};
 			end
 		end
 		
@@ -325,7 +325,7 @@ module insnConverter (
 				dout_r = `NOP;
 			end
 			else begin
-				dout_r = {`STW_OPCD, D_RT_r, D_RA, D_D_r};
+				dout_r = {`STW_OPCD, DRT_r, DRA, DD_r};
 			end
 		end
 		
@@ -375,21 +375,21 @@ module insnConverter (
 	
 	always @(posedge clk or negedge rst_n) begin
 		if (~rst_n) begin
-			D_RT_r <= 0;
-			D_D_r <= 0;
+			DRT_r <= 0;
+			DD_r <= 0;
 		end
 		else if (mw && (~mw_r || PC_r!=PC)) begin
-			D_RT_r <= D_RT;
-			D_D_r <= D_D;
+			DRT_r <= DRT;
+			DD_r <= DD;
 		end
 		else begin
-			D_RT_r <= D_RT_r + 1;
-			D_D_r <= D_D_r + 4;
+			DRT_r <= DRT_r + 1;
+			DD_r <= DD_r + 4;
 		end
 	end	// end always
 	
 	assign mw = lmw || stmw;
-	assign stall_mw = mw && (D_RT_r != 5'd31);
+	assign stall_mw = mw && (DRT_r != 5'd31);
 	
 	assign dout = dout_r;
 	assign ext_stall = stall_update || stall_mw;

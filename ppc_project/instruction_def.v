@@ -277,8 +277,8 @@
 
 `define XORIS_OPCD	6'b011011
 
-`define EQV_OPCD	6'b31
-`define EQV_XXO		10'b284
+`define EQV_OPCD	6'd31
+`define EQV_XXO	10'd284
 
 `define SYNC_OPCD	6'b011_111
 `define SYNC_XXO	10'b10010_10110
