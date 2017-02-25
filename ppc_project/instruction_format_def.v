@@ -256,3 +256,9 @@
 `define MDSOPCD [0:5]
 `define MDSXO_WIDTH 5
 `define MDSXO [26:30]
+
+// define SC-Form
+`define SCOPCD_WIDTH 6
+`define SCOPCD [0:5]
+`define SCLEV_WIDTH	7
+`define SCLEV  [20:26]

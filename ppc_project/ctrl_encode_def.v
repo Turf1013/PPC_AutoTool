@@ -132,11 +132,12 @@
 
 /**** About MDU ****/
 `define MDUOp_WIDTH		3
-`define MDUOp_MULH		3'd0
-`define MDUOp_MULHU		3'd1
-`define MDUOp_MULW		3'd2
-`define MDUOp_DIVW		3'd3
-`define MDUOp_DIVWU		3'd4
+`define MDUOp_NOP		3'd0
+`define MDUOp_MULH		3'd1
+`define MDUOp_MULHU		3'd2
+`define MDUOp_MULW		3'd3
+`define MDUOp_DIVW		3'd4
+`define MDUOp_DIVWU		3'd5
 
 /**** About MDU_DOut ****/
 `define MDU_DOutOp_WIDTH 	1
@@ -148,3 +149,10 @@
 `define ReserveOp_NONE		2'd0
 `define ReserveOp_ST		2'd1
 `define ReserveOp_LD		2'd2
+
+/**** About Interrupt ****/
+`define INTOp_WIDTH			2
+`define INTOp_NONE			2'd0
+`define INTOp_EXT			2'd1
+`define INTOp_TRAP			2'd2
+`define INTOp_SC			2'd3
