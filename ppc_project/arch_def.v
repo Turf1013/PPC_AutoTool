@@ -43,6 +43,7 @@
 /**** About MDU ****/
 `define ROTL_WIDTH 		5 
 `define MDU_D_WIDTH		4
+`define MDU_CYCLE		8		// must great than 1
 
 /**** About MSR ****/
 `define MSR_WIDTH		32
