@@ -29,7 +29,7 @@ def genAssign(d):
 	# print len(d)
 	pairs = sorted(d.items(), mycomp)
 	for exp, wire in pairs:
-		line = "assign %s = %s;\n" % (wire, exp)
+		line = "\tassign %s = %s;\n" % (wire, exp)
 		ret.append(line)
 	return ret
 	
