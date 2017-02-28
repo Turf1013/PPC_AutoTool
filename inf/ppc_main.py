@@ -17,7 +17,7 @@ from src.compress.compress_ppc import compress as compressCtrl
 
 class constForPPCMain:
 	enCompress = False
-	testMCI = True
+	testMCI = False
 	
 class CFPM(constForPPCMain):
 	pass

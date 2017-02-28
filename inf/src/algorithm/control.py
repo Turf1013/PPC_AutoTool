@@ -8,10 +8,15 @@ from ..util.verilogGenerator import VerilogGenerator as VG
 from ..verilog.const_hdl import CFV
 from ..role.wire import WireSet, Wire
 from ..glob.glob import CFG
+from MC import MC as MCI
+from MC import CFMC
 
 class constForControl:
 	INSTR = "Instr"
 	INSTR_WIDTH = CFG.INSTR_WIDTH
+	MCI_CYCLE = CFMC.MDU_CYCLE
+	MCI_STALL = CFMC.STALL_MC
+	MCI_CNT = CFMC.MDU_CNT
 	
 class CFC(constForControl):
 	pass
@@ -150,11 +155,16 @@ class Control(object):
 		
 		# control signal
 		csCode = self.__CSToVerilog(tabn = tabn)
-		ret += pre + "// Ctrl Signal\n" + csCode + "\n" * 4
+		ret += pre + "// control Signal\n" + csCode + "\n" * 4
+		
+		# MCI related
+		mci = MCI(self.excelRtl, self.pipeLine, self.modMap, self.insnMap)
+		mciCode = mci.toVerilog(tabn = tabn)
+		ret += pre + "// MCI supported signal\n" + mciCode + "\n" * 4
 		
 		# pipe signal
 		clrCode = self.__ClrToVerilog(tabn = tabn)
-		ret += pre + "// Clear Signal\n" + clrCode + "\n" * 4
+		ret += pre + "// clear Signal\n" + clrCode + "\n" * 4
 		
 		# endmodule
 		ret += "endmodule\n"
@@ -172,6 +182,12 @@ class Control(object):
 		ret += "\n"
 		ret += pre + ", ".join(map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn)))
 		
+		# add MDU related
+		ret += ",\n"
+		MCIPortList = [CFC.MCI_CNT]
+		ret += pre + ", ".join(MCIPortList)
+		
+		
 		# add clk & rst_n
 		ret += ",\n"
 		ret += pre + "clk, rst_n\n"
@@ -184,6 +200,10 @@ class Control(object):
 		ret += pre + "input clk, rst_n;\n"
 		instrList = map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn))
 		ret += pre + "input %s %s;\n" % (CFC.INSTR_WIDTH, ", ".join(instrList))
+		
+		# add MCI related
+		width = MCI.calcEncodeLen(CFC.MCI_CYCLE)
+		ret += pre + "input [%d:0] %s;\n" % (width-1, CFC.MCI_CNT)
 		return ret
 	
 		
@@ -221,7 +241,7 @@ class Control(object):
 		
 		ret += pre + "//// same meaning as clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
 		ret += pre + "always @( * ) begin\n"
-		ret += pre + "\t" + "clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
+		ret += pre + "\t" + "clr_%s = stall | %s;\n" % (self.pipeLine.StgNameAt(rstg), CFC.MCI_STALL)
 		ret += pre + "end // end always\n\n"
 		return ret
 		

@@ -79,7 +79,7 @@ class MC(object):
 				if CFMC.MDU_NAME in rtl.des:
 					ret.append(insnName)
 					break
-		print ret			
+		# print ret			
 		return ret
 		
 		
@@ -150,10 +150,9 @@ class MC(object):
 			2^n >= x
 		"""
 		n = 0
-		while 2**n >= x:
-			return n
+		while 2**n < x:
 			n += 1
-		return -1
+		return n
 		
 		
 	def GenMcInsnCond(self, mcInsnName):
@@ -200,8 +199,8 @@ class MC(object):
 		'2. & 3. desInSrc & desInDes'
 		inSrcDict = relevCondList[1]
 		inDesDict = relevCondList[2]
-		print "inSrcDict.keys() = ", inSrcDict.keys()
-		print "inDesDict.keys() = ", inDesDict.keys()
+		# print "inSrcDict.keys() = ", inSrcDict.keys()
+		# print "inDesDict.keys() = ", inDesDict.keys()
 		mcInsnNameSet = set(inSrcDict.keys()) | set(inDesDict.keys())
 		mcInsnNameList = list(mcInsnNameSet)
 		for insnName in mcInsnNameList:
@@ -215,8 +214,6 @@ class MC(object):
 				condList += inSrcDict[insnName]
 			if insnName in inDesDict:
 				condList += inDesDict[insnName]
-			if insnName.upper() == "ADD":
-				print condList
 			line = "\t\t%s =\n" % (sigName)
 			ret.append(line)
 			for i,cond in enumerate(condList):
@@ -416,7 +413,7 @@ class MC(object):
 		for mcInsnName in self.mcInsnNameList:
 			# bitName = "%s_%s" % (CFMC.MDU_INSN, insnName)
 			desAddrExpList = self.findDesAddr(mcInsnName, regName)
-			print "desAddrExp =", desAddrExpList
+			# print "desAddrExp =", desAddrExpList
 			condDict = self.findSrcAddrExp(regName)
 			condList = []
 			for insnName, srcAddrExpList in condDict.iteritems():
@@ -591,6 +588,11 @@ class MC(object):
 		ret += prefix + prefix.join(wireLines)
 		ret += "\n\n"
 		
+		ret += prefix + "// stall of structural hazard\n"
+		stall_struct = map(lambda x: prefix+x, self.HandleStructHazard())
+		ret += "".join(stall_struct)
+		ret += "\n\n"
+		
 		ret += prefix + "// has MCI logic\n"
 		hasMcLines = self.GenHasMC()
 		ret += prefix + prefix.join(hasMcLines)
@@ -604,11 +606,6 @@ class MC(object):
 		ret += prefix + "// stall of relevant\n"
 		stall_relev = map(lambda x: prefix+x, self.GenStallRelevant())
 		ret += "".join(stall_relev)
-		ret += "\n\n"
-		
-		ret += prefix + "// stall of structural hazard\n"
-		stall_struct = map(lambda x: prefix+x, self.HandleStructHazard())
-		ret += "".join(stall_struct)
 		ret += "\n\n"
 		
 		wireLine = prefix + "wire %s;\n" % (CFMC.STALL_MC)
