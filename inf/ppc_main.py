@@ -95,7 +95,8 @@ if __name__ == "__main__":
 	# test MCI module
 	if CFPM.testMCI:
 		testMCI(excelRtl, pipeLine, modMap, insnMap)
-	
+		exit(0)
+		
 	# FB algorithm
 	fb = FB(excelRtl=excelRtl, pipeLine=pipeLine, modMap=modMap, insnMap=insnMap)
 	### Generate the mux and control signal referenced

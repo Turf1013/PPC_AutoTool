@@ -28,7 +28,7 @@ class Insn(object):
 		for fieldName, fieldVal in self.fieldDict.iteritems():
 			fieldDef = VG.GenInsnFieldDef(fieldName)
 			condList.append( "%s%s == %s" % (instr, fieldDef, fieldVal) )
-		return "( %s ) " % (" && ".join(condList))
+		return "( %s )" % (" && ".join(condList))
 		
 	
 	def __hash__(self):
