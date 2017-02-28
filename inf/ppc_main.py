@@ -7,11 +7,21 @@ from src.routine.vfile import VFile
 from src.algorithm.FB import FB
 from src.algorithm.datapath import Datapath
 from src.algorithm.control import Control
+from src.algorithm.MC import MC
 from src.patch.ppcPatch import ppcPatch
 from src.glob.glob import CFG
 from src.compress.compress_ppc import fetch as compressFetch
 from src.compress.compress_ppc import dump as compressDump
 from src.compress.compress_ppc import compress as compressCtrl
+
+
+class constForPPCMain:
+	enCompress = False
+	testMCI = True
+	
+class CFPM(constForPPCMain):
+	pass
+	
 
 def move(srcDir, desDir):
 	if os.path.exists(srcDir) and os.path.exists(desDir):
@@ -26,6 +36,14 @@ def compress(desDir, filename):
 	lines = compressFetch(filepath)
 	lines = compressCtrl(lines)
 	compressDump(filepath, lines)
+	
+	
+def testMCI(excelRtl, pipeLine, modMap, insnMap):
+	mci = MC(excelRtl, pipeLine, modMap, insnMap)
+	lines = mci.toVerilog()
+	filename = "F:\Qt_prj\hdoj\data.in"
+	with open(filename, "w") as fout:
+		fout.write(lines)
 	
 
 if __name__ == "__main__":
@@ -51,7 +69,7 @@ if __name__ == "__main__":
 		"bc",
 		"bclr",
 		"bcctr",
-		"rfi",
+		# "rfi",
 	]
 	
 	# remove ppc.v, mips.v, control.v
@@ -73,6 +91,10 @@ if __name__ == "__main__":
 	excel = Excel(path = excelPath)
 	pipeLine = excel.GenPipeLine(sheetName, regArgsList, brList)
 	excelRtl = excel.GenAllRtl(sheetName)
+	
+	# test MCI module
+	if CFPM.testMCI:
+		testMCI(excelRtl, pipeLine, modMap, insnMap)
 	
 	# FB algorithm
 	fb = FB(excelRtl=excelRtl, pipeLine=pipeLine, modMap=modMap, insnMap=insnMap)
@@ -121,5 +143,6 @@ if __name__ == "__main__":
 	logging.debug("[N of hazard pairs] %s\n" % (fb.nHazardPair))
 	
 	# compress the control for better performance
-	compress(desWorkDirectory, "control.v")
+	if CFPM.enCompress:
+		compress(desWorkDirectory, "control.v")
 	
