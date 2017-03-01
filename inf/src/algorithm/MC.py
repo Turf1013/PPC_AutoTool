@@ -276,6 +276,7 @@ class MC(object):
 		line = "\tif (~rst_n) begin\n"
 		ret.append(line)
 		line = "\t\t%s <= %d;\n" % (CFMC.PIPE_CNT, desCnt)
+		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
 		

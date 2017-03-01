@@ -6,11 +6,11 @@
 main:
 	
 	/* initialize */
-	lis r1, 4
-	lis r2, 0
-	lis r3, 5
-	// lis r30, 1
-	// lis r31, 2
+	li r1, 4
+	li r2, 0
+	li r3, 5
+	// li r30, 1
+	// li r31, 2
 	// stw r30, -4(r1)
 	// stw r31, 0(r1)
 
@@ -26,4 +26,5 @@ _loop:
 	
 _end:
 	b _end
+	nop
 	nop
