@@ -178,8 +178,25 @@ class Datapath(object):
 			muxList, csList = self.__GenPortMuxPerStg(rtlSet, istg)
 			retMuxList += muxList
 			retCSList += csList
+		if CFG.SHOWINFO:
+			self.showInfo(retCSList, retMuxList)
 		return retCSList, retMuxList
 		
+		
+	def showInfo(self, csList, muxList):
+		line = ""
+		line += "********************\n"
+		line += "Automatic Datapath:\n"
+		line += "(1) %d port mux\n" % (len(muxList))
+		line += "(2) %d core modules:\n" % (len(self.modMap))
+		for i,modName in enumerate(self.modMap):
+			if i>0 and i%8==0:
+				line += "\n"
+			line += "\t%s " % (modName)
+		line += "\n"
+		line += "********************\n"
+		line += "\n\n"
+		print line		
 	
 	
 	# Generate the Port Mux & Control Signal @istg

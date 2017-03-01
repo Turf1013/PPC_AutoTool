@@ -9,6 +9,7 @@ from ..role.stage import Stage
 from ..role.pipeline import PipeLine
 from ..role.rtl import Rtl, LinkRtl, PipeRtl
 from ..role.reg import Reg
+from ..glob.glob import CFG
 
 class constForExcel:
 	ReadStageName = "D"
@@ -27,9 +28,29 @@ class ExcelRtl:
 		self.linkRtl = linkDict
 		self.pipeRtl = pipeDict
 		self.stgn = 0
-		for key,value in linkDict.iteritems():
-			self.stgn = len(value)
+		for insnName,rtlList in linkDict.iteritems():
+			self.stgn = len(rtlList)
 			break
+			
+			
+	def showInfo(self):
+		nLinkRtl = 0
+		nPipeRtl = 0
+		for rtlList in self.linkRtl.itervalues():
+			for rtls in rtlList:
+				nLinkRtl += len(rtls)
+		for rtlList in self.pipeRtl.itervalues():
+			for rtls in rtlList:
+				nPipeRtl += len(rtls)
+		line = ""
+		line += "********************\n"
+		line += "RTL:\n"
+		line += "(1) %4d link Rtl\n" % (nLinkRtl)
+		line += "(2) %4d pipe Rtl\n" % (nPipeRtl)
+		line += "********************\n"
+		line += "\n\n"
+		print line
+		
 		
 
 class Excel(object):
@@ -61,7 +82,10 @@ class Excel(object):
 		for args in regArgsList:
 			reg = Reg(*args)
 			regList.append(reg)
-		return PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg, regList=regList, brList=brList)
+		ret = PipeLine(stgList=stgList, Rstg=Rstg, Wstg=Wstg, regList=regList, brList=brList)
+		if CFG.SHOWINFO:
+			ret.showInfo()
+		return ret
 		
 	
 	def GenAllRtl(self, sheetName):
@@ -75,7 +99,10 @@ class Excel(object):
 			linkList, pipeList = self.__GenOneInsnRtl(*bound)
 			retLinkDict[insnName] = linkList
 			retPipeDict[insnName] = pipeList
-		return ExcelRtl(linkDict=retLinkDict, pipeDict=retPipeDict)
+		ret = ExcelRtl(linkDict=retLinkDict, pipeDict=retPipeDict)
+		if CFG.SHOWINFO:
+			ret.showInfo()
+		return ret
 			
 			
 	# return [2-dimension array] * 2

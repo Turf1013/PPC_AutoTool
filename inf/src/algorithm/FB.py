@@ -7,7 +7,7 @@ from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
 from ..util.verilogParser import VerilogParser as VP
 from ..util.verilogGenerator import VerilogGenerator as VG
-
+from ..glob.glob import CFG
 
 class constForFB:
 	STALL = "stall"
@@ -68,7 +68,21 @@ class FB(object):
 			retMuxList += muxList
 		# stall
 		retCsList.append( self.__HandleStall() )
+		if CFG.SHOWINFO:
+			self.showInfo(retCsList, retMuxList)
 		return retCsList, retMuxList
+		
+		
+	def showInfo(self, csList, muxList):
+		line = ""
+		line += "********************\n"
+		line += "Hazard Resolution:"
+		line += "(1) %d control signals\n" % (len(csList))
+		line += "(2) %d send mux\n" % (len(muxList))
+		line += "(3) %d hazard pairs\n" % (self.nHazardPair)
+		line += "********************\n"
+		line += "\n\n"
+		print line
 		
 		
 	def __HandleStall(self):

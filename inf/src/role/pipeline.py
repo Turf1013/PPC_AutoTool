@@ -47,4 +47,17 @@ class PipeLine(BasePipeLine):
 			item = item.upper()
 			if item not in self.brList:
 				self.brList.append(item)
-				
+			
+			
+	def showInfo(self):
+		line = ""
+		line += "********************\n"
+		line += "Pipeline Specification:\n"
+		line += "(1) %d stages: %s\n" % (self.stgn, ", ".join(map(lambda s:s.name, self.stgList)))
+		line += "(2) read stage is %s\n" % (self.Rstg.name)
+		line += "(3) write stage is %s\n" % (self.Wstg.name)
+		line += "(4) %d reg models: %s\n" % (len(self.regList), ", ".join(map(lambda r:r.name, self.regList)))
+		line += "********************\n"
+		line += "\n\n"
+		print line
+		

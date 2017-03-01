@@ -45,7 +45,9 @@ class MC(object):
 		self.Nmc = self.__findNmc()
 		self.Pmc = self.__findPmc()
 		self.mcInsnNameList = self.__findMCI(self.Pmc)
-		print self.__str__()
+		if CFG.SHOWINFO:
+			self.showInfo()
+			
 	
 	def __findNmc(self):
 		return CFMC.MDU_CYCLE
@@ -561,20 +563,29 @@ class MC(object):
 		return retDict
 
 		
+	def showInfo(self):
+		print self.__repr__()
+		
+		
 	def __repr__(self):
 		ret = ""
 		ret += "********************\n"
 		ret += CFMC.MDU_NAME + "\n"
-		ret += CFMC.MDU_INSN + ":\n"
+		ret += "(1) %d %s:\n" % (len(self.mcInsnNameList), CFMC.MDU_INSN)
 		for i,insnName in enumerate(self.mcInsnNameList):
-			if i>0 and i%5==0:
-				ret += "\n"
+			if i%8 == 0:
+				if i>0:
+					ret += "\n\t"
+				else:
+					ret += "\t"
 			ret += insnName + " "
 		ret += "\n"
 		PmcName = self.pipeLine.StgNameAt(self.Pmc)
-		ret += "Pmc = %s, Nmc = %s\n" % (PmcName, self.Nmc)
+		ret += "(2) Pmc = %s, Nmc = %s\n" % (PmcName, self.Nmc)
 		ret += "********************\n"
+		ret += "\n\n"
 		return ret
+		
 		
 	__str__ = __repr__
 	

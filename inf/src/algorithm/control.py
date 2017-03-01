@@ -79,6 +79,18 @@ class Control(object):
 	
 	def GenCS(self):
 		self.__GenCSFromRtl()
+		if CFG.SHOWINFO:
+			self.showInfo()
+		
+		
+	def showInfo(self):
+		line = ""
+		line += "********************\n"
+		line += "Automatic Controller:\n"
+		line += "(1) %d control signals\n" % (len(self.CSList))
+		line += "********************\n"
+		line += "\n\n"
+		print line	
 		
 		
 	# Generate the Control Logic from Rtl
