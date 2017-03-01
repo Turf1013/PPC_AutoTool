@@ -1,10 +1,12 @@
 `include "arch_def.v"
 `include "ctrl_encode_def.v"
 `include "SPR_def.v"
+`include "global_def.v"
 
 module MDU (
-	clk, rst_n, 
-	A, B, Op, C, D
+	clk, rst_n,
+	A, B, Op, C, D,
+	cnt, ack, req
 );
 	
 	input clk, rst_n;
@@ -13,6 +15,11 @@ module MDU (
     input  [0:`MDUOp_WIDTH-1]  	Op;
     output [0:`ARCH_WIDTH-1] 	C;         
 	output [0:`MDU_D_WIDTH-1]	D;
+	output [`MDU_CNT_WIDTH-1:0] cnt;
+	input req;
+	output ack;
+
+`ifdef USE_FASTMDU
 	
 	fastMDU I_fastMDU (
 		.A(A),
@@ -21,6 +28,25 @@ module MDU (
 		.D(D),
 		.Op(Op)
 	);
+	
+	assign cnt = 0;
+	
+`else
+
+	slowMDU I_fastMDU (
+		.clk(clk),
+		.rst_n(rst_n),
+		.A(A),
+		.B(B),
+		.C(C),
+		.D(D),
+		.Op(Op),
+		.cnt(cnt),
+		.req(req),
+		.ack(ack)
+	);
+	
+`endif
 	
 endmodule
 
@@ -37,11 +63,11 @@ module slowMDU (
     output [0:`ARCH_WIDTH-1] 	C;         
 	output [0:`MDU_D_WIDTH-1]	D;
 	output						ack;
-	output [5:0] cnt;
+	output [`MDU_CNT_WIDTH-1:0] cnt;
 	
 	reg [0:`ARCH_WIDTH-1] C;
-	reg [5:0] cnt;
-	wire [5:0] ini_cnt;
+	reg [`MDU_CNT_WIDTH-1:0] cnt;
+	wire [`MDU_CNT_WIDTH-1:0] ini_cnt;
 	
 	reg signed [0:`ARCH_WIDTH] srcA, srcB;
 	reg signed [0:`ARCH_WIDTH*2+1] mulC;

@@ -32,7 +32,7 @@ module ppc_tb;
 	reg [31:0] addr;
 	wire [`DM_DEPTH-1:0] dm_addr;
 	
-	assign addr_ = addr - `DM_ADDR_BASE;
+	assign addr_ = addr - `DM_BASE_ADDR;
 	assign dm_addr = addr_[`DM_DEPTH+1:2];
 	   
 	always @(posedge clk) begin

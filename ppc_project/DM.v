@@ -9,6 +9,7 @@
  */
 `include "arch_def.v"
 `include "ctrl_encode_def.v"
+`include "global_def.v"
 
 module DM (
 	clk, BE, wr, addr, din, dout
@@ -22,7 +23,23 @@ module DM (
 	input  [`DM_WIDTH-1:0]   din;
 	output [0:`DM_WIDTH-1]   dout;
      
-	/* 
+`ifdef USE_RAMIP	
+
+	wire [3:0] wea;
+	
+	assign wea = {4{wr}} & BE;
+	//----------- Begin Cut here for INSTANTIATION Template ---// INST_TAG
+	dram dram (
+	  .clka(clk), // input clka
+	  .wea(wea), // input [3 : 0] wea
+	  .addra(addr[11:2]), // input [9 : 0] addra
+	  .dina(din), // input [31 : 0] dina
+	  .douta(dout) // output [31 : 0] douta
+	);
+	// INST_TAG_END ------ End INSTANTIATION Template ---------	
+	
+`else
+
 	reg [`DM_WIDTH-1:0] dmem[`DM_SIZE-1:0];
 	
 	wire [`ARCH_WIDTH-1:0] addr_;
@@ -55,21 +72,8 @@ module DM (
 	assign tmp = dmem[haddr];
 	// assign dout = {tmp[7:0], tmp[15:8], tmp[23:16], tmp[31:24]};
     assign dout = tmp;
-	*/
 	
-	wire [3:0] wea;
-	
-	assign wea = {4{wr}} & BE;
-//----------- Begin Cut here for INSTANTIATION Template ---// INST_TAG
-dram dram (
-  .clka(clk), // input clka
-  .wea(wea), // input [3 : 0] wea
-  .addra(addr[11:2]), // input [9 : 0] addra
-  .dina(din), // input [31 : 0] dina
-  .douta(dout) // output [31 : 0] douta
-);
-// INST_TAG_END ------ End INSTANTIATION Template ---------
-		
+`endif	
 	
 endmodule
 
