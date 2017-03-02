@@ -33,7 +33,7 @@ module MDU (
 	
 `else
 
-	slowMDU I_fastMDU (
+	slowMDU I_slowMDU (
 		.clk(clk),
 		.rst_n(rst_n),
 		.A(A),
@@ -73,12 +73,18 @@ module slowMDU (
 	reg signed [0:`ARCH_WIDTH*2+1] mulC;
 	reg signed [0:`ARCH_WIDTH] divC;
 	
+	reg req_r;
+	wire latch;
+	
+	// assign latch = req_r & ~req;
+	assign latch = req;
+	
 	always @(posedge clk or negedge rst_n) begin
 		if (~rst_n) begin
 			srcA <= 0;
 			srcB <= 0;
 		end
-		else if (req && ack) begin
+		else if (latch) begin
 			case ( Op )
 				`MDUOp_MULH: begin
 					srcA <= {A[0], A};
@@ -212,7 +218,7 @@ module slowMDU (
 		if (~rst_n) begin
 			cnt <= 0;
 		end
-		else if (req && ack) begin
+		else if (latch) begin
 			cnt <= ini_cnt;
 		end
 		else if (cnt != 0) begin
@@ -222,6 +228,15 @@ module slowMDU (
 	
 	assign ini_cnt = `MDU_CYCLE - 2;
 	assign ack = (cnt == 0);
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			req_r <= 0;
+		end
+		else begin
+			req_r <= req;
+		end
+	end // end always
 	
 	// logic of CR0
 	wire LT0, GT0, EQ0;

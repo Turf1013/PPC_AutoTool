@@ -17,6 +17,14 @@ class constForMC:
 	STALL_RELEV = "stall_Relev"
 	STALL_MC = "stall_mc"
 	HAS_MC = "hasMC"
+	MDU_INSN_ENA = "mcInsn_Ena"
+	STALL = "stall"
+	STALL_HAZARD = "stall_hazard"
+	STALL_EXT = "stall_ext"
+	MDU_REQ = "MDU_req"
+	MDU_ACK = "MDU_ack"
+	MDU_RESTORE = "restore_mcInsn"
+	
 	
 class CFMC(constForMC):
 	pass
@@ -53,6 +61,18 @@ class MC(object):
 		return CFMC.MDU_CYCLE
 			
 			
+	@staticmethod
+	def findPmc(excelRtl, pipeLine):		
+		linkRtl = excelRtl.linkRtl
+		stgn = pipeLine.stgn
+		for insnName,insnRtlList in linkRtl.iteritems():
+			for istg in xrange(stgn):
+				rtlList = insnRtlList[istg]
+				for rtl in rtlList:
+					if CFMC.MDU_NAME in rtl.des:
+						return istg
+		return -1	
+		
 			
 	def __findPmc(self):
 		linkRtl = self.excelRtl.linkRtl
@@ -289,7 +309,15 @@ class MC(object):
 		ret.append(line)
 		
 		## add else if block
-		line = "\telse if (%s) begin\n" % (self.__genMcInsnBits())
+		line = "\telse if (%s) begin\n" % (CFMC.STALL)
+		ret.append(line)
+		line = "\t\t%s <= %d;\n" % (CFMC.PIPE_CNT, desCnt)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else if block
+		line = "\telse if (%s) begin\n" % (CFMC.MDU_INSN_ENA)
 		ret.append(line)
 		line = "\t\t%s <= %d;\n" % (CFMC.PIPE_CNT, pipeCnt-1)
 		ret.append(line)
@@ -309,9 +337,41 @@ class MC(object):
 		ret.append(line)
 		ret.append("\n")
 		
-		# add stall logic
-		line = "assign %s = (%s != %d);\n" % (CFMC.STALL_PIPE, CFMC.PIPE_CNT, desCnt)
+		# add reg statement of pipeCnt_r
+		flipName = "%s_r" % (CFMC.PIPE_CNT)
+		regLine = "reg [%d:0] %s;\n" % (width-1, flipName)
+		ret.append(regLine)
+		ret.append("\n")
+		
+		# add always block
+		line = "always @(posedge clk or negedge rst_n) begin\n"
 		ret.append(line)
+		
+		## add if 
+		line = "\tif (~rst_n) begin\n"
+		ret.append(line)
+		line = "\t\t%s <= 0;\n" % (flipName)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else
+		line = "\telse begin\n"
+		ret.append(line)
+		line = "\t\t%s <= %s;\n" % (flipName, CFMC.PIPE_CNT)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		ret.append("\n")
+		
+		# add stall logic
+		line = "assign %s = (%s != %d) && (%s == %d);\n" % (
+			CFMC.STALL_PIPE, flipName, desCnt, CFMC.PIPE_CNT, desCnt)
+		ret.append(line)
+		ret.append("\n")
 		
 		return ret
 		
@@ -326,7 +386,8 @@ class MC(object):
 		
 		# assign logic
 		A = self.Pmc - self.pipeLine.Rstg.id - 1
-		line = "assign %s = %s > %d;\n" % (CFMC.STALL_MDU, CFMC.MDU_CNT, A)
+		line = "assign %s = %s && (%s > %d);\n" % (
+			CFMC.STALL_MDU, CFMC.MDU_INSN_ENA, CFMC.MDU_CNT, A)
 		ret.append(line)
 		
 		return ret
@@ -495,6 +556,15 @@ class MC(object):
 		ret.append(line)
 		
 		## add else if
+		line = "\telse if (%s | %s) begin\n" % (
+			CFMC.STALL_HAZARD, CFMC.STALL_EXT)
+		ret.append(line)
+		line = "\t\t%s <= `NOP;\n" % (CFMC.MDU_INSN)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else if
 		line = "\telse if (%s) begin\n" % (CFMC.HAS_MC)
 		ret.append(line)
 		line = "\t\t%s <= %s;\n" % (CFMC.MDU_INSN, CFMC.MDU_INSN)
@@ -516,6 +586,166 @@ class MC(object):
 		ret.append(line)
 		
 		return ret
+		
+		
+	def	GenEnaLogic(self):
+		ret = []
+		
+		# add wire statement
+		line = "wire %s;\n" % (CFMC.MDU_INSN_ENA)
+		ret.append(line)
+		ret.append("\n")
+		
+		# add assign statement
+		RstgName = self.pipeLine.Rstg.name
+		bitList = map(lambda x:CFMC.MDU_INSN + "_" + x, self.mcInsnNameList)
+		line = "assign %s = ~clr_%s % (%s);\n" % (RstgName, " || ".join(bitList))
+		ret.append(line)
+		ret.append("\n")
+		
+		# add reg statement
+		line = "reg %s_r;\n" % (CFMC.MDU_INSN_ENA)
+		ret.append(line)
+		ret.append("\n")
+		
+		# add always block
+		line = "always @(posedge clk or negedge rst_n) begin\n"
+		ret.append(line)
+		
+		## add if
+		line = "\tif (~rst_n) begin\n"
+		ret.append(line)
+		line = "\t\t%s_r <= 0;\n" % (CFMC.MDU_INSN_ENA)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else
+		line = "\telse begin\n"
+		ret.append(line)
+		line = "\t\t%s_r <= %s;\n" % (CFMC.MDU_INSN_ENA, CFMC.MDU_INSN_ENA)
+		line = "\tend\n"
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		
+		return ret
+	
+	
+	def GenStallAll(self):
+		ret = []
+		
+		# add wire statement
+		line = "wire %s;\n" % (CFMC.STALL_MC)
+		ret.append(line)
+		ret.append("\n")
+		
+		# add assignment 
+		line = "assign %s = %s || %s || %s;\n" % (
+					CFMC.STALL_MC, CFMC.STALL_PIPE, CFMC.STALL_MDU, CFMC.STALL_RELEV)
+		ret.append(line)	
+		
+		return ret
+		
+	
+	def __GenHandShakeReqLogic(self):
+		ret = []
+		
+		# add reg statement
+		line = "reg %s;\n" % (CFMC.REQ)
+		ret.append(line)
+		ret.append("\n")
+		
+		# add always block
+		line = "always @(posedge clk or negedge rst_n) begin\n"
+		ret.append(line)
+		
+		## add if 
+		line = "\tif (~rst_n) begin\n"
+		ret.append(line)
+		line = "\t\t%s <= 0;\n" % (CFMC.REQ)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else if
+		line = "\telse if (~(%s | %s) && %s) begin\n" % (
+				CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.MDU_INSN_ENA)
+		ret.append(line)
+		line = "\t\t%s <= 1;\n" % (CFMC.REQ)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else
+		line = "\telse begin\n"
+		ret.append(line)
+		line = "\t\t%s <= 0;\n" % (CFMC.REQ)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		
+		return ret
+	
+	
+	def __GenHandShakeAckLogic(self):
+		ret = []
+		
+		# add reg statement
+		flipName = "%s_r" % (CFMC.ACK)
+		line = "reg %s;\n" % (flipName)
+		ret.append(line)
+		ret.append("\n")
+		
+		# add always block
+		line = "always @(posedge clk or negedge rst_n) begin\n"
+		ret.append(line)
+		
+		## add if 
+		line = "\tif (~rst_n) begin\n"
+		ret.append(line)
+		line = "\t\t%s <= 0;\n" % (flipName)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else
+		line = "\telse begin\n"
+		ret.append(line)
+		line = "\t\t%s <= %s;\n" % (flipName, CFMC.ACK)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		
+		return ret
+	
+	
+	def GenHandShakeLogic(self):
+		ret = []
+		
+		ret += self.__GenHandShakeReqLogic()
+		ret.append("\n")
+		ret += self.__GenHandShakeAckLogic()
+		
+		return ret
+		
+	
+	def GenRestoreLogic(self):
+		ret = []
+		
+		line = "assign %s = ~%s_r && %s;\n" % (
+			CFMC.MDU_RESTORE, CFMC.MDU_ACK, CFMC.MDU_ACK)
+		ret.append(line)
+		
+		return ret
+		
 		
 		
 	def GenHasMC(self):
@@ -600,9 +830,14 @@ class MC(object):
 		ret += prefix + prefix.join(wireLines)
 		ret += "\n\n"
 		
+		ret += prefix + "// logic of mcInsn enable"
+		lines = self.GenEnaLogic()
+		ret += prefix + prefix.join(lines)
+		ret += "\n\n"
+		
 		ret += prefix + "// stall of structural hazard\n"
-		stall_struct = map(lambda x: prefix+x, self.HandleStructHazard())
-		ret += "".join(stall_struct)
+		lines = self.HandleStructHazard()
+		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
 		
 		ret += prefix + "// has MCI logic\n"
@@ -616,15 +851,23 @@ class MC(object):
 		ret += "\n\n"
 		
 		ret += prefix + "// stall of relevant\n"
-		stall_relev = map(lambda x: prefix+x, self.GenStallRelevant())
-		ret += "".join(stall_relev)
+		relevLines = self.GenStallRelevant()
+		ret += prefix + prefix.join(relevLines)
 		ret += "\n\n"
 		
-		wireLine = prefix + "wire %s;\n" % (CFMC.STALL_MC)
-		ret += wireLine
-		assignLine = prefix +"assign %s = %s || %s || %s;\n" % (
-					CFMC.STALL_MC, CFMC.STALL_PIPE, CFMC.STALL_MDU, CFMC.STALL_RELEV)
-		ret += assignLine	
+		ret += prefix + "// merge stall_mc logic"
+		lines = self.GenStallAll()
+		ret += prefix + prefix.join(lines)
+		ret += "\n\n"
+		
+		ret += prefix + "// add handshanke logic"
+		lines = self.GenHandShakeLogic()
+		ret += prefix + prefix.join(lines)
+		ret += "\n\n"
+		
+		ret += prefix + "// add restore mcInsn logic"
+		lines = self.GenRestoreLogic()
+		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
 		 
 		return ret

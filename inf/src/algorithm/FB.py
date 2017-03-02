@@ -11,6 +11,7 @@ from ..glob.glob import CFG
 
 class constForFB:
 	STALL = "stall"
+	STALL_HAZARD = "stall_hazard"
 	CLR = "clr"
 	
 class CFFB(constForFB):
@@ -88,7 +89,7 @@ class FB(object):
 	def __HandleStall(self):
 		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
-		cs = CtrlSignal(name=CFFB.STALL, width=1, stg=rstg)
+		cs = CtrlSignal(name=CFFB.STALL_HAZARD, width=1, stg=rstg)
 		# add clear 
 		"""
 			``` pay attention to ```

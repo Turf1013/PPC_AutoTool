@@ -14,9 +14,9 @@ from MC import CFMC
 class constForControl:
 	INSTR = "Instr"
 	INSTR_WIDTH = CFG.INSTR_WIDTH
-	MCI_CYCLE = CFMC.MDU_CYCLE
-	MCI_STALL = CFMC.STALL_MC
-	MCI_CNT = CFMC.MDU_CNT
+	LATCH = "latch"
+	PCWR = "PCWr"
+	STALL = "stall"
 	
 class CFC(constForControl):
 	pass
@@ -178,6 +178,10 @@ class Control(object):
 		clrCode = self.__ClrToVerilog(tabn = tabn)
 		ret += pre + "// clear Signal\n" + clrCode + "\n" * 4
 		
+		# other signal
+		otherCode = self.__OtherToVerilog(tabn = tabn)
+		ret += pre + "// other Signals\n" + otherCode + "\n" * 4
+		
 		# endmodule
 		ret += "endmodule\n"
 		return ret
@@ -196,7 +200,10 @@ class Control(object):
 		
 		# add MDU related
 		ret += ",\n"
-		MCIPortList = [CFC.MCI_CNT]
+		MCIPortList = [
+			CFMC.MDU_CNT, CFMC.MDU_ACK, CFMC.MDU_REQ, CFMC.STALL_EXT,
+			CFMC.MDU_INSN, CFMC.MDU_RESTORE
+		]
 		ret += pre + ", ".join(MCIPortList)
 		
 		
@@ -214,16 +221,31 @@ class Control(object):
 		ret += pre + "input %s %s;\n" % (CFC.INSTR_WIDTH, ", ".join(instrList))
 		
 		# add MCI related
-		width = MCI.calcEncodeLen(CFC.MCI_CYCLE)
-		ret += pre + "input [%d:0] %s;\n" % (width-1, CFC.MCI_CNT)
+		ret += pre + "input [`MDU_CNT_WIDTH-1:0] %s;\n" % (CFMC.MDU_CNT)
+		ret += pre + "input %s;\n" % (CFMC.REQ)
+		ret += pre + "input %s;\n" % (CFMC.STALL_EXT)
+		
 		return ret
 	
 		
 	def __GenOutputVerilog(self, tabn):
 		pre = "\t" * tabn
 		ret = ""
+		
+		ret += pre + "/// related to MDU & stall"
+		ret += pre + "output %s;\n"	% (CFC.LATCH)
+		ret += pre + "output %s;\n" % (CFC.PCWR)
+		ret += pre + "output %s;\n" % (CFMC.MDU_ACK)
+		ret += pre + "output %s;\n" % (CFMC.MDU_RESTORE)
+		ret += pre + "output %s %s;\n" % (CFC.INSTR_WIDTH)
+		
+		ret += pre + "/// other control signals"
 		for w in self.wireSet:
-			ret += VG.GenOutput(name=w.name, width=w.width, tabn=tabn)
+			wname = w.name
+			if wname == CFMC.STALL_HAZARD:
+				wname = CFC.STALL
+			ret += VG.GenOutput(name=wname, width=w.width, tabn=tabn)
+		
 		return ret
 		
 		
@@ -234,27 +256,104 @@ class Control(object):
 		return ret
 		
 		
+	def __GenFlush_r_Logic(self):
+		ret = []
+		
+		flipName = "%s_r" % (CFG.BRFLUSH)
+		# add reg statement
+		line = "reg %s;\n" % (flipName)
+		ret.append(line)
+		
+		# add always block
+		line = "always @(posedge clk or negedge rst_n) begin\n"
+		ret.append(line)
+		
+		## add if
+		line = "\tif (~rst_n) begin\n"
+		ret.append(line)
+		line = "\t\t%s <= 0;\n" % (flipName)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		## add else 
+		line = "\telse begin\n"
+		ret.append(line)
+		line = "\t\t%s <= %s;\n" % (flipName, CFG.BRFLUSH)
+		ret.append(line)
+		line = "\tend\n"
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		ret.append("\n")
+		
+		return ret
+		
+		
+	def __GenOtherVerilog(self, tabn):
+		ret = []
+		
+		# add stall logic
+		line = "assign %s = %s;\n" % (
+			CFC.STALL, " | ".join([CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.STALL_EXT]))
+		ret.append(line)
+		
+		# add PCWr logic
+		line = "assign %s = ~%s;\n" % (
+			CFC.PCWR, " | ".join([CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.STALL_EXT]))
+		ret.append(line)
+		
+		# add latch logic
+		line = "assign %s = %s;\n" % (
+			CFC.LATCH, " | ".join([CFMC.STALL_HAZARD, CFMC.STALL_MC]))
+		ret.append(line)
+		
+		prefix = "\t" * tabn
+		return prefix.join(ret)
+		
+		
 	def __ClrToVerilog(self, tabn):
 		rstg = self.pipeLine.Rstg.id
 		stgn = self.pipeLine.stgn
 		pre = '\t' * tabn
 		ret = ""
-		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
+		
+		ret += pre + pre.join(self.__GenFlush_r_Logic())
+		
+		# add always block
+		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
+		
+		## add if 
 		ret += pre + "\t" + "if ( !rst_n ) begin\n"
 		for istg in range(rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))
 		ret += pre + "\t" + "end\n"
+		
+		## add else
 		ret += pre + "\t" + "else begin\n"
 		# ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg+1))
+		mcStg = MCI.findPmc(self.excelRtl, self.pipeLine)
 		for istg in range(rstg+1, stgn):
-			ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
+			if istg != mcStg:
+				ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
+			else:
+				preClr = "clr_%s" % (self.pipeLine.StgNameAt(istg-1))
+				flipMcInsnEna = "%s_r" % (CFMC.MDU_INSN_ENA)
+				specVal = "(%s) ? 1'b0 : (%s | %s)" % (
+					CFMC.MDU_RESTORE, preClr, flipMcInsnEna)
+				ret += pre + "\t\t" + "clr_%s <= %s;\n" % (self.pipeLine.StgNameAt(istg), specVal)
 		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
 		
-		ret += pre + "//// same meaning as clr_%s = stall;\n" % (self.pipeLine.StgNameAt(rstg))
+		clrD = "clr_%s" % (self.pipeLine.Rstg.name)
+		clrDVal = " | ".join([
+			CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.STALL_EXT])
+		ret += pre + "/// logic of %s" % (clrD)
 		ret += pre + "always @( * ) begin\n"
-		ret += pre + "\t" + "clr_%s = stall | %s;\n" % (self.pipeLine.StgNameAt(rstg), CFC.MCI_STALL)
+		ret += pre + "\t" + "%s = %s;\n" % (clrD, clrDVal)
 		ret += pre + "end // end always\n\n"
+		
 		return ret
 		
 		
