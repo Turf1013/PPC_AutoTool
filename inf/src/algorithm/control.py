@@ -49,6 +49,17 @@ class Control(object):
 			self.wireSet.add( Wire(name=clrName, width=1, kind="reg", stg=istg) )
 		# add delay slot control signal
 		self.__delaySlot()
+		# add MDU control signal
+		self.__addMCIPort()
+		
+	
+	def __addMCIPort(self):
+		MCIPortList = [
+			CFC.STALL, CFC.PCWR, CFC.LATCH,
+			CFMC.MDU_CNT, CFMC.PIPE_CNT, CFMC.STALL_EXT,
+			CFMC.MDU_REQ, CFMC.MDU_ACK, CFMC.MDU_RESTORE
+		]
+		self.portList += MCIPortList
 		
 		
 	def __delaySlot(self):
@@ -193,7 +204,10 @@ class Control(object):
 		for i,w in enumerate(self.wireSet):
 			if i%5==0:
 				ret += "\n" + pre if i else pre
-			ret += w.name + ", "
+			wname = w.name
+			if wname == CFMC.STALL_HAZARD:
+				wname = CFMC.STALL
+			ret += wname + ", "
 		# add insn
 		ret += "\n"
 		ret += pre + ", ".join(map(lambda i:CFC.INSTR+"_"+self.pipeLine.StgNameAt(i), range(self.pipeLine.Rstg.id, self.pipeLine.stgn)))
@@ -202,9 +216,9 @@ class Control(object):
 		ret += ",\n"
 		MCIPortList = [
 			CFMC.MDU_CNT, CFMC.MDU_ACK, CFMC.MDU_REQ, CFMC.STALL_EXT,
-			CFMC.MDU_INSN, CFMC.MDU_RESTORE
+			CFMC.MDU_INSN, CFMC.MDU_RESTORE, CFC.PCWR, CFC.LATCH
 		]
-		ret += pre + ", ".join(MCIPortList)
+		ret += pre + ", ".join(MCIPortList) 
 		
 		
 		# add clk & rst_n
@@ -222,7 +236,7 @@ class Control(object):
 		
 		# add MCI related
 		ret += pre + "input [`MDU_CNT_WIDTH-1:0] %s;\n" % (CFMC.MDU_CNT)
-		ret += pre + "input %s;\n" % (CFMC.REQ)
+		ret += pre + "input %s;\n" % (CFMC.MDU_ACK)
 		ret += pre + "input %s;\n" % (CFMC.STALL_EXT)
 		
 		return ret
@@ -232,14 +246,14 @@ class Control(object):
 		pre = "\t" * tabn
 		ret = ""
 		
-		ret += pre + "/// related to MDU & stall"
+		ret += pre + "/// related to MDU & stall\n"
 		ret += pre + "output %s;\n"	% (CFC.LATCH)
 		ret += pre + "output %s;\n" % (CFC.PCWR)
-		ret += pre + "output %s;\n" % (CFMC.MDU_ACK)
+		ret += pre + "output %s;\n" % (CFMC.MDU_REQ)
 		ret += pre + "output %s;\n" % (CFMC.MDU_RESTORE)
-		ret += pre + "output %s %s;\n" % (CFC.INSTR_WIDTH)
+		ret += pre + "output %s %s;\n" % (CFC.INSTR_WIDTH, CFMC.MDU_INSN)
 		
-		ret += pre + "/// other control signals"
+		ret += pre + "/// other control signals\n"
 		for w in self.wireSet:
 			wname = w.name
 			if wname == CFMC.STALL_HAZARD:
@@ -259,7 +273,8 @@ class Control(object):
 	def __GenFlush_r_Logic(self):
 		ret = []
 		
-		flipName = "%s_r" % (CFG.BRFLUSH)
+		sigName = "%s_%s" % (CFG.BRFLUSH, self.pipeLine.Rstg.name)
+		flipName = "%s_r" % (sigName)
 		# add reg statement
 		line = "reg %s;\n" % (flipName)
 		ret.append(line)
@@ -279,7 +294,7 @@ class Control(object):
 		## add else 
 		line = "\telse begin\n"
 		ret.append(line)
-		line = "\t\t%s <= %s;\n" % (flipName, CFG.BRFLUSH)
+		line = "\t\t%s <= %s;\n" % (flipName, sigName)
 		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
@@ -291,7 +306,7 @@ class Control(object):
 		return ret
 		
 		
-	def __GenOtherVerilog(self, tabn):
+	def __OtherToVerilog(self, tabn):
 		ret = []
 		
 		# add stall logic
@@ -300,7 +315,7 @@ class Control(object):
 		ret.append(line)
 		
 		# add PCWr logic
-		line = "assign %s = ~%s;\n" % (
+		line = "assign %s = ~(%s);\n" % (
 			CFC.PCWR, " | ".join([CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.STALL_EXT]))
 		ret.append(line)
 		
@@ -310,7 +325,7 @@ class Control(object):
 		ret.append(line)
 		
 		prefix = "\t" * tabn
-		return prefix.join(ret)
+		return prefix + prefix.join(ret)
 		
 		
 	def __ClrToVerilog(self, tabn):
@@ -325,7 +340,7 @@ class Control(object):
 		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
 		
 		## add if 
-		ret += pre + "\t" + "if ( !rst_n ) begin\n"
+		ret += pre + "\t" + "if (~rst_n) begin\n"
 		for istg in range(rstg+1, stgn):
 			ret += pre + "\t\t" + "clr_%s <= 1'b1;\n" % (self.pipeLine.StgNameAt(istg))
 		ret += pre + "\t" + "end\n"
@@ -333,7 +348,7 @@ class Control(object):
 		## add else
 		ret += pre + "\t" + "else begin\n"
 		# ret += pre + "\t\t" + "clr_%s <= stall;\n" % (self.pipeLine.StgNameAt(rstg+1))
-		mcStg = MCI.findPmc(self.excelRtl, self.pipeLine)
+		mcStg = MCI.findPmc(self.excelRtl, self.pipeLine) + 1
 		for istg in range(rstg+1, stgn):
 			if istg != mcStg:
 				ret += pre + "\t\t" + "clr_%s <= clr_%s;\n" % (self.pipeLine.StgNameAt(istg), self.pipeLine.StgNameAt(istg-1))
@@ -347,9 +362,10 @@ class Control(object):
 		ret += pre + "end // end always\n\n"
 		
 		clrD = "clr_%s" % (self.pipeLine.Rstg.name)
+		flipBrFlush = "%s_%s_r" % (CFG.BRFLUSH, self.pipeLine.Rstg.name)
 		clrDVal = " | ".join([
-			CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.STALL_EXT])
-		ret += pre + "/// logic of %s" % (clrD)
+			flipBrFlush, CFMC.STALL_HAZARD, CFMC.STALL_MC])
+		ret += pre + "/// logic of %s\n" % (clrD)
 		ret += pre + "always @( * ) begin\n"
 		ret += pre + "\t" + "%s = %s;\n" % (clrD, clrDVal)
 		ret += pre + "end // end always\n\n"
@@ -362,11 +378,13 @@ class Control(object):
 		pre = "\t" * tabn
 		ret = ""
 		ret += "%s%s I_%s (\n" % (pre, name, name)
-		last = len(self.portList) - 1
-		for i,port in enumerate(self.portList):
-			if i == last:
-				ret += pre + "\t.%s(%s)\n" % (port, port)
+		if CFMC.STALL_HAZARD in self.portList:
+			self.portList.remove(CFMC.STALL_HAZARD)
+		for i,portName in enumerate(self.portList):
+			instName = portName
+			if i == len(self.portList) - 1:
+				ret += pre + "\t.%s(%s)\n" % (portName, instName)
 			else:
-				ret += pre + "\t.%s(%s),\n" % (port, port)
+				ret += pre + "\t.%s(%s),\n" % (portName, instName)
 		ret += "%s);\n\n" % (pre)
 		return ret

@@ -599,7 +599,7 @@ class MC(object):
 		# add assign statement
 		RstgName = self.pipeLine.Rstg.name
 		bitList = map(lambda x:CFMC.MDU_INSN + "_" + x, self.mcInsnNameList)
-		line = "assign %s = ~clr_%s % (%s);\n" % (RstgName, " || ".join(bitList))
+		line = "assign %s = ~clr_%s && (%s);\n" % (CFMC.MDU_INSN_ENA, RstgName, " || ".join(bitList))
 		ret.append(line)
 		ret.append("\n")
 		
@@ -624,6 +624,7 @@ class MC(object):
 		line = "\telse begin\n"
 		ret.append(line)
 		line = "\t\t%s_r <= %s;\n" % (CFMC.MDU_INSN_ENA, CFMC.MDU_INSN_ENA)
+		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
 		
@@ -653,7 +654,7 @@ class MC(object):
 		ret = []
 		
 		# add reg statement
-		line = "reg %s;\n" % (CFMC.REQ)
+		line = "reg %s;\n" % (CFMC.MDU_REQ)
 		ret.append(line)
 		ret.append("\n")
 		
@@ -664,7 +665,7 @@ class MC(object):
 		## add if 
 		line = "\tif (~rst_n) begin\n"
 		ret.append(line)
-		line = "\t\t%s <= 0;\n" % (CFMC.REQ)
+		line = "\t\t%s <= 0;\n" % (CFMC.MDU_REQ)
 		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
@@ -673,7 +674,7 @@ class MC(object):
 		line = "\telse if (~(%s | %s) && %s) begin\n" % (
 				CFMC.STALL_HAZARD, CFMC.STALL_MC, CFMC.MDU_INSN_ENA)
 		ret.append(line)
-		line = "\t\t%s <= 1;\n" % (CFMC.REQ)
+		line = "\t\t%s <= 1;\n" % (CFMC.MDU_REQ)
 		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
@@ -681,7 +682,7 @@ class MC(object):
 		## add else
 		line = "\telse begin\n"
 		ret.append(line)
-		line = "\t\t%s <= 0;\n" % (CFMC.REQ)
+		line = "\t\t%s <= 0;\n" % (CFMC.MDU_REQ)
 		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
@@ -696,7 +697,7 @@ class MC(object):
 		ret = []
 		
 		# add reg statement
-		flipName = "%s_r" % (CFMC.ACK)
+		flipName = "%s_r" % (CFMC.MDU_ACK)
 		line = "reg %s;\n" % (flipName)
 		ret.append(line)
 		ret.append("\n")
@@ -716,7 +717,7 @@ class MC(object):
 		## add else
 		line = "\telse begin\n"
 		ret.append(line)
-		line = "\t\t%s <= %s;\n" % (flipName, CFMC.ACK)
+		line = "\t\t%s <= %s;\n" % (flipName, CFMC.MDU_ACK)
 		ret.append(line)
 		line = "\tend\n"
 		ret.append(line)
@@ -830,7 +831,7 @@ class MC(object):
 		ret += prefix + prefix.join(wireLines)
 		ret += "\n\n"
 		
-		ret += prefix + "// logic of mcInsn enable"
+		ret += prefix + "// logic of mcInsn enable\n"
 		lines = self.GenEnaLogic()
 		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
@@ -855,17 +856,17 @@ class MC(object):
 		ret += prefix + prefix.join(relevLines)
 		ret += "\n\n"
 		
-		ret += prefix + "// merge stall_mc logic"
+		ret += prefix + "// merge stall_mc logic\n"
 		lines = self.GenStallAll()
 		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
 		
-		ret += prefix + "// add handshanke logic"
+		ret += prefix + "// add handshake logic\n"
 		lines = self.GenHandShakeLogic()
 		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
 		
-		ret += prefix + "// add restore mcInsn logic"
+		ret += prefix + "// add restore mcInsn logic\n"
 		lines = self.GenRestoreLogic()
 		ret += prefix + prefix.join(lines)
 		ret += "\n\n"
