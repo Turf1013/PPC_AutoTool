@@ -56,7 +56,7 @@ class Control(object):
 	def __addMCIPort(self):
 		MCIPortList = [
 			CFC.STALL, CFC.PCWR, CFC.LATCH,
-			CFMC.MDU_CNT, CFMC.PIPE_CNT, CFMC.STALL_EXT,
+			CFMC.MDU_CNT, CFMC.STALL_EXT, CFMC.MDU_INSN,
 			CFMC.MDU_REQ, CFMC.MDU_ACK, CFMC.MDU_RESTORE
 		]
 		self.portList += MCIPortList

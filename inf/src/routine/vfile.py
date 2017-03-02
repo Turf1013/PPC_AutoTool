@@ -165,9 +165,13 @@ class VFile(object):
 						width = mgroup.group("width")
 						width = width if width else CFVL.WIDTHONE
 						portNameList = CFV.re_portName.findall(line[mgroup.end():])
+						if line.strip().startswith("input"):
+							portDir = 1
+						else:
+							portDir = 0
 						# delete ',;' and space
 						portNameList = map(lambda s:s[:-1].lstrip(), portNameList)
-						portList += [Port(name, width) for name in portNameList]
+						portList += [Port(name, width, portDir) for name in portNameList]
 	
 		return retModList
 		

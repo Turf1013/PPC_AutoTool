@@ -4,7 +4,7 @@
 
 module insnConverter (
 	clk, rst_n, PC, 
-	din, ext_stall,
+	din, stall_ext,
 	dout, latch
 );
 
@@ -13,7 +13,7 @@ module insnConverter (
 	input [0:`PC_WIDTH-1]		PC;
 	input [0:`INSTR_WIDTH-1] 	din;
 	input						latch;
-	output 						ext_stall;
+	output 						stall_ext;
 	output [0:`INSTR_WIDTH-1] 	dout;
 	
 	reg [0:`INSTR_WIDTH-1] dout_r;
@@ -398,7 +398,7 @@ module insnConverter (
 	
 	assign cnt_wr = mwFir;
 	assign dout = dout_r;
-	assign ext_stall = ~latch && (updateFir || (mwFir && ini_cnt!=0) || (cnt_r!=0));
+	assign stall_ext = ~latch && (updateFir || (mwFir && ini_cnt!=0) || (cnt_r!=0));
 
 
 endmodule

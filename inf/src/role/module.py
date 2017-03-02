@@ -10,13 +10,13 @@ class CFP(constForPort):
 
 class Port(object):
 	""" Port describes the port of the module
-	
 	"""
 	
-	def __init__(self, name, width="[0:0]"):
+	def __init__(self, name, width="[0:0]", dir=0):
 		self.name 	= name
 		self.width 	= width
-			
+		self.dir	= dir
+		
 			
 	def __hash__(self):
 		return hash(self.name)
@@ -79,6 +79,14 @@ class Module(object):
 		else:
 			self.linkDict[desPort] = srcPort
 			
+	
+	def	getLink(self, desPort):
+		if isinstance(desPort, str):
+			desPort = self.find(desPort)
+		if desPort not in self.portList:
+			raise KeyError, "%s not in [%s]" % (desPort, self.name)
+		return self.linkDict[desPort]
+			
 			
 	def __hash__(self, hash):
 		return hash(self.name)
@@ -108,14 +116,20 @@ class Module(object):
 		pre = '\t' * tabn
 		ret = ""
 		ret += "%s%s I_%s (\n" % (pre, self.name, Iname)
-		last = len(self.linkDict) - 1
-		for i,(key, value) in enumerate(self.linkDict.iteritems()):
-			if value is None:
-				value = "0000"
-			if i == last:
-				ret += pre + "\t.%s(%s)\n" % (key, value)
+		portList = []
+		# filter the unlink output port
+		for port, inst in self.linkDict.iteritems():
+			if inst is None and port.dir==0:
+				continue
+			portList.append([port.name, inst])	
+			
+		for i,(portName, inst) in enumerate(portList):
+			if inst is None:
+				inst = 0
+			if i == len(portList)-1:
+				ret += pre + "\t.%s(%s)\n" % (portName, inst)
 			else:
-				ret += pre + "\t.%s(%s),\n" % (key, value)
+				ret += pre + "\t.%s(%s),\n" % (portName, inst)
 		ret += "%s);\n\n" % (pre)
 		return ret
 	
@@ -128,7 +142,7 @@ class Module(object):
 		for port in self.portList:
 			if port.name == name:
 				return port
-		raise ValueError, "%s has no port named %s" % (self.name, name)
+		# raise ValueError, "%s has no port named %s" % (self.name, name)
 		return None
 		
 		

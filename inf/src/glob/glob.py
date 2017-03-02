@@ -8,6 +8,7 @@ class constForGlobal:
 	IO = False
 	BigEndian = False
 	SHOWINFO = True
+	USE_CONVERTER = True
 	
 class CFG(constForGlobal):
 	pass

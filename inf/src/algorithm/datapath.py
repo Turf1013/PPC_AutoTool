@@ -8,6 +8,9 @@ from ..util.verilogParser import VerilogParser as VP
 from ..util.rtlParser import RtlParser as RP
 from ..util.rtlGenerator import RtlGenerator as RG
 from ..glob.glob import CFG
+from control import CFC
+from MC import MC as MCI
+from MC import CFMC
 import logging
 
 
@@ -17,13 +20,19 @@ class constForDatapath:
 	CLK = "clk"
 	RST = "rst_n"
 	WIDTH = "WIDTH"
+	CONVERTER_NAME = "insnConverter"
+	PRADDR = "PrAddr"
+	PRRD = "PrRD"
+	PRWD = "PrWD"
 	pipeIDict = {
 		"Instr": CFG.INSTR_WIDTH,
 	}
-	
 	pipeRtlIgoreList = [
 		"Instr",
 	]
+	ORGINSTR = "orgInstr"
+	NEWINSTR = "newInstr"
+	INSTR_WIDTH = "[0:`INSTR_WIDTH-1]"
 	
 class CFD(constForDatapath):
 	pass
@@ -46,14 +55,89 @@ class Datapath(object):
 		self.needBypass = needBypass
 		self.pipeList = []
 		self.wireSet = WireSet()
-		# add clr_D to PCWr
+		# add PCWr
+		self.__addPCWr()
+		# add MDU ports
+		self.__addMDU()	
+		# add insnConverter
+		self.__addConverter()
+		self.Pmc = MCI.findPmc(excelRtl, pipeLine)
+		
+		
+	def __addConverter(self):
+		if CFG.USE_CONVERTER:
+			return 
+		portList = [
+			[CFMC.STALL_EXT, "[0:0]"],
+			[CFC.LATCH, "[0:0]"],
+		]
+		conv = self.modMap.find(CFD.CONVERTER_NAME)
+		for portName, portWidth in portList:
+			port = conv.find(portName)
+			if port:
+				conv.addLink(port, portName)
+				ww = Wire(name=portName, width=portWidth, kind="wire", stg=-1)
+				self.wireSet.add(ww)
+				
+		# add din
+		port = conv.find("din")
+		if port:
+			conv.addLink(port, CFD.ORGINSTR)
+			ww = Wire(name=CFD.ORGINSTR, width=CFD.INSTR_WIDTH, kind="reg", stg=1)
+			self.wireSet.add(ww)
+			
+		# add dout
+		port = conv.fidn("dout")
+		if port:
+			conv.addLink(port, CFD.NEWINSTR)
+			ww = Wire(name=CFD.NEWINSTR, width=CFD.INSTR_WIDTH, kind="wire", stg=1)
+			self.wireSet.add(ww)
+			
+		
+		
+	def __findConverter(self):
+		rstg = self.pipeLine.Rstg.id
+		linkRtl = self.excelRtl.linkRtl
+		for insnName,rtlList in linkRtl.iteritems():
+			for istg in xrange(0, rstg+1):
+				rtls = rtlList[istg]
+				for rtl in rtls:
+					if CFD.CONVERTER_NAME in rtl.des:
+						return True
+		return False
+	
+				
+		
+	def __addMDU(self):	
+		if len(MCI.findMCI(self.excelRtl, self.pipeLine)) == 0:
+			return 
+		portList = [
+			[CFMC.MDU_CNT, "[`MDU_CNT_WIDTH-1:0]"],
+			[CFMC.MDU_INSN, "[0:`INSTR_WIDTH-1]"],
+			[CFMC.MDU_RESTORE, "[0:0]"],
+			[CFMC.MDU_ACK, "[0:0]"],
+			[CFMC.MDU_REQ, "[0:0]"],
+		]
+		mdu = self.modMap.find("MDU")
+		for portName, portWidth in portList:
+			port = mdu.find(portName[4:])
+			if port:
+				mdu.addLink(port, portName)
+			ww = Wire(name=portName, width=portWidth, kind="wire", stg=-1)
+			self.wireSet.add(ww)
+			
+			
+	def __addPCWr(self):		
+		# add PCwr to PCWr
 		pc = self.modMap.find("PC")
 		pcWrPort = pc.find("wr")
 		if CFG.IO:
-			pc.addLink(pcWrPort, "~stall")
+			pc.addLink(pcWrPort, CFC.PCWR)
 		else:
-			pc.addLink(pcWrPort, "~clr_%s" % (self.pipeLine.Rstg.name))
-		
+			pc.addLink(pcWrPort, CFC.PCWR)
+		## add PCWr
+		ww = Wire(name=CFC.PCWR, width=1, kind="wire", stg=-1)
+		self.wireSet.add(ww)
 	
 		
 	# Add the link
@@ -94,10 +178,10 @@ class Datapath(object):
 				# Control Signal named as itself
 				varName = RP.DesToVar(rtl.des, suf=stgName)
 				mod = self.modMap.find(rtl.desMod)
-				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
+				# logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
 				width = mod.find(rtl.desPort).width
-				logging.debug("[wire] %s %s\n" % (width, varName))
+				# logging.debug("[wire] %s %s\n" % (width, varName))
 				self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 				
 				
@@ -114,18 +198,18 @@ class Datapath(object):
 						pass
 					width = mod.find(rtl.srcPort).width
 					srcList = RP.SrcToList(src=rtl.src)
-					logging.debug("[rtl.src] = %s\n" % (rtl.src))
-					logging.debug("[srcList] = %s\n" % (str(srcList)))
+					# logging.debug("[rtl.src] = %s\n" % (rtl.src))
+					# logging.debug("[srcList] = %s\n" % (str(srcList)))
 					for src in srcList:
 						varName = RP.SrcToVar(src=src, stg=stgName)
-						logging.debug("[wire] %s %s\n" % (width, varName))
+						# logging.debug("[wire] %s %s\n" % (width, varName))
 						self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 				
 			else:
 				src = self.__FindInBypass(src=rtl.src, stg=istg)[0]
 				varName = RP.SrcToVar(src=src, stg=stgName)
 				mod = self.modMap.find(rtl.desMod)
-				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
+				# logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
 				width = mod.find(rtl.desPort).width
 				
@@ -134,11 +218,11 @@ class Datapath(object):
 				
 				# add the element in srcList to wireSet
 				srcList = RP.SrcToList(src=rtl.src)
-				logging.debug("[rtl.src] = %s\n" % (rtl.src))
-				logging.debug("[srcList] = %s\n" % (str(srcList)))
+				# logging.debug("[rtl.src] = %s\n" % (rtl.src))
+				# logging.debug("[srcList] = %s\n" % (str(srcList)))
 				for src in srcList:
 					varName = RP.SrcToVar(src=src, stg=stgName)
-					logging.debug("[wire] %s %s\n" % (width, varName))
+					# logging.debug("[wire] %s %s\n" % (width, varName))
 					self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 					
 				# some srcPort is the output of the module, make them link
@@ -146,7 +230,7 @@ class Datapath(object):
 					varName = RP.SrcToVar(src=rtl.src, stg=stgName)
 					mod = self.modMap.find(rtl.srcMod)
 					try:
-						logging.debug("[rtl] %s\n" % (rtl))
+						# logging.debug("[rtl] %s\n" % (rtl))
 						mod.addLink(rtl.srcPort, varName)
 						self.wireSet.add( Wire(name=varName, width=width, kind="wire", stg=istg) )
 					except ValueError: 
@@ -158,8 +242,8 @@ class Datapath(object):
 			varName = RP.SrcToVar(src=rtl.src, stg=stgName)
 			mod = self.modMap.find(rtl.srcMod)
 			try:
-				logging.debug("[rtl] %s\n" % rtl)
-				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.srcPort))
+				# logging.debug("[rtl] %s\n" % rtl)
+				# logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.srcPort))
 				mod.addLink(rtl.srcPort, varName)
 			except ValueError: 
 				pass
@@ -282,7 +366,8 @@ class Datapath(object):
 		ret = ""
 		# module statement
 		ret += "module %s (\n" % (CFD.ARCH)
-		ret += pre + "%s, %s\n" % (CFD.CLK, CFD.RST)
+		ret += pre + "%s, %s,\n" % (CFD.CLK, CFD.RST)
+		ret += pre + "%s, %s, %s \n" % (CFD.PRADDR, CFD.PRRD, CFD.PRWD)
 		ret += ");\n"
 		
 		# input & output statement
@@ -315,6 +400,14 @@ class Datapath(object):
 		pipeCode = self.__pipeToVerilog(tabn = tabn)
 		ret += pre + "// Pipe Register\n" + pipeCode + "\n" * 4
 		
+		# assign output
+		outputCode = self.__outputLogicToVerilog(tabn = tabn)
+		ret += pre + "// output logic\n" + outputCode + "\n" * 4
+		
+		# add newInstr to Instr
+		lines = self.__newInstrToInstr(tabn = tabn)
+		ret += pre + "// newInstr to Instr_%s logic\n" % (self.pipeLine.StgNameAt(1)) + "\n" * 4
+		
 		# end module
 		ret += "endmodule\n"
 		return ret
@@ -330,7 +423,7 @@ class Datapath(object):
 	def __instanceToVerilogPerMod(self, mod, tabn):
 		linkn = mod.linkn()
 		if linkn == 0:
-			logging.debug("[linkn] %s(%d) create, but not Instance.\n" % (mod.name, linkn))
+			# logging.debug("[linkn] %s(%d) create, but not Instance.\n" % (mod.name, linkn))
 			return ""
 		# add clk & rst_n
 		try:
@@ -371,7 +464,7 @@ class Datapath(object):
 			inVar = RP.SrcToVar(src=src, stg=self.pipeLine.StgNameAt(istg))
 			outVar = RP.SrcToVar(src=rtl.src, stg=self.pipeLine.StgNameAt(istg+1))
 			
-			logging.debug("[pipe] %s | inVar = %s, outVar = %s\n" % (rtl, inVar, outVar))
+			# logging.debug("[pipe] %s | inVar = %s, outVar = %s\n" % (rtl, inVar, outVar))
 			
 			# add source in reg statement
 			if rtl.src in CFD.pipeIDict:
@@ -403,6 +496,14 @@ class Datapath(object):
 				self.wireSet.add( Wire(name=outVar, width=width, kind="reg", stg=istg+1) )
 			
 			st.add(outVar)
+		
+		# update the INSTR for using converter
+		if CFG.USE_CONVERTER and istg==0:
+			outVar = "%s_%s" % (CFD.INSTR, self.pipeLine.StgNameAt(istg))
+			if outVar in retDict:
+				inVar = retDict[outVar]
+				retDict.pop(outVar)
+				retDict[CFD.ORGINSTR] = inVar
 		return retDict
 			
 		
@@ -422,9 +523,9 @@ class Datapath(object):
 		stgName = self.pipeLine.StgNameAt(istg)
 		ret = ""
 		ret += pre + "/*****     Pipe_%s     *****/\n" % (stgName)
-		ret += pre + "always @( posedge clk or negedge rst_n ) begin\n"
+		ret += pre + "always @(posedge clk or negedge rst_n) begin\n"
 		# handle reset
-		ret += pre + "\t" + "if ( !rst_n ) begin\n"
+		ret += pre + "\t" + "if (~rst_n) begin\n"
 		for outVar in pipeDict.iterkeys():
 			if outVar.startswith(CFD.INSTR):
 				ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
@@ -433,13 +534,13 @@ class Datapath(object):
 		ret += pre + "\t" + "end\n"
 		if istg < rstg:
 			# 1. check if stall
-			ret += pre + "\t" + "else if ( stall ) begin\n"
+			ret += pre + "\t" + "else if (stall) begin\n"
 			for outVar in pipeDict.iterkeys():
 				ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, outVar)
 			ret += pre + "\t" + "end\n"
 			# 2. check if support delaySlot
 			if not CFG.brDelaySlot:
-				ret += pre + "\t" + "else if ( %s_%s ) begin\n" % (CFG.BRFLUSH, self.pipeLine.StgNameAt(rstg))
+				ret += pre + "\t" + "else if (%s_%s) begin\n" % (CFG.BRFLUSH, self.pipeLine.StgNameAt(rstg))
 				for outVar in pipeDict.iterkeys():
 					if outVar.startswith(CFD.INSTR):
 						ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
@@ -451,7 +552,11 @@ class Datapath(object):
 		else:
 			# handle clr
 			"(1) clear but still pipe the result; "
-			ret += pre + "\t" + "else if ( clr_%s ) begin\n" % (self.pipeLine.StgNameAt(istg))
+			if istg == self.Pmc:
+				clrCond = "clr_%s && ~%s" % (self.pipeLine.StgNameAt(istg), CFMC.MDU_RESTORE)
+			else:
+				clrCond = "clr_%s" % (self.pipeLine.StgNameAt(istg))
+			ret += pre + "\t" + "else if (%s) begin\n" % (clrCond)
 			for outVar, inVar in pipeDict.iteritems():
 				if outVar.startswith(CFD.INSTR):
 					ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
@@ -469,7 +574,11 @@ class Datapath(object):
 			
 		ret += pre + "\t" + "else begin\n"
 		for outVar, inVar in pipeDict.iteritems():
-			ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
+			if istg==self.Pmc and outVar.startswith(CFD.INSTR):
+				ret += pre + "\t\t" + "%s <= (%s) ? %s : %s;\n" % (
+					outVar, CFMC.MDU_RESTORE, CFMC.MDU_INSN, inVar)
+			else:
+				ret += pre + "\t\t" + "%s <= %s;\n" % (outVar, inVar)
 		ret += pre + "\t" + "end\n"
 		ret += pre + "end // end always\n\n"
 		return ret
@@ -489,10 +598,15 @@ class Datapath(object):
 		ret += pre + "input %s;\n" % (CFD.RST)
 		return ret
 		
+		
 	def __outputToVerilog(self, tabn = 1):
 		pre = "\t" * tabn
 		ret = ""
+		ret += pre + "output [`ARCH_WIDTH-1:0] %s;\n" % (CFD.PRADDR)
+		ret += pre + "output [`ARCH_WIDTH-1:0] %s;\n" % (CFD.PRRD)
+		ret += pre + "output [`ARCH_WIDTH-1:0] %s;\n" % (CFD.PRWD)
 		return ret 
+		
 		
 	def __instanceCtrlToVerilog(self, ctrl, tabn):
 		return ctrl.instance(tabn = tabn)
@@ -501,21 +615,65 @@ class Datapath(object):
 	def __wireToVerilog(self, ctrl, pmuxList, bmuxList, tabn):
 		# add ctrl signal
 		for w in ctrl.wireSet:
-			ww = Wire(name=w.name, width=w.width, kind="wire", stg=w.stg)
+			wname = w.name
+			if wname == CFMC.STALL_HAZARD:
+				wname = CFMC.STALL
+			ww = Wire(name=wname, width=w.width, kind="wire", stg=w.stg)
 			self.wireSet.add( ww )
-			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
-			
+			# logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
+		
 		# add port mux dout
 		for pmux in pmuxList:
 			ww = Wire(name=pmux.GenDoutName(), width=pmux.widthRange(), kind="wire", stg=pmux.stg.id)
 			self.wireSet.add( ww )
-			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
+			# logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
+			
 			
 		# add bypass mux dout
 		for bmux in bmuxList:
 			ww = Wire(name=bmux.GenDoutName(), width=bmux.widthRange(), kind="wire", stg=bmux.stg.id)
 			self.wireSet.add( ww )
-			logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
+			# logging.debug("[wireSet] %d %s\n" % (len(self.wireSet), ww))
 			
 		return self.wireSet.toVerilog(tabn=tabn)
 		
+		
+	def __outputLogicToVerilog(self, tabn):
+		ret = []
+		
+		## get GPR wd
+		PrWd = 0
+		gpr = self.modMap.find("GPR")
+		if gpr:
+			PrWd = gpr.getLink("wd")
+			if not PrWd:
+				PrWd = 0
+		line = "assign %s = %s;\n" % (CFD.PRWD, PrWd)
+		ret.append(line)
+		
+		## get ALU C
+		PrAddr = 0
+		alu = self.modMap.find("ALU")
+		if alu:
+			PrAddr = alu.getLink("C")
+			if not PrAddr:
+				PrAddr = 0
+		line = "assign %s = %s;\n" % (CFD.PRADDR, PrAddr)
+		ret.append(line)
+		
+		## get DM rd
+		PrRD = 0
+		dm = self.modMap.find("DM")
+		if dm:
+			PrRd = dm.getLink("dout")
+			if not PrRd:
+				PrRd = 0
+		line = "assign %s = %s;\n" % (CFD.PRRD, PrRd)
+		ret.append(line)
+		
+		prefix = "\t" * tabn
+		return prefix + prefix.join(ret)
+		
+		
+	def __newInstrToInstr(self):
+		pass

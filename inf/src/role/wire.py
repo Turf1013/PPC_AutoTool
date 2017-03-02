@@ -29,9 +29,9 @@ class Wire(object):
 	
 	def __str__(self):
 		if self.kind:
-			return "reg %s@P_%s" % (self.name, self.stg)
+			return "reg %s@P_%s;" % (self.name, self.stg)
 		else:
-			return "wire %s@P_%s" % (self.name, self.stg)
+			return "wire %s@P_%s;" % (self.name, self.stg)
 	
 	
 	def __hash__(self):
@@ -56,7 +56,7 @@ class WireSet(set):
 		L = sorted(self)
 		pwire = None
 		for wire in L:
-			if pwire is None or wire.stg!=pwire.stg or wire.name!=pwire.name or wire.stg>pwire.stg:
+			if pwire is None or wire.name!=pwire.name or wire.stg!=pwire.stg or wire.stg>pwire.stg:
 				ret += wire.toVerilog(tabn = tabn)
 				pwire = wire
 			

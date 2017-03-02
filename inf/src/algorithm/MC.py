@@ -7,8 +7,8 @@ class constForMC:
 	MDU_CYCLE = 8
 	MDU_NAME = "MDU"
 	MDU_INSN = "mcInsn"
-	MDU_CNT = "MDU_Cnt"
-	PIPE_CNT = "Pipe_Cnt"
+	MDU_CNT = "MDU_cnt"
+	PIPE_CNT = "Pipe_cnt"
 	RADDR = "raddr"
 	WADDR = "waddr"
 	MDU_REG = "GPR"
@@ -85,6 +85,22 @@ class MC(object):
 						return istg
 		return -1
 			
+	
+	@staticmethod
+	def findMCI(excelRtl, pipeLine):
+		ret = []
+		linkRtl = excelRtl.linkRtl
+		istg = MC.findPmc(excelRtl, pipeLine)
+		if istg == -1:
+			return ret
+		for insnName,insnRtlList in linkRtl.iteritems():
+			rtlList = insnRtlList[istg]
+			for rtl in rtlList:
+				if CFMC.MDU_NAME in rtl.des:
+					ret.append(insnName)
+					break
+		return ret
+	
 		
 	def __findMCI(self, Pmc):
 		"""
