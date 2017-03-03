@@ -33,6 +33,8 @@ class constForDatapath:
 	ORGINSTR = "orgInstr"
 	NEWINSTR = "newInstr"
 	INSTR_WIDTH = "[0:`INSTR_WIDTH-1]"
+	PCPC = "PC_PC"
+	CONVT_STAGE = 1
 	
 class CFD(constForDatapath):
 	pass
@@ -93,6 +95,11 @@ class Datapath(object):
 			ww = Wire(name=CFD.NEWINSTR, width=CFD.INSTR_WIDTH, kind="wire", stg=1)
 			self.wireSet.add(ww)
 			
+		# add PC_PC most important because we use PC as trigger
+		port = conv.find("PC")
+		if port:
+			portName = "%s_%s" % (CFD.PCPC, self.pipeLine.StgNameAt(CFD.CONVT_STAGE))
+			conv.addLink(port, portName)
 		
 		
 	def __findConverter(self):
@@ -499,7 +506,7 @@ class Datapath(object):
 		
 		# update the INSTR for using converter
 		if CFG.USE_CONVERTER and istg==0:
-			outVar = "%s_%s" % (CFD.INSTR, self.pipeLine.StgNameAt(istg))
+			outVar = "%s_%s" % (CFD.INSTR, self.pipeLine.StgNameAt(istg+1))
 			if outVar in retDict:
 				inVar = retDict[outVar]
 				retDict.pop(outVar)
@@ -527,8 +534,10 @@ class Datapath(object):
 		# handle reset
 		ret += pre + "\t" + "if (~rst_n) begin\n"
 		for outVar in pipeDict.iterkeys():
-			if outVar.startswith(CFD.INSTR):
+			if outVar.startswith(CFD.INSTR) or outVar==CFD.ORGINSTR:
 				ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+			elif outVar.startswith(CFD.PCPC):
+				ret += pre + "\t\t" + "%s <= `IM_BASE_ADDR;\n" % (outVar)
 			else:
 				ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 		ret += pre + "\t" + "end\n"
@@ -542,8 +551,10 @@ class Datapath(object):
 			if not CFG.brDelaySlot:
 				ret += pre + "\t" + "else if (%s_%s) begin\n" % (CFG.BRFLUSH, self.pipeLine.StgNameAt(rstg))
 				for outVar in pipeDict.iterkeys():
-					if outVar.startswith(CFD.INSTR):
+					if outVar.startswith(CFD.INSTR) or outVar==CFD.ORGINSTR:
 						ret += pre + "\t\t" + "%s <= `NOP;\n" % (outVar)
+					elif outVar.startswith(CFD.PCPC):
+						ret += pre + "\t\t" + "%s <= `IM_BASE_ADDR;\n" % (outVar)
 					else:
 						ret += pre + "\t\t" + "%s <= 0;\n" % (outVar)
 				ret += pre + "\t" + "end\n"
