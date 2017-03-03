@@ -16,7 +16,7 @@ from src.compress.compress_ppc import compress as compressCtrl
 
 
 class constForPPCMain:
-	enCompress = False
+	compressEna = True
 	testMCI = False
 	
 class CFPM(constForPPCMain):
@@ -144,6 +144,6 @@ if __name__ == "__main__":
 	logging.debug("[N of hazard pairs] %s\n" % (fb.nHazardPair))
 	
 	# compress the control for better performance
-	if CFPM.enCompress:
+	if CFPM.compressEna:
 		compress(desWorkDirectory, "control.v")
 	

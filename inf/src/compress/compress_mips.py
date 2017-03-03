@@ -3,6 +3,13 @@ from collections import defaultdict
 from collections import OrderedDict
 
 
+class constForCompress:
+	CTRL_TOKEN = "// control Signal"
+
+class CFCS(constForCompress):
+	pass
+	
+
 def dump(desFileName, lines):
 	with open(desFileName, "w") as fout:
 		fout.write("".join(lines))
@@ -191,9 +198,9 @@ def blockToAssign(desPort, condDict):
 		rInsnCond = "(%s)" % (" & ".join(insnDict['rInsn']))
 		wInsnCond = "(%s)" % (" & ".join(insnDict['wInsn']))
 		if bp.addr:
-			cond = "clr_%s & %s &\n\t\t\t %s &\n\t\t\t %s" % (bp.stg, bp.addr, rInsnCond, wInsnCond)
+			cond = "~clr_%s & %s &\n\t\t\t %s &\n\t\t\t %s" % (bp.stg, bp.addr, rInsnCond, wInsnCond)
 		else:
-			cond = "clr_%s &\n\t\t\t %s &\n\t\t\t %s" % (bp.stg, rInsnCond, wInsnCond)
+			cond = "~clr_%s &\n\t\t\t %s &\n\t\t\t %s" % (bp.stg, rInsnCond, wInsnCond)
 		ret += "\t\t(%s) ? %s:\n" % (cond, bp.sel)
 	ret += "\t\t0;\n"
 	ret += "\talways @(%s_tmp) begin\n" % (desPort)
@@ -401,7 +408,7 @@ def mergeAssign(lines, assigns):
 	ret = []
 	while i < n:
 		line = lines[i].lstrip()
-		if line.startswith("// Ctrl Signal"):
+		if line.startswith(CFCS.CTRL_TOKEN):
 			ret = lines[:i] + assigns + ["\n\n"] + lines[i:]
 			break
 		i += 1

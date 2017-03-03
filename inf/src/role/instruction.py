@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 from ..util.verilogGenerator import VerilogGenerator as VG
-
+from ..glob.glob import CFG
 
 class constForInsn:
 	INSTR = "Instr"
+	OPCD = "OPCD" if CFG.PPC else "OP"
 
 class CFI(constForInsn):
 	pass
@@ -25,7 +26,15 @@ class Insn(object):
 	def condition(self, suf=""):
 		instr = CFI.INSTR + "_" + suf if suf else CFI.INSTR
 		condList = []
+		# OPCD come first for compression
+		if CFI.OPCD in self.fieldDict:
+			fieldName = CFI.OPCD
+			fieldVal = self.fieldDict[fieldName]
+			fieldDef = VG.GenInsnFieldDef(fieldName)
+			condList.append( "%s%s == %s" % (instr, fieldDef, fieldVal) )
 		for fieldName, fieldVal in self.fieldDict.iteritems():
+			if fieldName == CFI.OPCD:
+				continue
 			fieldDef = VG.GenInsnFieldDef(fieldName)
 			condList.append( "%s%s == %s" % (instr, fieldDef, fieldVal) )
 		return "( %s )" % (" && ".join(condList))
