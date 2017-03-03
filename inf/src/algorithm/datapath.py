@@ -65,7 +65,7 @@ class Datapath(object):
 		
 		
 	def __addConverter(self):
-		if CFG.USE_CONVERTER:
+		if not CFG.USE_CONVERTER:
 			return 
 		portList = [
 			[CFMC.STALL_EXT, "[0:0]"],
@@ -87,7 +87,7 @@ class Datapath(object):
 			self.wireSet.add(ww)
 			
 		# add dout
-		port = conv.fidn("dout")
+		port = conv.find("dout")
 		if port:
 			conv.addLink(port, CFD.NEWINSTR)
 			ww = Wire(name=CFD.NEWINSTR, width=CFD.INSTR_WIDTH, kind="wire", stg=1)
@@ -394,7 +394,7 @@ class Datapath(object):
 		
 		# instance control 
 		instanceCtrl = self.__instanceCtrlToVerilog(ctrl, tabn)
-		ret += pre + "// Instance Module\n" + instanceCtrl + "\n" * 4
+		ret += pre + "// Instance Controller\n" + instanceCtrl + "\n" * 4
 		
 		# pipeReg logic
 		pipeCode = self.__pipeToVerilog(tabn = tabn)
@@ -406,7 +406,7 @@ class Datapath(object):
 		
 		# add newInstr to Instr
 		lines = self.__newInstrToInstr(tabn = tabn)
-		ret += pre + "// newInstr to Instr_%s logic\n" % (self.pipeLine.StgNameAt(1)) + "\n" * 4
+		ret += pre + "// newInstr to Instr_%s logic\n" % (self.pipeLine.StgNameAt(1)) + lines + "\n" * 4
 		
 		# end module
 		ret += "endmodule\n"
@@ -675,5 +675,21 @@ class Datapath(object):
 		return prefix + prefix.join(ret)
 		
 		
-	def __newInstrToInstr(self):
-		pass
+	def __newInstrToInstr(self, tabn):
+		ret = []
+		
+		# add always block
+		line = "always @(*) begin\n"
+		ret.append(line)
+		
+		## add if
+		instrName = "%s_%s" % (CFD.INSTR, self.pipeLine.StgNameAt(1))
+		line = "\t%s = %s;\n" % (instrName, CFD.NEWINSTR)
+		ret.append(line)
+		
+		line = "end // end always\n"
+		ret.append(line)
+		
+		
+		prefix = "\t" * tabn
+		return prefix + prefix.join(ret)
