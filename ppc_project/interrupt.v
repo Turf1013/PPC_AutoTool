@@ -5,30 +5,32 @@
 `include "ctrl_encode_def.v"
 
 module INTE (
-	clk, rst_n, clr,
-	intReq, EE, hw_int
+	clk, rst_n,
+	ack, req, 
+	EE, hw_int
 );
 	
-	input clk, rst_n, clr;
+	input clk, rst_n;
+	input ack;
 	input EE;
 	input hw_int;
-	output intReq;
+	output req;
 	
-	reg intReq_r;
+	reg req_r;
 	
 	always @(posedge clk or negedge rst_n) begin
 		if (~rst_n) begin
-			intReq_r <= 0;
+			req_r <= 0;
 		end
-		else if (clr) begin
-			intReq_r <= 0;
+		else if (ack) begin
+			req_r <= 0;
 		end
 		else begin
-			intReq_r <= (intReq_r) || (hw_int & EE);
+			req_r <= (req_r) || (hw_int & EE);
 		end
 	end // end always
 	
-	assign intReq = intReq_r;
+	assign req = req_r;
 	
 endmodule
 
@@ -40,15 +42,15 @@ module intEntry (
 	input [0:`SPR_WIDTH-1] IVOR;
 	output [0:`PC_WIDTH-1] intAddr;
 	
-	assign intAddr = {IVPR[0:`SPR_WIDTH/2-1], IVOR[`SPR_WIDTH/2:`SPR_WIDTH-5], 4'h0};
+	// assign intAddr = {IVPR[0:`SPR_WIDTH/2-1], IVOR[`SPR_WIDTH/2:`SPR_WIDTH-5], 4'h0};
+	assign intAddr = `INT_ENTRY_ADDR;
 
 endmodule
 
 module intEncode (
-	intReq, instr, intOp
+	instr, intOp
 );
 	
-	input					 intReq;
 	input [0:`INSTR_WIDTH-1] instr;
 	output [0:`INTOp_WIDTH-1] intOp;
 	
@@ -57,10 +59,11 @@ module intEncode (
 	assign sc = instr`SCOPCD == `SC_OPCD;
 	assign trap = 	(instr`DOPCD == `TWI_OPCD) || 
 					(instr`XOPCD == `TW_OPCD && instr`XXO == `TW_XXO);
+	assign intr = instr`DOPCD == `INTR_OPCD;
 	
 	assign intOp = 	(trap)		?	`INTOp_TRAP		:
 					(sc) 		?	`INTOp_SC		:
-					(intReq)	?	`INTOp_EXT		:
+					(intr)		?	`INTOp_EXT		:
 									`INTOp_NONE		;
 
 endmodule
@@ -78,4 +81,55 @@ module IVORaddr (
 												0 ;
 
 endmodule
+
+module intCtrl (
+	clk, rst_n,
+	intAck, intReq,
+	EE, hw_int,
+	instr, intAddr
+);
+	input						clk;
+	input						rst_n;
+	input						EE;
+	input						hw_int;
+	input 	[0:`INSTR_WIDTH-1] 	instr;
+	input						intAck;
+	output	 [0:`PC_WIDTH-1]	intAddr;
+	output						intReq;
+	
+	
+	wire [0:3] IVOR_addr;
+	wire [0:`INTOp_WIDTH-1] intOp;
+	
+	// IVOR select
+	IVORaddr I_IVORaddr (
+		.intOp(intOp),
+		.addr(IVOr_addr)
+	);
+	
+	// interrupt entry
+	intEntry I_intEntry (
+		.IVPR(0),
+		.IVOR(0),
+		.intAddr(intAddr)
+	);
+	
+	// interrupt_op encode
+	intEncode I_intEncode (
+		.instr(instr),
+		.intOp(intOp)
+	);
+	
+	// interrupt request latch
+	INTE I_INTE (
+		.clk(clk), 
+		.rst_n(rst_n),
+		.ack(intAck), 
+		.req(intReq), 
+		.EE(EE), 
+		.hw_int(hw_int)
+	);
+
+endmodule
+
 

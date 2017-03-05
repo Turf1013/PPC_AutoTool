@@ -285,6 +285,8 @@
 
 `define TWI_OPCD	6'b000_011
 
+`define INTR_OPCD	6'b000_100
+
 `define TW_OPCD		6'b011_111
 `define TW_XXO		10'b00000_00100
 

@@ -90,7 +90,15 @@ class Datapath(object):
 		line = ""
 		line += "********************\n"
 		line += "Instruction information:\n"
-		line += "(1) %d instructions\n" % (len(self.insnMap))
+		linkRtl = self.excelRtl.linkRtl
+		insnNum = len(linkRtl)
+		if CFD.INSN_INTR in linkRtl:
+			insnNum -= 1
+		if CFG.USE_CONVERTER:
+			insnNum += 16
+			line += "(1) %d instructions\n" % (insnNum)
+		else:
+			line += "(1) %d instructions\n" % (insnNum)
 		line += "(2) %d interrupt related instructions:\n" % (len(self.intrInsnNameList))
 		for i,insnName in enumerate(self.intrInsnNameList):
 			if i>0 and i%8==0:

@@ -156,3 +156,8 @@
 `define INTOp_EXT			2'd1
 `define INTOp_TRAP			2'd2
 `define INTOp_SC			2'd3
+
+/**** About Trap compare ****/
+`define trapCompOp_WIDTH	1
+`define trapCompOp_NONE		1'd0
+`define trapCompOp_TRAP		5'd1

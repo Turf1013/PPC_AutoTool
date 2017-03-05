@@ -6,6 +6,7 @@
 
 /**** About Instruction ****/
 `define NOP			32'b011000_00000_00000_000000_00000_00000
+`define INTR		32'b000100_00000_00000_000000_00000_00000
 
 `define OPCD		[0:5]
 `define OPCD_WIDTH	6

@@ -5,7 +5,8 @@
 module insnConverter (
 	clk, rst_n, PC, 
 	din, stall_ext,
-	dout, latch
+	dout, latch,
+	intReq, trapReq, stall, intAck
 );
 
 	input 						clk;
@@ -13,9 +14,15 @@ module insnConverter (
 	input [0:`PC_WIDTH-1]		PC;
 	input [0:`INSTR_WIDTH-1] 	din;
 	input						latch;
+	input						intReq;
+	input						trapReq;
+	input						stall;
+	output						intAck;
 	output 						stall_ext;
 	output [0:`INSTR_WIDTH-1] 	dout;
 	
+	
+	reg [0:`INSTR_WIDTH-1] dout;
 	reg [0:`INSTR_WIDTH-1] dout_r;
 	
 	wire [0:`INSTR_WIDTH-1] instr;
@@ -397,10 +404,43 @@ module insnConverter (
 	end // end always
 	
 	assign cnt_wr = mwFir;
-	assign dout = dout_r;
 	assign stall_ext = ~latch && (updateFir || (mwFir && ini_cnt!=0) || (cnt_r!=0));
 
-
+	
+	// logic of interrupt
+	wire sc, trap, isNop;
+	
+	assign sc = instr`SCOPCD == `SC_OPCD;
+	assign trap = 	(instr`DOPCD == `TWI_OPCD) || 
+					(instr`XOPCD == `TW_OPCD && instr`XXO == `TW_XXO);
+	assign isNop = instr==`NOP;				
+	
+	always @(*) begin
+		if ( stall ) begin
+			dout = dout_r;
+		end
+		else if ( sc ) begin
+			dout = dout_r;
+		end
+		else if ( trap ) begin
+			if (trapReq)
+				dout = dout_r;
+			else
+				dout = `NOP;
+		end
+		else if ( intReq ) begin
+			if (isNop)
+				dout = `INTR;
+			else
+				dout = dout_r;
+		end
+		else begin
+			dout = dout_r;
+		end
+	end // end always
+	
+	assign intAck = intReq && (dout`DOPCD == `INTR_OPCD);
+	
 endmodule
 
 
