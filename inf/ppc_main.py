@@ -27,7 +27,7 @@ def move(srcDir, desDir):
 	if os.path.exists(srcDir) and os.path.exists(desDir):
 		fileList = os.listdir(srcDir)
 		for fileName in fileList:
-			if fileName.endswith(".v"):
+			if fileName.endswith(".v") and (fileName=="control.v" or fileName=="ppc.v"):
 				shutil.copyfile(os.path.join(srcDir, fileName), os.path.join(desDir, fileName))
 
 				
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 		"bc",
 		"bclr",
 		"bcctr",
-		# "rfi",
+		"rfi",
 	]
 	
 	# remove ppc.v, mips.v, control.v

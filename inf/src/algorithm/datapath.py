@@ -24,6 +24,7 @@ class constForDatapath:
 	PRADDR = "PrAddr"
 	PRRD = "PrRD"
 	PRWD = "PrWD"
+	HW_INT = "hw_int"
 	pipeIDict = {
 		"Instr": CFG.INSTR_WIDTH,
 	}
@@ -35,6 +36,15 @@ class constForDatapath:
 	INSTR_WIDTH = "[0:`INSTR_WIDTH-1]"
 	PCPC = "PC_PC"
 	CONVT_STAGE = 1
+	INSN_INTR = "INTR"
+	INSN_SC = "SC"
+	INSN_TW = "TW"
+	INSN_TWI = "TWI"
+	TRAPREQ = "trapReq"
+	TRAPCOMP = "trapComp"
+	INTREQ = "intReq"
+	INTACK = "intAck"
+	INTCTRL = "intCtrl"
 	
 class CFD(constForDatapath):
 	pass
@@ -57,13 +67,82 @@ class Datapath(object):
 		self.needBypass = needBypass
 		self.pipeList = []
 		self.wireSet = WireSet()
+		self.Pmc = MCI.findPmc(excelRtl, pipeLine)
+		self.intrInsnNameList = self.findIntrInsn()
+		
+		# show instructions
+		self.showInsnInfo()
+		
 		# add PCWr
 		self.__addPCWr()
 		# add MDU ports
 		self.__addMDU()	
 		# add insnConverter
 		self.__addConverter()
-		self.Pmc = MCI.findPmc(excelRtl, pipeLine)
+		# add intCtrl
+		self.__addIntCtrl()
+		# add trapComp
+		self.__addTrapComp()
+		
+		
+		
+	def showInsnInfo(self):
+		line = ""
+		line += "********************\n"
+		line += "Instruction information:\n"
+		line += "(1) %d instructions\n" % (len(self.insnMap))
+		line += "(2) %d interrupt related instructions:\n" % (len(self.intrInsnNameList))
+		for i,insnName in enumerate(self.intrInsnNameList):
+			if i>0 and i%8==0:
+				line += "\n"
+			line += "\t%s " % (insnName)
+		line += "\n"
+		line += "********************\n"
+		line += "\n\n"
+		print line	
+		
+		
+		
+	def __addTrapComp(self):
+		trapComp = self.modMap.find(CFD.TRAPCOMP)
+		port = trapComp.find("C")
+		if port:
+			trapComp.addLink(port, CFD.TRAPREQ)
+		
+		
+	def __addIntCtrl(self):
+		if len(self.intrInsnNameList) == 0:
+			return 
+		intCtrl = self.modMap.find(CFD.INTCTRL)
+		
+		# add intAck
+		port = intCtrl.find(CFD.INTACK)
+		if port:
+			intCtrl.addLink(port, CFD.INTACK)
+		
+		# add intReq
+		port = intCtrl.find(CFD.INTREQ)
+		if port:
+			intCtrl.addLink(port, CFD.INTREQ)
+			
+		# add hw_int
+		port = intCtrl.find(CFD.HW_INT)
+		if port:
+			intCtrl.addLink(port, CFD.INTREQ)
+		
+		
+	def findIntrInsn(self):
+		intrInsnNameList = [
+			CFD.INSN_TWI,
+			CFD.INSN_TW,
+			CFD.INSN_SC,
+			CFD.INSN_INTR,
+		]
+		ret = []
+		for insnName in intrInsnNameList:
+			if self.insnMap.find(insnName):
+				ret.append(insnName)
+		return ret
 		
 		
 	def __addConverter(self):
@@ -100,6 +179,34 @@ class Datapath(object):
 		if port:
 			portName = "%s_%s" % (CFD.PCPC, self.pipeLine.StgNameAt(CFD.CONVT_STAGE))
 			conv.addLink(port, portName)
+			
+		# add stall into converter
+		port = conv.find("stall")
+		if port:
+			conv.addLink(port, "stall")
+			
+		# check trap
+		if CFD.INSN_TW in self.intrInsnNameList or CFD.INSN_TWI in self.intrInsnNameList:
+			port = conv.find(CFD.TRAPREQ)
+			if port:
+				conv.addLink(port, CFD.TRAPREQ)
+				ww = Wire(name=CFD.TRAPREQ, width=1, kind="wire", stg=1)
+				self.wireSet.add(ww)
+			
+		# check interrupt
+		if CFD.INSN_INTR in self.intrInsnNameList:
+			port = conv.find(CFD.INTREQ)
+			if port:
+				conv.addLink(port, CFD.INTREQ)
+				ww = Wire(name=CFD.INTREQ, width=1, kind="wire", stg=1)
+				self.wireSet.add(ww)
+				
+			port = conv.find(CFD.INTACK)
+			if port:
+				conv.addLink(port, CFD.INTACK)
+				ww = Wire(name=CFD.INTACK, width=1, kind="wire", stg=1)
+				self.wireSet.add(ww)
+				
 		
 		
 	def __findConverter(self):
@@ -216,7 +323,7 @@ class Datapath(object):
 				src = self.__FindInBypass(src=rtl.src, stg=istg)[0]
 				varName = RP.SrcToVar(src=src, stg=stgName)
 				mod = self.modMap.find(rtl.desMod)
-				# logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
+				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
 				mod.addLink(rtl.desPort, varName)
 				width = mod.find(rtl.desPort).width
 				
@@ -279,11 +386,21 @@ class Datapath(object):
 		line += "********************\n"
 		line += "Automatic Datapath:\n"
 		line += "(1) %d port mux\n" % (len(muxList))
-		line += "(2) %d core modules:\n" % (len(self.modMap))
-		for i,modName in enumerate(self.modMap):
-			if i>0 and i%8==0:
+		modList = []
+		for modName,mod in self.modMap.iteritems():
+			linkNum = mod.linkn()
+			if linkNum > 0:
+				modList.append(modName)
+		if CFG.USE_CONVERTER:
+			modList.append(CFD.CONVERTER_NAME)
+		if len(self.intrInsnNameList) > 0:
+			modList.append(CFD.TRAPCOMP)
+			modList.append(CFD.INTCTRL)
+		line += "(2) %d core modules:\n" % (len(modList))
+		for i,modName in enumerate(modList):
+			if i>0 and i%6==0:
 				line += "\n"
-			line += "\t%s " % (modName)
+			line += "\t%10s " % (modName)
 		line += "\n"
 		line += "********************\n"
 		line += "\n\n"
@@ -374,7 +491,8 @@ class Datapath(object):
 		# module statement
 		ret += "module %s (\n" % (CFD.ARCH)
 		ret += pre + "%s, %s,\n" % (CFD.CLK, CFD.RST)
-		ret += pre + "%s, %s, %s \n" % (CFD.PRADDR, CFD.PRRD, CFD.PRWD)
+		ret += pre + "%s, %s, %s, \n" % (CFD.PRADDR, CFD.PRRD, CFD.PRWD)
+		ret += pre + "%s \n" % (CFD.HW_INT)
 		ret += ");\n"
 		
 		# input & output statement
@@ -607,6 +725,7 @@ class Datapath(object):
 		ret = ""
 		ret += pre + "input %s;\n" % (CFD.CLK)
 		ret += pre + "input %s;\n" % (CFD.RST)
+		ret += pre + "input %s;\n" % (CFD.HW_INT)
 		return ret
 		
 		
@@ -673,7 +792,7 @@ class Datapath(object):
 		ret.append(line)
 		
 		## get DM rd
-		PrRD = 0
+		PrRd = 0
 		dm = self.modMap.find("DM")
 		if dm:
 			PrRd = dm.getLink("dout")

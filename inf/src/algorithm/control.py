@@ -73,8 +73,12 @@ class Control(object):
 		# add 0 for patch
 		cs.add( CtrlTriple(cond="0", pri=10**5) )
 		for brInsnName in self.pipeLine.brList:
-			cond = self.insnMap.find(brInsnName).condition(suf = stgName)
-			cs.add( CtrlTriple(cond=cond, op=1) )
+			try:
+				insn = self.insnMap.find(brInsnName)
+				cond = insn.condition(suf = stgName)
+				cs.add( CtrlTriple(cond=cond, op=1) )
+			except:
+				pass
 		self.CSList.append(cs)
 		self.portList.append(signalName)
 		self.wireSet.add( Wire(name=signalName, width=1, kind="reg", stg=rstg) )
