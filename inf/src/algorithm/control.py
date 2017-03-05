@@ -181,9 +181,14 @@ class Control(object):
 		ret += pre + "// control Signal\n" + csCode + "\n" * 4
 		
 		# MCI related
-		mci = MCI(self.excelRtl, self.pipeLine, self.modMap, self.insnMap)
-		mciCode = mci.toVerilog(tabn = tabn)
-		ret += pre + "// MCI supported signal\n" + mciCode + "\n" * 4
+		if len(MCI.findMCI(self.excelRtl, self.pipeLine)) > 0:
+			mci = MCI(self.excelRtl, self.pipeLine, self.modMap, self.insnMap)
+			mciCode = mci.toVerilog(tabn = tabn)
+			ret += pre + "// MCI supported signal\n" + mciCode + "\n" * 4
+		else:
+			mciCode = pre + "wire %s;\n\n" % (CFMC.STALL_MC)
+			mciCode += pre + "assign %s = 0;\n" % (CFMC.STALL_MC)
+			ret += pre + "// no MCI supported\n" + mciCode + "\n" * 4
 		
 		# pipe signal
 		clrCode = self.__ClrToVerilog(tabn = tabn)
