@@ -5,6 +5,8 @@ Desktop.ini
 
 # C:
 *.o
+*~
+*.gkd
 *.o.gkd
 *.elf
 *.elf.txt
