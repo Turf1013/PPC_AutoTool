@@ -49,7 +49,7 @@ def testMCI(excelRtl, pipeLine, modMap, insnMap):
 if __name__ == "__main__":
 	srcWorkDirectory = "F:\ppc_project"
 	desWorkDirectory = "E:\ppc_project"
-	excelName = "ppc_pipeline.xls"
+	excelName = "ppc_pipeline_biye.xls"
 	sheetName = "rtl"
 	insnFileName = "instruction_def.v"
 	regArgsList = [
@@ -70,6 +70,9 @@ if __name__ == "__main__":
 		"bclr",
 		"bcctr",
 		"rfi",
+		"sc",
+		"twi",
+		"tw",
 	]
 	
 	# remove ppc.v, mips.v, control.v

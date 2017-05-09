@@ -40,6 +40,7 @@ class constForDatapath:
 	INSN_SC = "SC"
 	INSN_TW = "TW"
 	INSN_TWI = "TWI"
+	INSN_RFI = "TWI"
 	TRAPREQ = "trapReq"
 	TRAPCOMP = "trapComp"
 	INTREQ = "intReq"
@@ -145,10 +146,12 @@ class Datapath(object):
 			CFD.INSN_TW,
 			CFD.INSN_SC,
 			CFD.INSN_INTR,
+			CFD.INSN_RFI
 		]
 		ret = []
+		linkRtl = self.excelRtl.linkRtl
 		for insnName in intrInsnNameList:
-			if self.insnMap.find(insnName):
+			if insnName in linkRtl:
 				ret.append(insnName)
 		return ret
 		

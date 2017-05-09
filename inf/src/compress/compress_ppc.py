@@ -227,7 +227,10 @@ def updateBypassLine(lines, expDict, condDict):
 				expDict[condList[i]] = val
 			addrCondList.append(val)
 		i += 1
-	stg = condList[0][condList[0].index('_')+1:]
+	try:
+		stg = condList[0][condList[0].index('_')+1:]
+	except:
+		stg = 'D'
 	addr = " && ".join(addrCondList)
 	sel = selLine.strip().split()[-1][:-1]
 	bp = BypassPair(stg, addr, sel)

@@ -235,6 +235,7 @@ def compressBypass(lines, expDict):
 		i += 1
 	return ret
 	
+	
 def compressStall(lines, expDict):
 	ret = []
 	n = len(lines)
