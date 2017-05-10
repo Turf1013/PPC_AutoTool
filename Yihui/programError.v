@@ -8,7 +8,8 @@
 module programError (
 	isUndefined, isPriveleged, isTraped
 	isMoveSpr, sprn, MSR_PR, 
-	progErr, ack, clk, rst
+	progErr, ack, clk, rst,
+	progErrCode;
 );
 	input isUndefined;
 	input isPriveleged;
@@ -17,6 +18,7 @@ module programError (
 	input [9:0] sprn;
 	input MSR_PR;
 	output progErr;
+	output [2:0] progErrCode;
 	input ack;
 	input clk, rst;
 	
@@ -55,6 +57,8 @@ module programError (
 	end // end always
 	
 	assign progErr = progErr_r;
+	
+	assign progErrCode = {illegalError, privelegeError, isTraped};
 
 endmodule
 
