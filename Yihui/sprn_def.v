@@ -13,6 +13,7 @@
 `define SPRN_ESR	10'd62
 `define SPRN_DEAR	10'd61
 
+`define SPRN_IVOR0	10'd400
 `define SPRN_IVOR2	10'd402
 `define SPRN_IVOR3	10'd403
 `define SPRN_IVOR13	10'd413

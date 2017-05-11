@@ -4,3 +4,4 @@
 	\brief: 	Define of MSR
 */
 `define MSR_EE 16
+`define MSR_PR 17

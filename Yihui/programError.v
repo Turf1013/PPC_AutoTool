@@ -4,23 +4,28 @@
 	\brief: 	Circuit of Program Error
 */
 `include "sprn_def.v"
+`include "MSR_def.v"
 
 module programError (
-	isUndefined, isPriveleged, isTraped
-	isMoveSpr, sprn, MSR_PR, 
-	progErr, ack, clk, rst,
-	progErrCode;
+	isUndefined, isPriveleged, isTraped,
+	isMoveSpr, sprn, MSR, 
+	progErrCode, progErr, ack, 
+	clk, rst
 );
 	input isUndefined;
 	input isPriveleged;
 	input isTraped;
 	input isMoveSpr;
 	input [9:0] sprn;
-	input MSR_PR;
+	input [0:31] MSR;
 	output progErr;
 	output [2:0] progErrCode;
 	input ack;
 	input clk, rst;
+	
+	wire MSR_PR;
+	
+	assign MSR_PR = MSR[`MSR_PR];
 	
 	wire sprn_isExisted, sprn_isPriveleged;
 	judgeSprn U_judgeSprn(

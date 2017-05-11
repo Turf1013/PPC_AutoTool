@@ -50,7 +50,7 @@ module toyDev1 (
 
 endmodule
 
-module toyDev2 (
+module toyDev0 (
 	intrIn, intr,
 	ack, clk, rst
 );
@@ -60,7 +60,7 @@ module toyDev2 (
 	input ack;
 	input clk, rst;
 	
-	toyIO toyDev2 (
+	toyIO toyDev0 (
 		.intrIn(intrIn),
 		.intr(intr),
 		.ack(ack),

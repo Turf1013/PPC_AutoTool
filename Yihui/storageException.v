@@ -3,18 +3,24 @@
 	\date: 		2017/5/9
 	\brief: 	Circuit of DSI and ISI
 */
+`include "MSR_def.v"
+
 module DSI (
-	MSR_PR, entry_RW,
+	MSR, entry_RW,
 	isLoad, isStore,
 	dsi, ack, clk, rst
 );
 
-	input MSR_PR;
+	input [0:31] MSR;
 	input isLoad, isStore;
 	input [3:0] entry_RW;
 	output dsi;
 	input ack;
 	input clk, rst;
+	
+	wire MSR_PR;
+	
+	assign MSR_PR = MSR[`MSR_PR];
 	
 	wire UR, SR, UW, SW
 	assign {UR, SR, UW, SW} = entry_RW;
@@ -49,17 +55,21 @@ module DSI (
 endmodule
 
 module ISI (
-	MSR_PR, entry_X,
+	MSR, entry_X,
 	isFetch,
 	isi, ack, clk, rst
 );
 
-	input MSR_PR;
+	input [0:31] MSR;
 	input isFetch;
 	input [1:0] entry_X;
 	output isi;
 	input ack;
 	input clk, rst;
+	
+	wire MSR_PR;
+	
+	assign MSR_PR = MSR[`MSR_PR];
 	
 	wire UX, SX;
 	

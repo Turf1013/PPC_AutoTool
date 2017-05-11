@@ -4,6 +4,7 @@
 	\brief: 	TestBench of the Interrupt System
 */
 `include "Interrupt_def.v"
+`include "sprn_def.v"
 
 module InterruptSystem_tb (
 );
@@ -22,12 +23,106 @@ module InterruptSystem_tb (
 	reg isTrapedIn, isUndefinedIn, isPrivelegedIn, scIn; 
 	reg MSR_wr;
 	reg [0:31] MSR_wd;
+	reg Dev1_intrIn, Dev0_intrIn;
+	reg ITLB_missIn, DTLB_missIn;
+	reg isLoadIn, isStoreIn, isFetchIn, isMoveSprIn;
+	reg [9:0] sprn;
+	
 	
 	initial begin
 		rst = 1;
 		#12;
 		rst = 0;
 		
+		// initialize MSR
+		#12;
+		MSR_wr = 1;
+		MSR_wd = 32'h0000_c000;
+		#10
+		MSR_wr = 0;
+		
+		// check read SPR
+		#6;
+		SPR_wr0 = 1;
+		SPR_wr1 = 1;
+		SPR_wr2 = 1;
+		SPR_addr0 = `SPRN_IVOR2;
+		SPR_addr1 = `SPRN_IVOR3;
+		SPR_addr2 = `SPRN_IVOR13;
+		SPR_wd0 = 2;
+		SPR_wd1 = 3;
+		SPR_wd2 = 13;
+		#10;
+		SPR_wr0 = 1;
+		SPR_wr1 = 1;
+		SPR_wr2 = 1;
+		SPR_addr0 = `SPRN_IVOR14;
+		SPR_addr1 = `SPRN_IVOR6;
+		SPR_addr2 = `SPRN_IVOR8;
+		SPR_wd0 = 14;
+		SPR_wd1 = 6;
+		SPR_wd2 = 8;
+		#10;
+		SPR_wr0 = 1;
+		SPR_wr1 = 0;
+		SPR_wr2 = 0;
+		SPR_addr0 = `SPRN_IVOR4;
+		SPR_wd0 = 4;
+		#10;
+		SPR_wr0 = 0;
+		SPR_addr0 = `SPRN_IVOR2;
+		SPR_addr1 = `SPRN_IVOR3;
+		SPR_addr2 = `SPRN_IVOR13;
+		#5;
+		SPR_addr0 = `SPRN_IVOR14;
+		SPR_addr1 = `SPRN_IVOR6;
+		SPR_addr2 = `SPRN_IVOR8;
+		#5;
+		SPR_addr0 = `SPRN_IVOR14;
+		SPR_addr1 = `SPRN_IVOR0;
+		SPR_addr2 = `SPRN_IVOR0;
+		#5;
+		SPR_addr0 = `SPRN_IVOR0;
+		
+		// check with interrupt
+		Dev0_intrIn = 1;
+		#10;
+		Dev0_intrIn = 0;
+		#5;
+		Dev1_intrIn = 1;
+		#12;
+		Dev1_intrIn = 0;
+		#8;
+		
+		// check with TLB Miss
+		ITLB_missIn = 1;
+		#10;
+		ITLB_missIn = 0;
+		#5;
+		DTLB_missIn = 1;
+		#12;
+		DTLB_missIn = 0;
+		#8;
+		
+		// check with Error Exception & SystemCall
+		isTrapedIn = 1;
+		#10;
+		isTrapedIn = 0;
+		#5;
+		isUndefinedIn = 1;
+		#12;
+		isUndefinedIn = 0;
+		#8;
+		isPrivelegedIn = 1;
+		#10;
+		isPrivelegedIn = 0;
+		#5;
+		scIn = 1;
+		#12;
+		scIn = 0;
+		#8;
+		
+		// check with storage exception
 		
 	end // end initial
 	
@@ -38,7 +133,9 @@ module InterruptSystem_tb (
 	wire DSI_ack, ISI_ack, ITLB_ack, DTLB_ack, DEV0_ack, DEV1_ack, progErr_ack, SC_ack, CU_ack;
 	wire [2:0] progErrCode;
 	wire [0:31] MSR;
-	
+	wire [3:0] entry_RW;
+	wire [1:0] entry_X;
+	wire isLoad, isStore, isFetch, isMoveSpr;
 	
 	InterruptSystem U_InterruptSystem (
 		.clk(clk), 
@@ -87,6 +184,12 @@ module InterruptSystem_tb (
 		.isUndefined(isUndefined),
 		.isPrivelegedIn(isPrivelegedIn), 
 		.isPriveleged(isPriveleged),
+		.isLoadIn(isLoadIn),
+		.isLoad(isLoad),
+		.isStoreIn(isStoreIn),
+		.isStore(isStore),
+		.isFetchIn(isFetchIn),
+		.isFetch(isFetch),
 		.scIn(scIn), 
 		.sc(SC_req),
 		.excepCode(excepCode), 
@@ -102,6 +205,73 @@ module InterruptSystem_tb (
 		.wd(MSR_wd), 
 		.MSR(MSR)
 	);
-
+	
+	toyDev1 U_toyDev1 (
+		.intrIn(Dev1_intrIn), 
+		.intr(Dev1_req),
+		.ack(Dev1_ack), 
+		.clk(clk), 
+		.rst(rst)
+	);
+	
+	toyDev0 U_toyDev0 (
+		.intrIn(Dev0_intrIn), 
+		.intr(Dev0_req),
+		.ack(Dev0_ack), 
+		.clk(clk), 
+		.rst(rst)
+	);
+	
+	toyITLB U_toyITLB (
+		.missIn(ITLB_missIn),
+		.miss(ITLB_req),
+		.ack(ITLB_ack),
+		.clk(clk),
+		.rst(rst)
+	);
+	
+	toyDTLB U_toyDTLB (
+		.missIn(DTLB_missIn),
+		.miss(DTLB_req),
+		.ack(DTLB_ack),
+		.clk(clk),
+		.rst(rst)
+	);
+	
+	DSI U_DSI (
+		.MSR(MSR), 
+		.entry_RW(entry_RW),
+		.isLoad(isLoad), 
+		.isStore(isStore),
+		.dsi(DSI_req), 
+		.ack(DSI_ack), 
+		.clk(clk), 
+		.rst(rst)
+	);
+	
+	ISI U_ISI (
+		.MSR(MSR), 
+		.entry_X(entry_X),
+		.isFetch(isFetch),
+		.isi(ISI_req), 
+		.ack(ISI_ack), 
+		.clk(clk), 
+		.rst(rst)
+	);
+	
+	programError U_programError (
+		.isUndefined(isUndefined), 
+		.isPriveleged(isPriveleged), 
+		.isTraped(isTraped),
+		.isMoveSpr(isMoveSpr), 
+		.sprn(sprn), 
+		.MSR(MSR), 
+		.progErrCode(progErrCode), 
+		.progErr(progErr_req), 
+		.ack(progErr_ack), 
+		.clk(clk), 
+		.rst(rst)
+	);
+	
 endmodule
 
