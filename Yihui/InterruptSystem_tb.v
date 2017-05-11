@@ -27,9 +27,10 @@ module InterruptSystem_tb (
 	reg ITLB_missIn, DTLB_missIn;
 	reg isLoadIn, isStoreIn, isFetchIn, isMoveSprIn;
 	reg [9:0] sprn;
-	
+	reg [5:0] entry;
 	
 	initial begin
+		entry = 6'b111111;
 		rst = 1;
 		#12;
 		rst = 0;
@@ -98,7 +99,7 @@ module InterruptSystem_tb (
 		ITLB_missIn = 1;
 		#10;
 		ITLB_missIn = 0;
-		#5;
+		#10;
 		DTLB_missIn = 1;
 		#12;
 		DTLB_missIn = 0;
@@ -108,7 +109,7 @@ module InterruptSystem_tb (
 		isTrapedIn = 1;
 		#10;
 		isTrapedIn = 0;
-		#5;
+		#10;
 		isUndefinedIn = 1;
 		#12;
 		isUndefinedIn = 0;
@@ -116,13 +117,37 @@ module InterruptSystem_tb (
 		isPrivelegedIn = 1;
 		#10;
 		isPrivelegedIn = 0;
-		#5;
+		#10;
 		scIn = 1;
 		#12;
 		scIn = 0;
 		#8;
+		sprn = `SPRN_IVPR;
+		isMoveSpr = 1;
+		#10;
+		sprn = 0;
+		isMoveSpr = 0;
+		#10;
 		
-		// check with storage exception
+		// check with storage exception & MSR_PR=1
+		entry = 6'b111111;
+		isLoadIn = 1;
+		#10;
+		isLoadIn = 0;
+		entry = 6'b011111;
+		#10;
+		entry = 6'b111111;
+		isStoreIn = 1;
+		#10;
+		isStoreIn = 0;
+		entry = 6'b110111;
+		#10;
+		entry = 6'b111111;
+		isFetch = 1;
+		#10;
+		isFetch = 0;
+		entry = 6'b111101;
+		#10;
 		
 	end // end initial
 	
@@ -136,6 +161,8 @@ module InterruptSystem_tb (
 	wire [3:0] entry_RW;
 	wire [1:0] entry_X;
 	wire isLoad, isStore, isFetch, isMoveSpr;
+	
+	assign {entry_RW, entryX} = entry;
 	
 	InterruptSystem U_InterruptSystem (
 		.clk(clk), 
