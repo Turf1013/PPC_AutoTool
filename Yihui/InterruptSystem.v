@@ -5,6 +5,7 @@
 */
 `include "Interrupt_def.v"
 `include "MSR_def.v"
+`include "sprn_def.v"
 
 module InterruptEncoder (
 	DSI_req, ISI_req, ITLB_req, DTLB_req,
@@ -65,7 +66,7 @@ module InterruptEncoder (
 				excepCode_in <= `ExcepCode_TRAP;
 		end
 		else if (SC_req) begin
-			excepCode_in <= `ExcepCode_SC:
+			excepCode_in <= `ExcepCode_SC;
 		end
 		else if (ISI_req) begin
 			excepCode_in <= `ExcepCode_ISI;
@@ -104,14 +105,14 @@ module InterruptEncoder (
 	assign excepCode = excepCode_r;
 	
 	// the logic of XXX_ack
-	assign SC_req = ack && (excepCode==`ExcepCode_SC);
+	assign SC_ack = ack && (excepCode==`ExcepCode_SC);
 	assign progErr_ack = ack && (excepCode==`ExcepCode_TRAP || excepCode==`ExcepCode_PRIV || excepCode==`ExcepCode_ILLE);
 	assign DEV1_ack = ack && (excepCode==`ExcepCode_DEV1);
 	assign DEV0_ack = ack && (excepCode==`ExcepCode_DEV0);
-	assign DTLB_ack = ack && (excepCode==`DTLB_ack);
-	assign ITLB_ack = ack && (excepCode==`ITLB_ack);
-	assign ISI_ack  = ack && (excepCode==`ISI_ack);
-	assign DSI_ack  = ack && (excepCode==`DSI_ack);
+	assign DTLB_ack = ack && (excepCode==`ExcepCode_DMISS);
+	assign ITLB_ack = ack && (excepCode==`ExcepCode_IMISS);
+	assign ISI_ack  = ack && (excepCode==`ExcepCode_ISI);
+	assign DSI_ack  = ack && (excepCode==`ExcepCode_DSI);
 
 endmodule
 
@@ -137,17 +138,17 @@ module InterruptRegister (
 	
 	always @(excepCode) begin
 		case(excepCode)
-			`ExcepCode_DSI: 	intryEntryAddr = {IVPR[0:15], IVOR[2][16:27], 4'd0};
-			`ExcepCode_ISI: 	intryEntryAddr = {IVPR[0:15], IVOR[3][16:27], 4'd0};
-			`ExcepCode_DMISS: 	intryEntryAddr = {IVPR[0:15], IVOR[13][16:27], 4'd0};
-			`ExcepCode_IMISS: 	intryEntryAddr = {IVPR[0:15], IVOR[14][16:27], 4'd0};
-			`ExcepCode_TRAP: 	intryEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_PRIV: 	intryEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_ILLE: 	intryEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_SC:		intryEntryAddr = {IVPR[0:15], IVOR[8][16:27], 4'd0};
-			`ExcepCode_DEV0:	intryEntryAddr = {IVPR[0:15], IVOR[4][16:27], 4'd0};
-			`ExcepCode_DEV1:	intryEntryAddr = {IVPR[0:15], IVOR[5][16:27], 4'd0};
-			default:			intryEntryAddr = 32'hffff_ffff;
+			`ExcepCode_DSI: 	intrEntryAddr = {IVPR[0:15], IVOR[2][16:27], 4'd0};
+			`ExcepCode_ISI: 	intrEntryAddr = {IVPR[0:15], IVOR[3][16:27], 4'd0};
+			`ExcepCode_DMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[13][16:27], 4'd0};
+			`ExcepCode_IMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[14][16:27], 4'd0};
+			`ExcepCode_TRAP: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_PRIV: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_ILLE: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_SC:		intrEntryAddr = {IVPR[0:15], IVOR[8][16:27], 4'd0};
+			`ExcepCode_DEV0:	intrEntryAddr = {IVPR[0:15], IVOR[4][16:27], 4'd0};
+			`ExcepCode_DEV1:	intrEntryAddr = {IVPR[0:15], IVOR[5][16:27], 4'd0};
+			default:			intrEntryAddr = 32'hffff_ffff;
 		endcase
 	end // end always
 	
@@ -331,7 +332,7 @@ module InterruptSystem (
 	output DSI_ack;
 	
 	input ack;
-	input [0;31] MSR;
+	input [0:31] MSR;
 	input [2:0] progErrCode;
 	
 	wire MSR_EE;

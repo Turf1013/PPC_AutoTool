@@ -22,7 +22,7 @@ module DSI (
 	
 	assign MSR_PR = MSR[`MSR_PR];
 	
-	wire UR, SR, UW, SW
+	wire UR, SR, UW, SW;
 	assign {UR, SR, UW, SW} = entry_RW;
 	
 	wire readException, writeException;
@@ -30,8 +30,8 @@ module DSI (
 	assign readException = (MSR_PR && isLoad && ~UR) || 
 						   (~MSR_PR & isLoad && ~SR) ;
 						   
-	assign writeException = (MSR_PR && isWrite && ~UW) || 
-							(~MSR_PR && isWrite && ~SW) ;
+	assign writeException = (MSR_PR && isStore && ~UW) || 
+							(~MSR_PR && isStore && ~SW) ;
 				
 	wire req;
 	assign req = readException | writeException;

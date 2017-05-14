@@ -17,7 +17,7 @@ module InterruptSystem_tb (
 	end // end always
 	
 	reg rst;
-	reg [9:0] SPR_addr0, SPR_adrr1, SPR_addr2;
+	reg [9:0] SPR_addr0, SPR_addr1, SPR_addr2;
 	reg [0:31] SPR_wd0, SPR_wd1, SPR_wd2;
 	reg SPR_wr0, SPR_wr1, SPR_wr2;
 	reg isTrapedIn, isUndefinedIn, isPrivelegedIn, scIn; 
@@ -25,11 +25,36 @@ module InterruptSystem_tb (
 	reg [0:31] MSR_wd;
 	reg Dev1_intrIn, Dev0_intrIn;
 	reg ITLB_missIn, DTLB_missIn;
-	reg isLoadIn, isStoreIn, isFetchIn, isMoveSprIn;
+	reg isLoadIn, isStoreIn, isMoveSprIn, isFetchIn;
 	reg [9:0] sprn;
 	reg [5:0] entry;
 	
 	initial begin
+		SPR_addr0 = 10'd0;
+		SPR_addr1 = 10'd0;
+		SPR_addr2 = 10'd0;
+		SPR_wd0 = 0;
+		SPR_wd1 = 0;
+		SPR_wd2 = 0;
+		isTrapedIn = 0;
+		isUndefinedIn = 0;
+		isPrivelegedIn = 0;
+		scIn = 0;
+		Dev1_intrIn = 0;
+		Dev0_intrIn = 0;
+		ITLB_missIn = 0;
+		DTLB_missIn = 0;
+		isLoadIn = 0;
+		isStoreIn = 0;
+		isMoveSprIn = 0;
+		isFetchIn = 0;
+		SPR_wr0 = 0;
+		SPR_wr1 = 0;
+		SPR_wr2 = 0;
+		MSR_wr = 0;
+		MSR_wd = 0;
+		sprn = 0;
+		
 		entry = 6'b111111;
 		rst = 1;
 		#12;
@@ -123,10 +148,10 @@ module InterruptSystem_tb (
 		scIn = 0;
 		#8;
 		sprn = `SPRN_IVPR;
-		isMoveSpr = 1;
+		isMoveSprIn = 1;
 		#10;
 		sprn = 0;
-		isMoveSpr = 0;
+		isMoveSprIn = 0;
 		#10;
 		
 		// check with storage exception & MSR_PR=1
@@ -143,9 +168,9 @@ module InterruptSystem_tb (
 		entry = 6'b110111;
 		#10;
 		entry = 6'b111111;
-		isFetch = 1;
+		isFetchIn = 1;
 		#10;
-		isFetch = 0;
+		isFetchIn = 0;
 		entry = 6'b111101;
 		#10;
 		
@@ -153,16 +178,16 @@ module InterruptSystem_tb (
 	
 	wire [0:31] SPR_rd0, SPR_rd1, SPR_rd2;
 	wire [`ExcepCode_WIDTH-1:0] excepCode;
-	wire DSI_req, ISI_req, ITLB_req, DTLB_req, DEV0_req, DEV1_req, progErr_re, SC_req;
+	wire DSI_req, ISI_req, ITLB_req, DTLB_req, DEV0_req, DEV1_req, progErr_req, SC_req;
 	wire [0:31] intrEntryAddr;
-	wire DSI_ack, ISI_ack, ITLB_ack, DTLB_ack, DEV0_ack, DEV1_ack, progErr_ack, SC_ack, CU_ack;
+	wire DSI_ack, ISI_ack, ITLB_ack, DTLB_ack, Dev0_ack, Dev1_ack, progErr_ack, SC_ack, CU_ack;
 	wire [2:0] progErrCode;
 	wire [0:31] MSR;
 	wire [3:0] entry_RW;
 	wire [1:0] entry_X;
 	wire isLoad, isStore, isFetch, isMoveSpr;
 	
-	assign {entry_RW, entryX} = entry;
+	assign {entry_RW, entry_X} = entry;
 	
 	InterruptSystem U_InterruptSystem (
 		.clk(clk), 
@@ -193,8 +218,8 @@ module InterruptSystem_tb (
 		.ISI_ack(ISI_ack), 
 		.ITLB_ack(ITLB_ack), 
 		.DTLB_ack(DTLB_ack),
-		.DEV0_ack(DEV0_ack), 
-		.DEV1_ack(DEV1_ack), 
+		.DEV0_ack(Dev0_ack), 
+		.DEV1_ack(Dev1_ack), 
 		.progErr_ack(progErr_ack), 
 		.SC_ack(SC_ack),
 		.ack(CU_ack), 
@@ -217,6 +242,8 @@ module InterruptSystem_tb (
 		.isStore(isStore),
 		.isFetchIn(isFetchIn),
 		.isFetch(isFetch),
+		.isMoveSprIn(isMoveSprIn),
+		.isMoveSpr(isMoveSpr),
 		.scIn(scIn), 
 		.sc(SC_req),
 		.excepCode(excepCode), 
@@ -235,7 +262,7 @@ module InterruptSystem_tb (
 	
 	toyDev1 U_toyDev1 (
 		.intrIn(Dev1_intrIn), 
-		.intr(Dev1_req),
+		.intr(DEV1_req),
 		.ack(Dev1_ack), 
 		.clk(clk), 
 		.rst(rst)
@@ -243,7 +270,7 @@ module InterruptSystem_tb (
 	
 	toyDev0 U_toyDev0 (
 		.intrIn(Dev0_intrIn), 
-		.intr(Dev0_req),
+		.intr(DEV0_req),
 		.ack(Dev0_ack), 
 		.clk(clk), 
 		.rst(rst)

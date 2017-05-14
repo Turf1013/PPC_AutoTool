@@ -27,13 +27,15 @@ module toyCU (
 	output isLoad, isStore;
 	input isFetchIn;
 	output isFetch;
+	input isMoveSprIn;
+	output isMoveSpr;
 	input [`ExcepCode_WIDTH-1:0] excepCode;
 	output ack;
 	input clk, rst;
 	input scIn;
 	output sc;
 
-	reg isTraped, isUndefined, isPriveledged;
+	reg isTraped, isUndefined, isPriveleged;
 	
 	always @(posedge clk) begin
 		if (rst) 
@@ -64,7 +66,7 @@ module toyCU (
 			sc <= scIn;
 	end // end always
 	
-	reg isLoad
+	reg isLoad;
 	always @(posedge clk) begin
 		if (rst)
 			isLoad <= 0;
@@ -80,7 +82,7 @@ module toyCU (
 			isStore <= isStoreIn;
 	end // end always
 	
-	reg isFetch
+	reg isFetch;
 	always @(posedge clk) begin
 		if (rst)
 			isFetch <= 0;
@@ -100,6 +102,7 @@ module toyCU (
 	
 	assign req = (excepCode != `ExcepCode_NONE);
 	
+	reg ack;
 	always @(posedge clk) begin
 		if (rst)
 			ack <= 0;

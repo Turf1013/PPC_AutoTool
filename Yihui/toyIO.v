@@ -40,7 +40,7 @@ module toyDev1 (
 	input ack;
 	input clk, rst;
 	
-	toyIO toyDev1 (
+	toyIO U_toyIO_1 (
 		.intrIn(intrIn),
 		.intr(intr),
 		.ack(ack),
@@ -60,7 +60,7 @@ module toyDev0 (
 	input ack;
 	input clk, rst;
 	
-	toyIO toyDev0 (
+	toyIO U_toyIO_0 (
 		.intrIn(intrIn),
 		.intr(intr),
 		.ack(ack),
