@@ -21,3 +21,4 @@
 `define SPRN_IVOR6	10'd406
 `define SPRN_IVOR8	10'd408
 `define SPRN_IVOR4	10'd404
+`define SPRN_IVOR5	10'd405

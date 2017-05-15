@@ -6,6 +6,7 @@
 `include "Interrupt_def.v"
 `include "MSR_def.v"
 `include "sprn_def.v"
+`include "zyx_global.v"
 
 module InterruptEncoder (
 	DSI_req, ISI_req, ITLB_req, DTLB_req,
@@ -91,11 +92,11 @@ module InterruptEncoder (
 		if (rst) begin
 			excepCode_r <= `ExcepCode_NONE;
 		end
-		else if (excepCode_r != `ExcepCode_NONE) begin
-			excepCode_r <= excepCode_r;
-		end
 		else if (ack) begin
 			excepCode_r <= `ExcepCode_NONE;
+		end
+		else if (excepCode_r != `ExcepCode_NONE) begin
+			excepCode_r <= excepCode_r;
 		end
 		else begin
 			excepCode_r <= excepCode_in;
@@ -133,27 +134,14 @@ module InterruptRegister (
 	input [`ExcepCode_WIDTH-1:0] excepCode;
 	output [0:31] intrEntryAddr;
 	
-	// Logic of interrupt Entry
-	reg [0:31] intrEntryAddr;
-	
-	always @(excepCode) begin
-		case(excepCode)
-			`ExcepCode_DSI: 	intrEntryAddr = {IVPR[0:15], IVOR[2][16:27], 4'd0};
-			`ExcepCode_ISI: 	intrEntryAddr = {IVPR[0:15], IVOR[3][16:27], 4'd0};
-			`ExcepCode_DMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[13][16:27], 4'd0};
-			`ExcepCode_IMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[14][16:27], 4'd0};
-			`ExcepCode_TRAP: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_PRIV: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_ILLE: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
-			`ExcepCode_SC:		intrEntryAddr = {IVPR[0:15], IVOR[8][16:27], 4'd0};
-			`ExcepCode_DEV0:	intrEntryAddr = {IVPR[0:15], IVOR[4][16:27], 4'd0};
-			`ExcepCode_DEV1:	intrEntryAddr = {IVPR[0:15], IVOR[5][16:27], 4'd0};
-			default:			intrEntryAddr = 32'hffff_ffff;
-		endcase
-	end // end always
-	
 	reg [0:31] SRR0, SRR1, ESR, DEAR, IVPR;
 	reg [0:31] IVOR[15:0];
+	
+	integer i;
+	initial begin
+		for (i=0; i<16; i=i+1)
+			IVOR[i] = 0;
+	end // end initial
 	
 	wire [9:0] IVOR_addr0, IVOR_addr1, IVOR_addr2;
 	assign IVOR_addr0 = addr0 - 10'd400;
@@ -162,46 +150,55 @@ module InterruptRegister (
 	
 	// Logic of write
 	always @(posedge clk) begin
-		if (wr0) begin
-			if (addr0>=10'd400 && addr0<=10'd415) begin
-				IVOR[IVOR_addr0[4:0]] <= wd0;
-			end
-			else begin
-				case(addr0)
-					`SPRN_SRR0: SRR0 <= wd0;
-					`SPRN_SRR1: SRR1 <= wd0;
-					// `SPRN_ESR: 	ESR  <= wd0;
-					`SPRN_DEAR: DEAR <= wd0;
-					`SPRN_IVPR: IVPR <= wd0;
-				endcase
-			end
+		if (rst) begin
+			SRR0 <= 0;
+			SRR1 <= 0;
+			ESR <= 0;
+			DEAR <= 0;
+			IVPR <= 32'hffff_0000;
 		end
-		if (wr1) begin
-			if (addr1>=10'd400 && addr1<=10'd415) begin
-				IVOR[IVOR_addr1[4:0]] <= wd1;
+		else begin
+			if (wr0) begin
+				if (addr0>=10'd400 && addr0<=10'd415) begin
+					IVOR[IVOR_addr0[4:0]] <= wd0;
+				end
+				else begin
+					case(addr0)
+						`SPRN_SRR0: SRR0 <= wd0;
+						`SPRN_SRR1: SRR1 <= wd0;
+						// `SPRN_ESR: 	ESR  <= wd0;
+						`SPRN_DEAR: DEAR <= wd0;
+						`SPRN_IVPR: IVPR <= wd0;
+					endcase
+				end
 			end
-			else begin
-				case(addr1)
-					`SPRN_SRR0: SRR0 <= wd1;
-					`SPRN_SRR1: SRR1 <= wd1;
-					// `SPRN_ESR: 	ESR  <= wd1;
-					`SPRN_DEAR: DEAR <= wd1;
-					`SPRN_IVPR: IVPR <= wd1;
-				endcase
+			if (wr1) begin
+				if (addr1>=10'd400 && addr1<=10'd415) begin
+					IVOR[IVOR_addr1[4:0]] <= wd1;
+				end
+				else begin
+					case(addr1)
+						`SPRN_SRR0: SRR0 <= wd1;
+						`SPRN_SRR1: SRR1 <= wd1;
+						// `SPRN_ESR: 	ESR  <= wd1;
+						`SPRN_DEAR: DEAR <= wd1;
+						`SPRN_IVPR: IVPR <= wd1;
+					endcase
+				end
 			end
-		end
-		if (wr2) begin
-			if (addr2>=10'd400 && addr2<=10'd415) begin
-				IVOR[IVOR_addr2[4:0]] <= wd2;
-			end
-			else begin
-				case(addr1)
-					`SPRN_SRR0: SRR0 <= wd2;
-					`SPRN_SRR1: SRR1 <= wd2;
-					// `SPRN_ESR: 	ESR  <= wd2;
-					`SPRN_DEAR: DEAR <= wd2;
-					`SPRN_IVPR: IVPR <= wd2;
-				endcase
+			if (wr2) begin
+				if (addr2>=10'd400 && addr2<=10'd415) begin
+					IVOR[IVOR_addr2[4:0]] <= wd2;
+				end
+				else begin
+					case(addr1)
+						`SPRN_SRR0: SRR0 <= wd2;
+						`SPRN_SRR1: SRR1 <= wd2;
+						// `SPRN_ESR: 	ESR  <= wd2;
+						`SPRN_DEAR: DEAR <= wd2;
+						`SPRN_IVPR: IVPR <= wd2;
+					endcase
+				end
 			end
 		end
 	end // end always
@@ -288,6 +285,43 @@ module InterruptRegister (
 	end // end always
 	
 	assign rd2 = (wr2) ? wd2 : rd2_r;
+	
+	
+	// Logic of interrupt Entry
+	reg [0:31] intrEntryAddr;
+	
+	always @(excepCode) begin
+		case(excepCode)
+			`ifdef ZYX_DEBUG
+			
+			`ExcepCode_DSI: 	intrEntryAddr = {IVPR[0:15], IVOR[2][16:31]};
+			`ExcepCode_ISI: 	intrEntryAddr = {IVPR[0:15], IVOR[3][16:31]};
+			`ExcepCode_DMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[13][16:31]};
+			`ExcepCode_IMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[14][16:31]};
+			`ExcepCode_TRAP: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:31]};
+			`ExcepCode_PRIV: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:31]};
+			`ExcepCode_ILLE: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:31]};
+			`ExcepCode_SC:		intrEntryAddr = {IVPR[0:15], IVOR[8][16:31]};
+			`ExcepCode_DEV0:	intrEntryAddr = {IVPR[0:15], IVOR[4][16:31]};
+			`ExcepCode_DEV1:	intrEntryAddr = {IVPR[0:15], IVOR[5][16:31]};
+			
+			`else
+			
+			`ExcepCode_DSI: 	intrEntryAddr = {IVPR[0:15], IVOR[2][16:27], 4'd0};
+			`ExcepCode_ISI: 	intrEntryAddr = {IVPR[0:15], IVOR[3][16:27], 4'd0};
+			`ExcepCode_DMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[13][16:27], 4'd0};
+			`ExcepCode_IMISS: 	intrEntryAddr = {IVPR[0:15], IVOR[14][16:27], 4'd0};
+			`ExcepCode_TRAP: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_PRIV: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_ILLE: 	intrEntryAddr = {IVPR[0:15], IVOR[6][16:27], 4'd0};
+			`ExcepCode_SC:		intrEntryAddr = {IVPR[0:15], IVOR[8][16:27], 4'd0};
+			`ExcepCode_DEV0:	intrEntryAddr = {IVPR[0:15], IVOR[4][16:27], 4'd0};
+			`ExcepCode_DEV1:	intrEntryAddr = {IVPR[0:15], IVOR[5][16:27], 4'd0};
+			
+			`endif
+			default:			intrEntryAddr = 32'hffff_ffff;
+		endcase
+	end // end always
 
 endmodule
 

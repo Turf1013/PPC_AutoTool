@@ -90,12 +90,15 @@ module InterruptSystem_tb (
 		SPR_wd2 = 8;
 		#10;
 		SPR_wr0 = 1;
-		SPR_wr1 = 0;
+		SPR_wr1 = 1;
 		SPR_wr2 = 0;
 		SPR_addr0 = `SPRN_IVOR4;
+		SPR_addr1 = `SPRN_IVOR5;
 		SPR_wd0 = 4;
+		SPR_wd1 = 5;
 		#10;
 		SPR_wr0 = 0;
+		SPR_wr1 = 0;
 		SPR_addr0 = `SPRN_IVOR2;
 		SPR_addr1 = `SPRN_IVOR3;
 		SPR_addr2 = `SPRN_IVOR13;
@@ -115,44 +118,53 @@ module InterruptSystem_tb (
 		#10;
 		Dev0_intrIn = 0;
 		#5;
+		#40;
 		Dev1_intrIn = 1;
 		#12;
 		Dev1_intrIn = 0;
 		#8;
+		#40;
 		
 		// check with TLB Miss
 		ITLB_missIn = 1;
 		#10;
 		ITLB_missIn = 0;
 		#10;
+		#40;
 		DTLB_missIn = 1;
 		#12;
 		DTLB_missIn = 0;
 		#8;
+		#40;
 		
 		// check with Error Exception & SystemCall
 		isTrapedIn = 1;
 		#10;
 		isTrapedIn = 0;
 		#10;
+		#40;
 		isUndefinedIn = 1;
 		#12;
 		isUndefinedIn = 0;
 		#8;
+		#40;
 		isPrivelegedIn = 1;
 		#10;
 		isPrivelegedIn = 0;
 		#10;
+		#40;
 		scIn = 1;
 		#12;
 		scIn = 0;
 		#8;
+		#40;
 		sprn = `SPRN_IVPR;
 		isMoveSprIn = 1;
 		#10;
 		sprn = 0;
 		isMoveSprIn = 0;
 		#10;
+		#40;
 		
 		// check with storage exception & MSR_PR=1
 		entry = 6'b111111;
@@ -161,18 +173,21 @@ module InterruptSystem_tb (
 		isLoadIn = 0;
 		entry = 6'b011111;
 		#10;
+		#40;
 		entry = 6'b111111;
 		isStoreIn = 1;
 		#10;
 		isStoreIn = 0;
 		entry = 6'b110111;
 		#10;
+		#40;
 		entry = 6'b111111;
 		isFetchIn = 1;
 		#10;
 		isFetchIn = 0;
 		entry = 6'b111101;
 		#10;
+		#40;
 		
 	end // end initial
 	

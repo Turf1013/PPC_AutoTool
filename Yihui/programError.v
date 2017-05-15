@@ -76,88 +76,88 @@ module judgeSprn (
 	output isPriveleged;
 	
 	reg isExisted;
-	reg isPriveledged;
+	reg isPriveleged;
 	
 	always @(sprn) begin
 		case (sprn)
 			`SPRN_XER: begin
 				isExisted = 1;
-				isPriveledged = 0;
+				isPriveleged = 0;
 			end
 			
 			`SPRN_CTR: begin
 				isExisted = 1;
-				isPriveledged = 0;
+				isPriveleged = 0;
 			end
 			
 			`SPRN_LR: begin
 				isExisted = 1;
-				isPriveledged = 0;
+				isPriveleged = 0;
 			end
 			
 			`SPRN_IVPR: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_SRR0: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_SRR1: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_ESR: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_DEAR: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR2: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR3: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR13: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR14: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR6: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR8: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			`SPRN_IVOR4: begin
 				isExisted = 1;
-				isPriveledged = 1;
+				isPriveleged = 1;
 			end
 			
 			default: begin
 				isExisted = 0;
-				isPriveledged = 0;
+				isPriveleged = 0;
 			end
 
 		endcase
