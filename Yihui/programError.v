@@ -27,22 +27,23 @@ module programError (
 	
 	assign MSR_PR = MSR[`MSR_PR];
 	
-	wire sprn_isExisted, sprn_isPriveleged;
-	judgeSprn U_judgeSprn(
-		.sprn(sprn),
-		.isPriveleged(sprn_isPriveleged),
-		.isExisted(sprn_isExisted)
+	wire sprn_illegalError, sprn_privelegeError;
+	
+	oneSprError U_oneSprError (
+		.sprn(sprn), 
+		.MSR_PR(MSR_PR),
+		.isMoveSpr(isMoveSpr),
+		.sprn_illegalError(sprn_illegalError), 
+		.sprn_privelegeError(sprn_privelegeError)
 	);
 	
 	wire illegalError;
 	
-	assign illegalError = (isUndefined) || 
-						  (MSR_PR && isMoveSpr && ~sprn_isExisted);
+	assign illegalError = isUndefined || sprn_illegalError;
 	
 	wire privelegeError;
 	
-	assign privelegeError = (MSR_PR && isPriveleged) ||
-							(MSR_PR && isMoveSpr && sprn_isPriveleged);
+	assign privelegeError = (MSR_PR && isPriveleged) || sprn_privelegeError;
 	
 	wire req;
 	assign req = illegalError | privelegeError | isTraped;
@@ -64,6 +65,29 @@ module programError (
 	assign progErr = progErr_r;
 	
 	assign progErrCode = {illegalError, privelegeError, isTraped};
+
+endmodule
+
+module oneSprError (
+	sprn, MSR_PR, isMoveSpr,
+	sprn_illegalError, sprn_privelegeError
+);
+
+	input [9:0] sprn;
+	input MSR_PR;
+	input isMoveSpr;
+	output sprn_illegalError;
+	output sprn_privelegeError;
+	
+	wire sprn_isExisted, sprn_isPriveleged;
+	judgeSprn U_judgeSprn(
+		.sprn(sprn),
+		.isPriveleged(sprn_isPriveleged),
+		.isExisted(sprn_isExisted)
+	);
+	
+	assign sprn_illegalError = (MSR_PR && isMoveSpr && ~sprn_isExisted);
+	assign sprn_privelegeError = (MSR_PR && isMoveSpr && sprn_isPriveleged);
 
 endmodule
 
