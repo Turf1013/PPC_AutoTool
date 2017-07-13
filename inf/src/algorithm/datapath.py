@@ -335,6 +335,7 @@ class Datapath(object):
 				varName = RP.SrcToVar(src=src, stg=stgName)
 				mod = self.modMap.find(rtl.desMod)
 				logging.debug("[%s] link %s to %s\n" % (mod.name, varName, rtl.desPort))
+				# print mod, rtl.desPort, varName
 				mod.addLink(rtl.desPort, varName)
 				width = mod.find(rtl.desPort).width
 				
@@ -786,7 +787,7 @@ class Datapath(object):
 		PrWd = 0
 		gpr = self.modMap.find("GPR")
 		if gpr:
-			PrWd = gpr.getLink("wd")
+			PrWd = gpr.getLink("wd0")
 			if not PrWd:
 				PrWd = 0
 		line = "assign %s = %s;\n" % (CFD.PRWD, PrWd)

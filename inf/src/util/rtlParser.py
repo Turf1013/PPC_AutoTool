@@ -17,6 +17,8 @@ class RtlParser:
 	
 	@classmethod
 	def SrcToVar(cls, src, stg=""):
+		# if not src:
+			# print src, stg
 		def repl(matchobj):
 			val = matchobj.group(0)
 			if CFRP.re_rtlConst.match(val):

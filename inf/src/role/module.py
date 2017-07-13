@@ -70,7 +70,10 @@ class Module(object):
 	def addLink(self, desPort, srcPort):
 		# logging.debug("[%s] link %s to %s\n" % (self.name, srcPort, desPort))
 		if isinstance(desPort, str):
+			tmpStr = desPort
 			desPort = self.find(desPort)
+			if desPort is None:
+				print self.name, tmpStr
 		if desPort not in self.portList:
 			raise KeyError, "%s not in [%s]" % (desPort, self.name)
 		elif self.linkDict[desPort] is not None:

@@ -109,6 +109,7 @@ class FB(object):
 						# cond = "%s && %s && %s" % (binsn.condition(), finsn.condition(), finsn.ctrl)
 					# add clear
 				else:
+					# print binsn.addr
 					baddr = RP.SrcToVar(binsn.addr, stg=self.pipeLine.StgNameAt(binsn.stg))
 					faddr = RP.SrcToVar(finsn.addr, stg=self.pipeLine.StgNameAt(finsn.stg))
 					addrCond = "(%s == %s)" % (baddr, faddr)

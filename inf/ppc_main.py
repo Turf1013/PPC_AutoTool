@@ -54,7 +54,7 @@ if __name__ == "__main__":
 	insnFileName = "instruction_def.v"
 	regArgsList = [
 		# name	rn wn
-		["GPR", 3, 1],
+		["GPR", 3, 2],
 		["SPR", 2, 2],
 		["CR", 1, 1],
 		["MSR", 1, 1],
