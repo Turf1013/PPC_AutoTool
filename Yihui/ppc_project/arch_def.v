@@ -113,6 +113,13 @@
 `define ARCH_WIDTH		32
 `define ARCH_GE			1
 
+/**** About STAGE ****/
+`define TSTG_D			3'd0
+`define TSTG_E			3'd1
+`define TSTG_MB			3'd2
+`define TSTG_ME			3'd3
+`define TSTG_W			3'd4
+`define TSTG_MAX		3'd7
 
 /**** About CONST ****/
 `define CONST_NEG1		32'hffff_ffff

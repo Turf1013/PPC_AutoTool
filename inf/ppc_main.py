@@ -44,6 +44,20 @@ def testMCI(excelRtl, pipeLine, modMap, insnMap):
 	filename = "F:\Qt_prj\hdoj\data.in"
 	with open(filename, "w") as fout:
 		fout.write(lines)
+		
+		
+def printInsnExp(insnMap):
+	lines = []
+	for insnName in insnMap.iterkeys():
+		insn = insnMap.find(insnName)
+		wireLine = "wire insn_%s" % (insnName)
+		assignLine = "assign insn_%s = %s;" % (insnName, insn.condition())
+		line = "%-17s; %s\n" % (wireLine, assignLine)
+		lines.append(line)
+	filename = "F:\Qt_prj\hdoj\data.in"
+	with open(filename, "w") as fout:
+		fout.writelines(lines)
+		
 	
 
 if __name__ == "__main__":
@@ -150,3 +164,4 @@ if __name__ == "__main__":
 	if CFPM.compressEna:
 		compress(desWorkDirectory, "control.v")
 	
+	printInsnExp(insnMap)

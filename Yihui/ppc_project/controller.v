@@ -508,4 +508,262 @@ module controller (
 	/*********   Logic of PCWr   *********/
 	assign PCWr = 1'b1;
 	
+	
+	
+	/*********   Logic of instruction flag   *********/
+	wire insn_ANDIS_ ; assign insn_ANDIS_ = ( Instr_D`OPCD == `ANDIS__OPCD );
+	wire insn_BC     ; assign insn_BC = ( Instr_D`OPCD == `BC_OPCD );
+	wire insn_LWZUX  ; assign insn_LWZUX = ( Instr_D`OPCD == `LWZUX_OPCD && Instr_D`XXO == `LWZUX_XXO );
+	wire insn_XORI   ; assign insn_XORI = ( Instr_D`OPCD == `XORI_OPCD );
+	wire insn_LWARX  ; assign insn_LWARX = ( Instr_D`OPCD == `LWARX_OPCD && Instr_D`XXO == `LWARX_XXO );
+	wire insn_MTMSR  ; assign insn_MTMSR = ( Instr_D`OPCD == `MTMSR_OPCD && Instr_D`XXO == `MTMSR_XXO );
+	wire insn_ADDIC_ ; assign insn_ADDIC_ = ( Instr_D`OPCD == `ADDIC__OPCD );
+	wire insn_LBZX   ; assign insn_LBZX = ( Instr_D`OPCD == `LBZX_OPCD && Instr_D`XXO == `LBZX_XXO );
+	wire insn_EXTSB  ; assign insn_EXTSB = ( Instr_D`OPCD == `EXTSB_OPCD && Instr_D`XXO == `EXTSB_XXO );
+	wire insn_LBZU   ; assign insn_LBZU = ( Instr_D`OPCD == `LBZU_OPCD );
+	wire insn_LBZ    ; assign insn_LBZ = ( Instr_D`OPCD == `LBZ_OPCD );
+	wire insn_EXTSH  ; assign insn_EXTSH = ( Instr_D`OPCD == `EXTSH_OPCD && Instr_D`XXO == `EXTSH_XXO );
+	wire insn_LHZ    ; assign insn_LHZ = ( Instr_D`OPCD == `LHZ_OPCD );
+	wire insn_STHUX  ; assign insn_STHUX = ( Instr_D`OPCD == `STHUX_OPCD && Instr_D`XXO == `STHUX_XXO );
+	wire insn_MULHW  ; assign insn_MULHW = ( Instr_D`OPCD == `MULHW_OPCD && Instr_D`XOXO == `MULHW_XOXO );
+	wire insn_LHA    ; assign insn_LHA = ( Instr_D`OPCD == `LHA_OPCD );
+	wire insn_STDUX  ; assign insn_STDUX = ( Instr_D`OPCD == `STDUX_OPCD && Instr_D`XXO == `STDUX_XXO );
+	wire insn_EQV    ; assign insn_EQV = ( Instr_D`OPCD == `EQV_OPCD && Instr_D`XXO == `EQV_XXO );
+	wire insn_LHAX   ; assign insn_LHAX = ( Instr_D`OPCD == `LHAX_OPCD && Instr_D`XXO == `LHAX_XXO );
+	wire insn_LWBRX  ; assign insn_LWBRX = ( Instr_D`OPCD == `LWBRX_OPCD && Instr_D`XXO == `LWBRX_XXO );
+	wire insn_STDX   ; assign insn_STDX = ( Instr_D`OPCD == `STDX_OPCD && Instr_D`XXO == `STDX_XXO );
+	wire insn_MTCRF  ; assign insn_MTCRF = ( Instr_D`OPCD == `MTCRF_OPCD && Instr_D`XFXXO == `MTCRF_XFXXO );
+	wire insn_STDU   ; assign insn_STDU = ( Instr_D`OPCD == `STDU_OPCD );
+	wire insn_MULHWU ; assign insn_MULHWU = ( Instr_D`OPCD == `MULHWU_OPCD && Instr_D`XOXO == `MULHWU_XOXO );
+	wire insn_LHBRX  ; assign insn_LHBRX = ( Instr_D`OPCD == `LHBRX_OPCD && Instr_D`XXO == `LHBRX_XXO );
+	wire insn_LHAU   ; assign insn_LHAU = ( Instr_D`OPCD == `LHAU_OPCD );
+	wire insn_LHZUX  ; assign insn_LHZUX = ( Instr_D`OPCD == `LHZUX_OPCD && Instr_D`XXO == `LHZUX_XXO );
+	wire insn_ADDE   ; assign insn_ADDE = ( Instr_D`OPCD == `ADDE_OPCD && Instr_D`XOXO == `ADDE_XOXO );
+	wire insn_RLWINM ; assign insn_RLWINM = ( Instr_D`OPCD == `RLWINM_OPCD );
+	wire insn_CNTLZW ; assign insn_CNTLZW = ( Instr_D`OPCD == `CNTLZW_OPCD && Instr_D`XXO == `CNTLZW_XXO );
+	wire insn_MTSPR  ; assign insn_MTSPR = ( Instr_D`OPCD == `MTSPR_OPCD && Instr_D`XFXXO == `MTSPR_XFXXO );
+	wire insn_ADDI   ; assign insn_ADDI = ( Instr_D`OPCD == `ADDI_OPCD );
+	wire insn_STHBRX ; assign insn_STHBRX = ( Instr_D`OPCD == `STHBRX_OPCD && Instr_D`XXO == `STHBRX_XXO );
+	wire insn_SYNC   ; assign insn_SYNC = ( Instr_D`OPCD == `SYNC_OPCD && Instr_D`XXO == `SYNC_XXO );
+	wire insn_LWAX   ; assign insn_LWAX = ( Instr_D`OPCD == `LWAX_OPCD && Instr_D`XXO == `LWAX_XXO );
+	wire insn_MFSPR  ; assign insn_MFSPR = ( Instr_D`OPCD == `MFSPR_OPCD && Instr_D`XFXXO == `MFSPR_XFXXO );
+	wire insn_CMPI   ; assign insn_CMPI = ( Instr_D`OPCD == `CMPI_OPCD );
+	wire insn_SUBFIC ; assign insn_SUBFIC = ( Instr_D`OPCD == `SUBFIC_OPCD );
+	wire insn_CMPL   ; assign insn_CMPL = ( Instr_D`OPCD == `CMPL_OPCD && Instr_D`XXO == `CMPL_XXO );
+	wire insn_STWCX_ ; assign insn_STWCX_ = ( Instr_D`OPCD == `STWCX__OPCD && Instr_D`XXO == `STWCX__XXO );
+	wire insn_CMP    ; assign insn_CMP = ( Instr_D`OPCD == `CMP_OPCD && Instr_D`XXO == `CMP_XXO );
+	wire insn_SUBFZE ; assign insn_SUBFZE = ( Instr_D`OPCD == `SUBFZE_OPCD && Instr_D`XOXO == `SUBFZE_XOXO );
+	wire insn_LDU    ; assign insn_LDU = ( Instr_D`OPCD == `LDU_OPCD );
+	wire insn_ADDC   ; assign insn_ADDC = ( Instr_D`OPCD == `ADDC_OPCD && Instr_D`XOXO == `ADDC_XOXO );
+	wire insn_ADDME  ; assign insn_ADDME = ( Instr_D`OPCD == `ADDME_OPCD && Instr_D`XOXO == `ADDME_XOXO );
+	wire insn_LDX    ; assign insn_LDX = ( Instr_D`OPCD == `LDX_OPCD && Instr_D`XXO == `LDX_XXO );
+	wire insn_LHZX   ; assign insn_LHZX = ( Instr_D`OPCD == `LHZX_OPCD && Instr_D`XXO == `LHZX_XXO );
+	wire insn_SRAWI  ; assign insn_SRAWI = ( Instr_D`OPCD == `SRAWI_OPCD && Instr_D`XXO == `SRAWI_XXO );
+	wire insn_LHZU   ; assign insn_LHZU = ( Instr_D`OPCD == `LHZU_OPCD );
+	wire insn_SUBF   ; assign insn_SUBF = ( Instr_D`OPCD == `SUBF_OPCD && Instr_D`XOXO == `SUBF_XOXO );
+	wire insn_STBX   ; assign insn_STBX = ( Instr_D`OPCD == `STBX_OPCD && Instr_D`XXO == `STBX_XXO );
+	wire insn_RFI    ; assign insn_RFI = ( Instr_D`OPCD == `RFI_OPCD && Instr_D`XLXO == `RFI_XLXO );
+	wire insn_STBU   ; assign insn_STBU = ( Instr_D`OPCD == `STBU_OPCD );
+	wire insn_AND    ; assign insn_AND = ( Instr_D`OPCD == `AND_OPCD && Instr_D`XXO == `AND_XXO );
+	wire insn_OR     ; assign insn_OR = ( Instr_D`OPCD == `OR_OPCD && Instr_D`XXO == `OR_XXO );
+	wire insn_STWUX  ; assign insn_STWUX = ( Instr_D`OPCD == `STWUX_OPCD && Instr_D`XXO == `STWUX_XXO );
+	wire insn_LHAUX  ; assign insn_LHAUX = ( Instr_D`OPCD == `LHAUX_OPCD && Instr_D`XXO == `LHAUX_XXO );
+	wire insn_WRTEEI ; assign insn_WRTEEI = ( Instr_D`OPCD == `WRTEEI_OPCD && Instr_D`XXO == `WRTEEI_XXO );
+	wire insn_NOR    ; assign insn_NOR = ( Instr_D`OPCD == `NOR_OPCD && Instr_D`XXO == `NOR_XXO );
+	wire insn_LDUX   ; assign insn_LDUX = ( Instr_D`OPCD == `LDUX_OPCD && Instr_D`XXO == `LDUX_XXO );
+	wire insn_BCCTR  ; assign insn_BCCTR = ( Instr_D`OPCD == `BCCTR_OPCD && Instr_D`XLXO == `BCCTR_XLXO );
+	wire insn_NEG    ; assign insn_NEG = ( Instr_D`OPCD == `NEG_OPCD && Instr_D`XOXO == `NEG_XOXO );
+	wire insn_ORIS   ; assign insn_ORIS = ( Instr_D`OPCD == `ORIS_OPCD );
+	wire insn_CROR   ; assign insn_CROR = ( Instr_D`OPCD == `CROR_OPCD && Instr_D`XLXO == `CROR_XLXO );
+	wire insn_LWZX   ; assign insn_LWZX = ( Instr_D`OPCD == `LWZX_OPCD && Instr_D`XXO == `LWZX_XXO );
+	wire insn_LWZU   ; assign insn_LWZU = ( Instr_D`OPCD == `LWZU_OPCD );
+	wire insn_STWU   ; assign insn_STWU = ( Instr_D`OPCD == `STWU_OPCD );
+	wire insn_STWX   ; assign insn_STWX = ( Instr_D`OPCD == `STWX_OPCD && Instr_D`XXO == `STWX_XXO );
+	wire insn_ANDC   ; assign insn_ANDC = ( Instr_D`OPCD == `ANDC_OPCD && Instr_D`XXO == `ANDC_XXO );
+	wire insn_MCRF   ; assign insn_MCRF = ( Instr_D`OPCD == `MCRF_OPCD && Instr_D`XLXO == `MCRF_XLXO );
+	wire insn_ANDI_  ; assign insn_ANDI_ = ( Instr_D`OPCD == `ANDI__OPCD );
+	wire insn_ADDZE  ; assign insn_ADDZE = ( Instr_D`OPCD == `ADDZE_OPCD && Instr_D`XOXO == `ADDZE_XOXO );
+	wire insn_SUBFE  ; assign insn_SUBFE = ( Instr_D`OPCD == `SUBFE_OPCD && Instr_D`XOXO == `SUBFE_XOXO );
+	wire insn_XORIS  ; assign insn_XORIS = ( Instr_D`OPCD == `XORIS_OPCD );
+	wire insn_B      ; assign insn_B = ( Instr_D`OPCD == `B_OPCD );
+	wire insn_DIVWU  ; assign insn_DIVWU = ( Instr_D`OPCD == `DIVWU_OPCD && Instr_D`XOXO == `DIVWU_XOXO );
+	wire insn_MULLI  ; assign insn_MULLI = ( Instr_D`OPCD == `MULLI_OPCD );
+	wire insn_CRNAND ; assign insn_CRNAND = ( Instr_D`OPCD == `CRNAND_OPCD && Instr_D`XLXO == `CRNAND_XLXO );
+	wire insn_RLWIMI ; assign insn_RLWIMI = ( Instr_D`OPCD == `RLWIMI_OPCD );
+	wire insn_ADD    ; assign insn_ADD = ( Instr_D`OPCD == `ADD_OPCD && Instr_D`XOXO == `ADD_XOXO );
+	wire insn_STBUX  ; assign insn_STBUX = ( Instr_D`OPCD == `STBUX_OPCD && Instr_D`XXO == `STBUX_XXO );
+	wire insn_MULLW  ; assign insn_MULLW = ( Instr_D`OPCD == `MULLW_OPCD && Instr_D`XOXO == `MULLW_XOXO );
+	wire insn_SRW    ; assign insn_SRW = ( Instr_D`OPCD == `SRW_OPCD && Instr_D`XXO == `SRW_XXO );
+	wire insn_DIVW   ; assign insn_DIVW = ( Instr_D`OPCD == `DIVW_OPCD && Instr_D`XOXO == `DIVW_XOXO );
+	wire insn_SUBFC  ; assign insn_SUBFC = ( Instr_D`OPCD == `SUBFC_OPCD && Instr_D`XOXO == `SUBFC_XOXO );
+	wire insn_CRORC  ; assign insn_CRORC = ( Instr_D`OPCD == `CRORC_OPCD && Instr_D`XLXO == `CRORC_XLXO );
+	wire insn_CRAND  ; assign insn_CRAND = ( Instr_D`OPCD == `CRAND_OPCD && Instr_D`XLXO == `CRAND_XLXO );
+	wire insn_LMW    ; assign insn_LMW = ( Instr_D`OPCD == `LMW_OPCD );
+	wire insn_STHX   ; assign insn_STHX = ( Instr_D`OPCD == `STHX_OPCD && Instr_D`XXO == `STHX_XXO );
+	wire insn_ORI    ; assign insn_ORI = ( Instr_D`OPCD == `ORI_OPCD );
+	wire insn_SC     ; assign insn_SC = ( Instr_D`OPCD == `SC_OPCD );
+	wire insn_STHU   ; assign insn_STHU = ( Instr_D`OPCD == `STHU_OPCD );
+	wire insn_ORC    ; assign insn_ORC = ( Instr_D`OPCD == `ORC_OPCD && Instr_D`XXO == `ORC_XXO );
+	wire insn_CRANDC ; assign insn_CRANDC = ( Instr_D`OPCD == `CRANDC_OPCD && Instr_D`XLXO == `CRANDC_XLXO );
+	wire insn_LWZ    ; assign insn_LWZ = ( Instr_D`OPCD == `LWZ_OPCD );
+	wire insn_CMPLI  ; assign insn_CMPLI = ( Instr_D`OPCD == `CMPLI_OPCD );
+	wire insn_TWI    ; assign insn_TWI = ( Instr_D`OPCD == `TWI_OPCD );
+	wire insn_STMW   ; assign insn_STMW = ( Instr_D`OPCD == `STMW_OPCD );
+	wire insn_SUBFME ; assign insn_SUBFME = ( Instr_D`OPCD == `SUBFME_OPCD && Instr_D`XOXO == `SUBFME_XOXO );
+	wire insn_STWBRX ; assign insn_STWBRX = ( Instr_D`OPCD == `STWBRX_OPCD && Instr_D`XXO == `STWBRX_XXO );
+	wire insn_SRAW   ; assign insn_SRAW = ( Instr_D`OPCD == `SRAW_OPCD && Instr_D`XXO == `SRAW_XXO );
+	wire insn_LBZUX  ; assign insn_LBZUX = ( Instr_D`OPCD == `LBZUX_OPCD && Instr_D`XXO == `LBZUX_XXO );
+	wire insn_MFMSR  ; assign insn_MFMSR = ( Instr_D`OPCD == `MFMSR_OPCD && Instr_D`XXO == `MFMSR_XXO );
+	wire insn_BCLR   ; assign insn_BCLR = ( Instr_D`OPCD == `BCLR_OPCD && Instr_D`XLXO == `BCLR_XLXO );
+	wire insn_CRNOR  ; assign insn_CRNOR = ( Instr_D`OPCD == `CRNOR_OPCD && Instr_D`XLXO == `CRNOR_XLXO );
+	wire insn_LD     ; assign insn_LD = ( Instr_D`OPCD == `LD_OPCD );
+	wire insn_RLWNM  ; assign insn_RLWNM = ( Instr_D`OPCD == `RLWNM_OPCD );
+	wire insn_ADDIC  ; assign insn_ADDIC = ( Instr_D`OPCD == `ADDIC_OPCD );
+	wire insn_TW     ; assign insn_TW = ( Instr_D`OPCD == `TW_OPCD && Instr_D`XXO == `TW_XXO );
+	wire insn_NAND   ; assign insn_NAND = ( Instr_D`OPCD == `NAND_OPCD && Instr_D`XXO == `NAND_XXO );
+	wire insn_MFCR   ; assign insn_MFCR = ( Instr_D`OPCD == `MFCR_OPCD && Instr_D`XLXO == `MFCR_XLXO );
+	wire insn_ADDIS  ; assign insn_ADDIS = ( Instr_D`OPCD == `ADDIS_OPCD );
+	wire insn_LWAUX  ; assign insn_LWAUX = ( Instr_D`OPCD == `LWAUX_OPCD && Instr_D`XXO == `LWAUX_XXO );
+	wire insn_STD    ; assign insn_STD = ( Instr_D`OPCD == `STD_OPCD );
+	wire insn_XOR    ; assign insn_XOR = ( Instr_D`OPCD == `XOR_OPCD && Instr_D`XXO == `XOR_XXO );
+	wire insn_STB    ; assign insn_STB = ( Instr_D`OPCD == `STB_OPCD );
+	wire insn_SLW    ; assign insn_SLW = ( Instr_D`OPCD == `SLW_OPCD && Instr_D`XXO == `SLW_XXO );
+	wire insn_STH    ; assign insn_STH = ( Instr_D`OPCD == `STH_OPCD );
+	wire insn_STW    ; assign insn_STW = ( Instr_D`OPCD == `STW_OPCD );
+	wire insn_INTR   ; assign insn_INTR = ( Instr_D`OPCD == `INTR_OPCD );
+	wire insn_CRXOR  ; assign insn_CRXOR = ( Instr_D`OPCD == `CRXOR_OPCD && Instr_D`XLXO == `CRXOR_XLXO );
+	wire insn_CREQV  ; assign insn_CREQV = ( Instr_D`OPCD == `CREQV_OPCD && Instr_D`XLXO == `CREQV_XLXO );
+
+	/*********   Logic of CR_TUSE   *********/
+	wire [0:2] CR_TUSE;
+	
+	assign CR_TUSE = (
+						insn_BC || insn_BCCTR || insn_BCLR
+					 ) ? `TSTG_D :
+					 (
+						insn_CRAND || insn_CRANDC || insn_CREQV || insn_CRNAND || 
+						insn_CRNOR || insn_CROR || insn_CRORC || insn_CRXOR || 
+						insn_ADD || insn_ADDC || insn_ADDE || insn_ADDIC_ || 
+						insn_ADDME || insn_ADDZE || insn_AND || insn_ANDC || 
+						insn_ANDIS_ || insn_ANDI_ || insn_CMP || insn_CMPI || 
+						insn_CMPL || insn_CMPLI || insn_CNTLZW || insn_EQV || 
+						insn_EXTSB || insn_EXTSH || insn_NAND || insn_NEG || 
+						insn_NOR || insn_OR || insn_ORC || insn_RLWIMI || 
+						insn_RLWINM || insn_RLWNM || insn_SLW || insn_SRAW || 
+						insn_SRAWI || insn_SRW || insn_SUBF || insn_SUBFC || 
+						insn_SUBFE || insn_SUBFME || insn_SUBFZE || insn_XOR || 
+						insn_MULHW || insn_MULHWU || insn_MULLW || insn_DIVW || 
+						insn_DIVWU || insn_MCRF || insn_MFCR || insn_MTCRF
+					 ) ? `TSTG_E:
+					 `TSTG_MAX;
+					
+					
+					
+	/*********   Logic of MSR_TUSE   *********/
+	wire [0:2] MSR_TUSE;
+	
+	assign MSR_TUSE = (insn_MFMSR) ? `TSTG_E : `TSTG_MAX;
+					
+
+
+	/*********   Logic of GPR_TUSE0  *********/
+	wire [0:2] GPR_TUSE0;
+	
+	assign GPR_TUSE0 = (
+						insn_AND || insn_ANDC || insn_ANDIS_ || insn_ANDI_ || 
+						insn_CNTLZW || insn_EQV || insn_EXTSB || insn_EXTSH || 
+						insn_NAND || insn_NOR || insn_OR || insn_ORC || 
+						insn_ORI || insn_ORIS || insn_RLWIMI || insn_RLWINM || 
+						insn_RLWNM || insn_SLW || insn_SRAW || insn_SRAWI || 
+						insn_SRW || insn_XOR || insn_XORI || insn_XORIS || 
+						insn_MTCRF || insn_MTSPR || insn_MTMSR
+					   ) ? `TSTG_E :
+					   (
+						insn_STBX || insn_STHX || insn_STWX || insn_STHBRX || 
+						insn_STWBRX || insn_STBUX || insn_STHUX || insn_STWUX || 
+						insn_STH || insn_STW || insn_STBU || insn_STHU || 
+						insn_STWU || insn_STB
+					   ) ? `TSTG_ME :
+					   `TSTG_MAX;
+
+
+	/*********   Logic of GPR_TUSE1  *********/
+	wire [0:2] GPR_TUSE1;
+	
+	assign GPR_TUSE1 = (
+						insn_STB || insn_STBX || insn_STHX || insn_STWX || 
+						insn_STHBRX || insn_STWBRX || insn_LBZX || insn_LHZX || 
+						insn_LWZX || insn_LHAX || insn_LHBRX || insn_LWBRX || 
+						insn_LBZUX || insn_LHZUX || insn_LHAUX || insn_LWZUX || 
+						insn_STBUX || insn_STHUX || insn_STWUX || insn_ADD || 
+						insn_ADDC || insn_ADDE || insn_ADDME || insn_ADDZE || 
+						insn_CMP || insn_CMPL || insn_SUBF || insn_SUBFC || 
+						insn_SUBFE || insn_MULHW || insn_MULHWU || insn_MULLW || 
+						insn_DIVW || insn_DIVWU || insn_TW || insn_TLBILX || 
+						insn_TLBIVAX || insn_TLBSX || insn_DCBF || insn_DCBI || 
+						insn_DCBST || insn_DCBT || insn_DCBTST || insn_DCBZ || 
+						insn_ICBI || insn_STH || insn_STW || insn_STBU || 
+						insn_STHU || insn_STWU || insn_ADDI || insn_ADDIC || 
+						insn_ADDIC_ || insn_ADDIS || insn_CMPI || insn_CMPLI || 
+						insn_NEG || insn_SUBFIC || insn_SUBFME || insn_SUBFZE || 
+						insn_LBZ || insn_LHZ || insn_LWZ || insn_LHA || 
+						insn_MULLI || insn_LBZU || insn_LHZU || insn_LHAU || 
+						insn_LWZU || insn_TWI
+					   ) ? `TSTG_E :
+					   `TSTG_MAX;
+			
+			
+					   
+	/*********   Logic of GPR_TUSE2  *********/
+	wire [0:2] GPR_TUSE2;
+	
+	assign GPR_TUSE2 = (
+						insn_STBX || insn_STHX || insn_STWX || insn_STHBRX || 
+						insn_STWBRX || insn_LBZX || insn_LHZX || insn_LWZX || 
+						insn_LHAX || insn_LHBRX || insn_LWBRX || insn_LBZUX || 
+						insn_LHZUX || insn_LHAUX || insn_LWZUX || insn_STBUX || 
+						insn_STHUX || insn_STWUX || insn_ADD || insn_ADDC || 
+						insn_ADDE || insn_ADDME || insn_ADDZE || insn_CMP || 
+						insn_CMPL || insn_SUBF || insn_SUBFC || insn_SUBFE || 
+						insn_MULHW || insn_MULHWU || insn_MULLW || insn_DIVW || 
+						insn_DIVWU || insn_TW || insn_TLBILX || insn_TLBIVAX || 
+						insn_TLBSX || insn_DCBF || insn_DCBI || insn_DCBST || 
+						insn_DCBT || insn_DCBTST || insn_DCBZ || insn_ICBI || 
+						insn_AND || insn_ANDC || insn_ANDIS_ || insn_ANDI_ || 
+						insn_EQV || insn_EXTSB || insn_EXTSH || insn_NAND || 
+						insn_NOR || insn_OR || insn_ORC || insn_RLWNM || 
+						insn_SLW || insn_SRAW || insn_SRW || insn_XOR
+					   ) ? `TSTG_E :
+					   `TSTG_MAX;
+
+	
+
+	/*********   Logic of SPR_TUSE0  *********/
+	wire [0:2] SPR_TUSE0;
+	
+	assign SPR_TUSE0 = (
+						insn_BC || insn_BCCTR || insn_BCLR
+					   ) ? `TSTG_D :
+					   (
+						insn_ADDE || insn_ADDME || insn_ADDZE || insn_SUBFE || 
+						insn_SUBFME || insn_SUBFZE || insn_MFSPR   
+					   ) ? `TSTG_E :
+					   `TSTG_MAX;
+
+					   
+
+	/*********   Logic of SPR_TUSE1  *********/
+	wire [0:2] SPR_TUSE1;
+	
+	assign SPR_TUSE1 = (
+						insn_BCLR
+					   ) ? `TSTG_D :
+					   `TSTG_MAX;
+					   
+					   
+					   
+	/*********   Logic of CR_TNEW   *********/
+	
+	
+	
 endmodule
