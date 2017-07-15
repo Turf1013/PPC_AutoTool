@@ -21,7 +21,7 @@ module controller (
 	DMOut_ME_Op_ME, DMIn_BE_Op_ME, CR_wr_W, SPR_wr0_W,
 	GPR_wr1_W, GPR_wr0_W, SPR_wr1_W, MSR_wr_W,
 	valid_FE, valid_FB, valid_D, valid_E, valid_MB, valid_ME, valid_W,
-	PCWr
+	PCWr, stall
 );
 
 	input clk, rst_n;
@@ -56,6 +56,7 @@ module controller (
 	output [0:0] GPR_wr0_W;
 	output [0:0] MSR_wr_W;
 	output [0:0] PCWr;
+	output [0:0] stall;
 	
 	
 	reg valid_FE, valid_FB, valid_D, valid_E, valid_MB, valid_ME, valid_W;
@@ -633,7 +634,22 @@ module controller (
 	wire insn_INTR   ; assign insn_INTR = ( Instr_D`OPCD == `INTR_OPCD );
 	wire insn_CRXOR  ; assign insn_CRXOR = ( Instr_D`OPCD == `CRXOR_OPCD && Instr_D`XLXO == `CRXOR_XLXO );
 	wire insn_CREQV  ; assign insn_CREQV = ( Instr_D`OPCD == `CREQV_OPCD && Instr_D`XLXO == `CREQV_XLXO );
-
+	wire insn_TLBILX ; assign insn_TLBILX = ( Instr_D`OPCD == `TLBILX_OPCD && Instr_D`XXO == `TLBILX_XXO );
+	wire insn_TLBIVAX; assign insn_TLBIVAX = ( Instr_D`OPCD == `TLBIVAX_OPCD && Instr_D`XXO == `TLBIVAX_XXO );
+	wire insn_TLBRE  ; assign insn_TLBRE = ( Instr_D`OPCD == `TLBRE_OPCD && Instr_D`XXO == `TLBRE_XXO );
+	wire insn_TLBWE  ; assign insn_TLBWE = ( Instr_D`OPCD == `TLBWE_OPCD && Instr_D`XXO == `TLBWE_XXO );
+	wire insn_TLBSX  ; assign insn_TLBSX = ( Instr_D`OPCD == `TLBSX_OPCD && Instr_D`XXO == `TLBSX_XXO );
+	wire insn_TLBSYNC; assign insn_TLBSYNC = ( Instr_D`OPCD == `TLBSYNC_OPCD && Instr_D`XXO == `TLBSYNC_XXO );
+	wire insn_DCBF   ; assign insn_DCBF = ( Instr_D`OPCD == `DCBF_OPCD && Instr_D`XXO == `DCBF_XXO );
+	wire insn_DCBI   ; assign insn_DCBI = ( Instr_D`OPCD == `DCBI_OPCD && Instr_D`XXO == `DCBI_XXO );	
+	wire insn_DCBST  ; assign insn_DCBST = ( Instr_D`OPCD == `DCBST_OPCD && Instr_D`XXO == `DCBST_XXO );
+	wire insn_DCBT   ; assign insn_DCBT = ( Instr_D`OPCD == `DCBT_OPCD && Instr_D`XXO == `DCBT_XXO );	
+	wire insn_DCBTST ; assign insn_DCBTST = ( Instr_D`OPCD == `DCBTST_OPCD && Instr_D`XXO == `DCBTST_XXO );
+	wire insn_DCBZ   ; assign insn_DCBZ = ( Instr_D`OPCD == `DCBZ_OPCD && Instr_D`XXO == `DCBZ_XXO );	
+	wire insn_ICBI   ; assign insn_ICBI = ( Instr_D`OPCD == `ICBI_OPCD && Instr_D`XXO == `ICBI_XXO );
+	wire insn_ISYNC  ; assign insn_ISYNC = ( Instr_D`OPCD == `ISYNC_OPCD && Instr_D`XXO == `ISYNC_XXO );
+	
+	
 	/*********   Logic of CR_TUSE   *********/
 	wire [0:2] CR_TUSE;
 	
@@ -745,8 +761,7 @@ module controller (
 						insn_BC || insn_BCCTR || insn_BCLR
 					   ) ? `TSTG_D :
 					   (
-						insn_ADDE || insn_ADDME || insn_ADDZE || insn_SUBFE || 
-						insn_SUBFME || insn_SUBFZE || insn_MFSPR   
+						insn_MFSPR   
 					   ) ? `TSTG_E :
 					   `TSTG_MAX;
 
@@ -763,7 +778,251 @@ module controller (
 					   
 					   
 	/*********   Logic of CR_TNEW   *********/
+	wire [0:2] CR_TNEW_D;
+	reg  [0:2] CR_TNEW_E, CR_TNEW_MB;
+	
+	assign CR_TNEW_D = (
+						insn_CRAND || insn_CRANDC || insn_CREQV || insn_CRNAND || 
+						insn_CRNOR || insn_CROR || insn_CRORC || insn_CRXOR || 
+						insn_ADD || insn_ADDC || insn_ADDE || insn_ADDIC_ || 
+						insn_ADDME || insn_ADDZE || insn_AND || insn_ANDC || 
+						insn_ANDIS_ || insn_ANDI_ || insn_CMP || insn_CMPI || 
+						insn_CMPL || insn_CMPLI || insn_CNTLZW || insn_EQV || 
+						insn_EXTSB || insn_EXTSH || insn_NAND || insn_NEG || 
+						insn_NOR || insn_OR || insn_ORC || insn_RLWIMI || 
+						insn_RLWINM || insn_RLWNM || insn_SLW || insn_SRAW || 
+						insn_SRAWI || insn_SRW || insn_SUBF || insn_SUBFC || 
+						insn_SUBFE || insn_SUBFME || insn_SUBFZE || insn_XOR || 
+						insn_MULHW || insn_MULHWU || insn_MULLW || insn_DIVW || 
+						insn_DIVWU || insn_MCRF || insn_MTCRF					
+					   ) ? `TSTG_MB :
+					   `TSTG_MIN;
+					   
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			CR_TNEW_E <= `TSTG_MIN;
+			CR_TNEW_MB <= `TSTG_MIN;
+		end
+		else begin
+			CR_TNEW_E <= (CR_TNEW_D == 0) ? CR_TNEW_D : (CR_TNEW_D - 3'd1);
+			CR_TNEW_MB <= (CR_TNEW_E == 0) ? CR_TNEW_E : (CR_TNEW_E - 3'd1);
+		end
+	end // end always
 	
 	
+	
+	/*********   Logic of MSR_TNEW   *********/
+	wire [0:2] MSR_TNEW_D;
+	reg  [0:2] MSR_TNEW_E, MSR_TNEW_MB;
+	
+	assign MSR_TNEW_D = (insn_MTMSR) ? `TSTG_MB : `TSTG_MIN;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			MSR_TNEW_E <= `TSTG_MIN;
+			MSR_TNEW_MB <= `TSTG_MIN;
+		end
+		else begin
+			MSR_TNEW_E <= (MSR_TNEW_D == 0) ? MSR_TNEW_D : (MSR_TNEW_D - 3'd1);
+			MSR_TNEW_MB <= (MSR_TNEW_E == 0) ? MSR_TNEW_E : (MSR_TNEW_E - 3'd1);
+		end
+	end // end always
+	
+	
+	
+	/*********   Logic of SPR_TNEW0   *********/
+	wire [0:2] SPR_TNEW0_D;
+	reg  [0:2] SPR_TNEW0_E, SPR_TNEW0_MB;
+	
+	assign SPR_TNEW0_D = (
+							insn_B || insn_BC || insn_BCCTR || insn_BCLR
+						 ) ? `TSTG_E :
+						 (
+							insn_MTSPR
+						 ) ? `TSTG_MB:
+						 `TSTG_MIN;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			SPR_TNEW0_E <= `TSTG_MIN;
+			SPR_TNEW0_MB <= `TSTG_MIN;
+		end
+		else begin
+			SPR_TNEW0_E <= (SPR_TNEW0_D == 0) ? SPR_TNEW0_D : (SPR_TNEW0_D - 3'd1);
+			SPR_TNEW0_MB <= (SPR_TNEW0_E == 0) ? SPR_TNEW0_E : (SPR_TNEW0_E - 3'd1);
+		end
+	end // end always
+	
+	
+
+	/*********   Logic of SPR_TNEW1   *********/
+	wire [0:2] SPR_TNEW1_D;
+	reg  [0:2] SPR_TNEW1_E, SPR_TNEW1_MB;
+	
+	assign SPR_TNEW1_D = (insn_BC || insn_BCLR) ? `TSTG_E : `TSTG_MIN;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			SPR_TNEW1_E <= `TSTG_MIN;
+			SPR_TNEW1_MB <= `TSTG_MIN;
+		end
+		else begin
+			SPR_TNEW1_E <= (SPR_TNEW1_D == 0) ? SPR_TNEW1_D : (SPR_TNEW1_D - 3'd1);
+			SPR_TNEW1_MB <= (SPR_TNEW1_E == 0) ? SPR_TNEW1_E : (SPR_TNEW1_E - 3'd1);
+		end
+	end // end always
+
+
+	
+	/*********   Logic of GPR_TNEW0   *********/
+	wire [0:2] GPR_TNEW0_D;
+	reg  [0:2] GPR_TNEW0_E, GPR_TNEW0_MB, GPR_TNEW0_ME, GPR_TNEW0_W;
+	
+	assign GPR_TNEW0_D = (
+							insn_ADD || insn_ADDC || insn_ADDE || insn_ADDI || 
+							insn_ADDIC || insn_ADDIC_ || insn_ADDIS || insn_ADDME || 
+							insn_ADDZE || insn_NEG || insn_SUBF || insn_SUBFC || 
+							insn_SUBFE || insn_SUBFIC || insn_SUBFME || insn_SUBFZE || 
+							insn_MULHW || insn_MULHWU || insn_MULLI || insn_MULLW || 
+							insn_DIVW || insn_DIVWU || insn_MFCR || insn_MFSPR || 
+							insn_MFMSR 
+						 ) ? `TSTG_MB :
+						 (
+							insn_LBZU || insn_LBZUX || insn_LHZU || insn_LHZUX || 
+							insn_LHAU || insn_LHAUX || insn_LWZU || insn_LWZUX || 
+							insn_LBZ || insn_LBZX || insn_LHZ || insn_LHZX || 
+							insn_LWZ || insn_LWZX || insn_LHA || insn_LHAX || 
+							insn_LHBRX || insn_LWBRX						 
+						 ) ? `TSTG_W :
+						 `TSTG_MIN;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			GPR_TNEW0_E <= `TSTG_MIN;
+			GPR_TNEW0_MB <= `TSTG_MIN;
+			GPR_TNEW0_ME <= `TSTG_MIN;
+			GPR_TNEW0_W <= `TSTG_MIN;
+		end
+		else begin
+			GPR_TNEW0_E <= (GPR_TNEW0_D == 0) ? GPR_TNEW0_D : (GPR_TNEW0_D - 3'd1);
+			GPR_TNEW0_MB <= (GPR_TNEW0_E == 0) ? GPR_TNEW0_E : (GPR_TNEW0_E - 3'd1);
+			GPR_TNEW0_ME <= (GPR_TNEW0_MB == 0) ? GPR_TNEW0_MB : (GPR_TNEW0_MB - 3'd1);
+			GPR_TNEW0_W <= (GPR_TNEW0_ME == 0) ? GPR_TNEW0_ME : (GPR_TNEW0_ME - 3'd1);
+		end
+	end // end always	
+
+
+
+	/*********   Logic of GPR_TNEW1   *********/
+	wire [0:2] GPR_TNEW1_D;
+	reg  [0:2] GPR_TNEW1_E, GPR_TNEW1_MB;
+	
+	assign GPR_TNEW1_D = (
+							insn_AND || insn_ANDC || insn_ANDIS_ || insn_ANDI_ || 
+							insn_CNTLZW || insn_EQV || insn_EXTSB || insn_EXTSH || 
+							insn_NAND || insn_NOR || insn_OR || insn_ORC || 
+							insn_ORI || insn_ORIS || insn_RLWIMI || insn_RLWINM || 
+							insn_RLWNM || insn_SLW || insn_SRAW || insn_SRAWI || 
+							insn_SRW || insn_XOR || insn_XORI || insn_XORIS || 
+							insn_STBU || insn_STBUX || insn_STHU || insn_STHUX || 
+							insn_STWU || insn_STWUX || insn_LBZU || insn_LBZUX || 
+							insn_LHZU || insn_LHZUX || insn_LHAU || insn_LHAUX || 
+							insn_LWZU || insn_LWZUX
+						 ) ? `TSTG_MB:
+						 `TSTG_MIN;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			GPR_TNEW1_E <= `TSTG_MIN;
+			GPR_TNEW1_MB <= `TSTG_MIN;
+		end
+		else begin
+			GPR_TNEW1_E <= (GPR_TNEW1_D == 0) ?　GPR_TNEW1_D : (GPR_TNEW1_D - 3'd1);
+			GPR_TNEW1_MB <= (GPR_TNEW1_E == 0) ? GPR_TNEW1_E : (GPR_TNEW1_E - 3'd1);
+		end
+	end // end always	
+	
+	
+	/*********   Logic of stall   *********/
+	wire stall_CR;
+	
+	assign stall_CR = validInsn_D && ((CR_TNEW_D > CR_TUSE) || (CR_TNEW_E > CR_TUSE) || (CR_TNEW_MB > CR_TUSE)) ;
+	
+	wire stall_MSR;
+	
+	assign stall_MSR = validInsn_D && ((MSR_TNEW_D > MSR_TUSE) || (MSR_TNEW_E > MSR_TUSE) || (MSR_TNEW_MB > MSR_TUSE));
+	
+	
+	reg stall_GPR;
+	
+	always @(*) begin
+		if (~validInsn_D) begin
+			stall_GPR = 1'b0;
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW0_E!=`TSTG_MIN && Instr_D[6:10]==Instr_E[6:10]) begin
+			stall_GPR = (GPR_TNEW0_E > GPR_TUSE0_D);
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW1_E!=`TSTG_MIN && Instr_D[6:10]==Instr_E[11:15]) begin
+			stall_GPR = (GPR_TNEW1_E > GPR_TUSE0_D);
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW0_MB!=`TSTG_MIN && Instr_D[6:10]==Instr_MB[6:10]) begin
+			stall_GPR = (GPR_TNEW0_MB > GPR_TUSE0_D);
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW1_MB!=`TSTG_MIN && Instr_D[6:10]==Instr_MB[11:15]) begin
+			stall_GPR = (GPR_TNEW1_MB > GPR_TUSE0_D);
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW0_ME!=`TSTG_MIN && Instr_D[6:10]==Instr_ME[6:10]) begin
+			stall_GPR = (GPR_TNEW0_ME > GPR_TUSE0_D);
+		end
+		else if (GPR_TUSE0_D!=`TSTG_MAX && GPR_TNEW0_W!=`TSTG_MIN && Instr_D[6:10]==Instr_W[6:10]) begin
+			stall_GPR = (GPR_TNEW0_W > GPR_TUSE0_D);
+		end
+		else begin
+			stall_GPR = 1'b0;
+		end
+	end // end always
+	
+	
+	wire [0:9] spr_raddr0_D, spr_waddr0_E, spr_waddr0_MB;
+	wire [0:9] spr_raddr1_D, spr_waddr1_E, spr_waddr1_MB;
+	
+	assign spr_raddr0_D = (insn_BC) ? `CTR_ADDR : {Instr_D[16:20], Instr_D[11:15]};
+	assign spr_waddr0_E = (Instr_E`OPCD == `BCLR_OPCD && Instr_E`XLXO == `BCLR_XLXO) ? `LR_ADDR : {Instr_E[16:20], Instr_E[11:15]};
+	assign spr_waddr0_MB = (Instr_MB`OPCD == `BCLR_OPCD && Instr_MB`XLXO == `BCLR_XLXO) ? `LR_ADDR : {Instr_MB[16:20], Instr_MB[11:15]};
+	assign spr_raddr1_D = `LR_ADDR;
+	assign spr_waddr1_E = `CTR_ADDR;
+	assign spr_waddr1_MB = `CTR_ADDR;
+	
+	reg stall_SPR;
+	
+		
+	always @(*) begin
+		if (~validInsn_D) begin
+			stall_SPR = 1'b0;
+		end
+		else if (SPR_TUSE0_D!=`TSTG_MAX && SPR_TNEW0_E!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_E) begin
+			stall_SPR = (SPR_TNEW0_E > SPR_TUSE0_D);
+		end
+		else if (SPR_TUSE0_D!=`TSTG_MAX && SPR_TNEW1_E!=`TSTG_MIN && spr_raddr0_D==spr_waddr1_E) begin
+			stall_SPR = (SPR_TNEW1_E > SPR_TUSE0_D);
+		end
+		else if (SPR_TUSE1_D!=`TSTG_MAX && SPR_TNEW0_E!=`TSTG_MIN && spr_raddr1_D==spr_waddr0_E) begin
+			stall_SPR = (SPR_TNEW0_E > SPR_TUSE1_D);
+		end
+		else if (SPR_TUSE1_D!=`TSTG_MAX && SPR_TNEW1_E!=`TSTG_MIN && spr_raddr1_D==spr_waddr1_E) begin
+			stall_SPR = (SPR_TNEW1_E > SPR_TUSE1_D);
+		end
+		else if (SPR_TUSE0_D!=`TSTG_MAX && SPR_TNEW0_MB!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_E) begin
+			stall_SPR = (SPR_TNEW0_E > SPR_TUSE0_D);
+		end
+		else if (SPR_TUSE1_D!=`TSTG_MAX && SPR_TNEW0_MB!=`TSTG_MIN && spr_raddr1_D==spr_waddr0_MB) begin
+			stall_SPR = (SPR_TNEW0_MB > SPR_TUSE1_D);
+		end
+		else begin
+			stall_SPR = 1'b0;
+		end
+	end // end always
+	
+	assign stall = stall_CR | stall_MSR | stall_SPR || stall_GPR;
 	
 endmodule

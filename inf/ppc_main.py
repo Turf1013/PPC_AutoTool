@@ -164,4 +164,4 @@ if __name__ == "__main__":
 	if CFPM.compressEna:
 		compress(desWorkDirectory, "control.v")
 	
-	printInsnExp(insnMap)
+	# printInsnExp(insnMap)

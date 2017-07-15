@@ -120,6 +120,7 @@
 `define TSTG_ME			3'd3
 `define TSTG_W			3'd4
 `define TSTG_MAX		3'd7
+`define TSTG_MIN		3'd0
 
 /**** About CONST ****/
 `define CONST_NEG1		32'hffff_ffff
