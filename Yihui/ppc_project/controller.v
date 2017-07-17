@@ -1209,31 +1209,49 @@ module controller (
 	
 	
 	/*********   Logic of CR_rd_D_Bmux_sel_D   *********/
+	reg [0:2] CR_TLEFT_D;
 	reg [0:1] CR_rd_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (CR_TUSE==`TSTG_MAX)) begin
 			CR_rd_D_Bmux_sel_D = 2'd0;
+			CR_TLEFT_D = 3'd0;
 		end
 		
 		/*** Logic of CR_rd_E_Bmux_sel_E ***/
 		else if (CR_TNEW_E!=`TSTG_MIN && CR_TNEW_E<=CR_TUSE) begin
 			CR_rd_D_Bmux_sel_D = 2'd1;
+			CR_TLEFT_D = CR_TNEW_E;
 		end
 		
 		/*** Logic of CR_rd_D_Bmux_sel_D ***/
 		else if (CR_TNEW_MB!=`TSTG_MIN && CR_TNEW_MB<=CR_TUSE) begin
 			CR_rd_D_Bmux_sel_D = 2'd2;
+			CR_TLEFT_D = CR_TNEW_MB;
 		end
 		else if (CR_TNEW_ME!=`TSTG_MIN && CR_TNEW_ME<=CR_TUSE) begin
 			CR_rd_D_Bmux_sel_D = 2'd3;
+			CR_TLEFT_D = CR_TNEW_ME;
 		end
 		else if (CR_TNEW_W!=`TSTG_MIN && CR_TNEW_W<=CR_TUSE) begin
 			CR_rd_D_Bmux_sel_D = 2'd1;
+			CR_TLEFT_D = CR_TNEW_W;
 		end
 		
 		else begin
 			CR_rd_D_Bmux_sel_D = 2'd0;
+			CR_TLEFT_D = 3'd0;
+		end
+	end // end always
+	
+	reg [0:2] CR_TLEFT_E;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			CR_TLEFT_E <= 3'd0;
+		end
+		else begin
+			CR_TLEFT_E <= (CR_TLEFT_D==0) ? CR_TLEFT_D : (CR_TLEFT_D-3'd1);
 		end
 	end // end always
 	
@@ -1248,73 +1266,91 @@ module controller (
 		end
 	end // end always
 	
-	assign CR_rd_E_Bmux_sel_E = (CR_TNEW_E==`TSTG_MIN) ? 2'd0 : CR_rd_E_Bmux_sel_E_r;
+	assign CR_rd_E_Bmux_sel_E = (CR_TLEFT_D==0) ? 2'd0 : CR_rd_E_Bmux_sel_E_r;
 	
 	
 	
 	/*********   Logic of MSR_rd_D_Bmux_sel_D   *********/
+	// reg [0:2] MSR_TLEFT_D;
 	reg [0:2] MSR_rd_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (CR_TUSE==`TSTG_MAX)) begin
 			MSR_rd_D_Bmux_sel_D = 3'd0;
+			// MSR_TLEFT_D = 3'd0;
 		end
 		else if (CR_TNEW_E!=`TSTG_MIN && CR_TNEW_E<=CR_TUSE) begin
 			MSR_rd_D_Bmux_sel_D = 3'd3;
+			// MSR_TLEFT_D = CR_TNEW_E;
 		end
 		else if (CR_TNEW_MB!=`TSTG_MIN && CR_TNEW_MB<=CR_TUSE) begin
 			MSR_rd_D_Bmux_sel_D = 3'd2;
+			// MSR_TLEFT_D = CR_TNEW_MB;
 		end
 		else if (CR_TNEW_ME!=`TSTG_MIN && CR_TNEW_ME<=CR_TUSE) begin
 			MSR_rd_D_Bmux_sel_D = 3'd1;
+			// MSR_TLEFT_D = CR_TNEW_ME;
 		end
 		else if (CR_TNEW_W!=`TSTG_MIN && CR_TNEW_W<=CR_TUSE) begin
 			MSR_rd_D_Bmux_sel_D = 3'd4;
+			// MSR_TLEFT_D = CR_TNEW_W;
 		end
 		else begin
 			MSR_rd_D_Bmux_sel_D = 3'd0;
+			// MSR_TLEFT_D = 3'd0;
 		end
 	end // end always
 
 	
 	/*********   Logic of SPR_rd0_D_Bmux_sel_D   *********/
+	// reg [0:2] SPR_TLEFT0_D;
 	reg [0:3] SPR_rd0_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (SPR_TUSE0==`TSTG_MAX)) begin
 			SPR_rd0_D_Bmux_sel_D = 4'd0;
+			// SPR_TLEFT0_D = 3'd0;
 		end
 		
 		else if (SPR_TNEW0_E!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_E && SPR_TNEW0_E<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = (Instr_E`OPCD == `MTSPR_OPCD && Instr_E`XFXXO == `MTSPR_XFXXO) ? 4'd3 : 4'd10;
+			// SPR_TLEFT0_D = SPR_TNEW0_E;
 		end
 		else if (SPR_TNEW1_E!=`TSTG_MIN && spr_raddr0_D==spr_waddr1_E && SPR_TNEW1_E<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = 4'd7;
+			// SPR_TLEFT0_D = SPR_TNEW1_E;
 		end
 		
 		else if (SPR_TNEW0_MB!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_MB && SPR_TNEW0_MB<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = (Instr_MB`OPCD == `MTSPR_OPCD && Instr_MB`XFXXO == `MTSPR_XFXXO) ? 4'd9 : 4'd2;
+			// SPR_TLEFT0_D = SPR_TNEW0_MB;
 		end
 		else if (SPR_TNEW1_MB!=`TSTG_MIN && spr_raddr0_D==spr_waddr1_MB && SPR_TNEW1_MB<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = 4'd5;
+			// SPR_TLEFT0_D = SPR_TNEW1_MB;
 		end
 		
 		else if (SPR_TNEW0_ME!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_ME && SPR_TNEW0_ME<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = (Instr_ME`OPCD == `MTSPR_OPCD && Instr_ME`XFXXO == `MTSPR_XFXXO) ? 4'd8 : 4'd1;
+			// SPR_TLEFT0_D = SPR_TNEW0_ME;
 		end
 		else if (SPR_TNEW1_ME!=`TSTG_MIN && spr_raddr0_D==spr_waddr1_ME && SPR_TNEW1_ME<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = 4'd6;
+			// SPR_TLEFT0_D = SPR_TNEW1_ME;
 		end
 		
 		else if (SPR_TNEW0_W!=`TSTG_MIN && spr_raddr0_D==spr_waddr0_W && SPR_TNEW0_W<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = (Instr_W`OPCD == `MTSPR_OPCD && Instr_W`XFXXO == `MTSPR_XFXXO) ? 4'd4 : 4'd12;
+			// SPR_TLEFT0_D = SPR_TNEW0_W;
 		end
 		else if (SPR_TNEW1_W!=`TSTG_MIN && spr_raddr0_D==spr_waddr1_W && SPR_TNEW1_W<=SPR_TUSE0) begin
 			SPR_rd0_D_Bmux_sel_D = 4'd11;
+			// SPR_TLEFT0_D = SPR_TNEW1_W;
 		end
 		
 		else begin
 			SPR_rd0_D_Bmux_sel_D = 4'd0;
+			// SPR_TLEFT0_D = 3'd0;
 		end
 		
 	end // end always
@@ -1367,11 +1403,13 @@ module controller (
 	
 	
 	/*********   Logic of GPR_rd0_D_Bmux_sel_D   *********/
+	reg [0:2] GPR_TLEFT0_D;
 	reg [0:4] GPR_rd0_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (GPR_TUSE0==`TSTG_MAX)) begin
 			GPR_rd0_D_Bmux_sel_D = 4'd0;
+			GPR_TLEFT0_D = 3'd0;
 		end
 		
 		/*** for bypassMux GPR_rd0_D_Bmux ***/
@@ -1382,10 +1420,12 @@ module controller (
 								   (insnCluster_MDU_E) ? 5'd3 :
 								   (insnCluster_CR_MOVE_E) ? 5'd4 :
 								   5'd2;
+			GPR_TLEFT0_D = GPR_TNEW0_E;
 		end
 		else if (GPR_TNEW1_E!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_E && GPR_TNEW1_E<=GPR_TUSE0) begin
 			// load or store with update, logical 
 			GPR_rd0_D_Bmux_sel_D = 5'd2;
+			GPR_TLEFT0_D = GPR_TNEW1_E;
 		end
 		// MB
 		else if (GPR_TNEW0_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_MB && GPR_TNEW0_MB<=GPR_TUSE0) begin
@@ -1394,10 +1434,12 @@ module controller (
 								   (insnCluster_MDU_MB) ? 5'd8 :
 								   (insnCluster_CR_MOVE_MB) ? 5'd9 :
 								   5'd6;
+			GPR_TLEFT0_D = GPR_TNEW0_MB;
 		end		
 		else if (GPR_TNEW1_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_MB && GPR_TNEW1_MB<=GPR_TUSE0) begin
 			// load or store with update, logical 
 			GPR_rd0_D_Bmux_sel_D = 5'd6;
+			GPR_TLEFT0_D = GPR_TNEW1_MB;
 		end
 		// ME
 		else if (GPR_TNEW0_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_ME && GPR_TNEW0_ME<=GPR_TUSE0) begin
@@ -1407,10 +1449,12 @@ module controller (
 								   (insnCluster_CR_MOVE_ME) ? 5'd10 :
 								   (insnCluster_LD_ME) ? 5'd1 :
 								   5'd5;
+			GPR_TLEFT0_D = GPR_TNEW0_ME;
 		end		
 		else if (GPR_TNEW1_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_ME && GPR_TNEW1_ME<=GPR_TUSE0) begin
 			// load or store with update, logical 
 			GPR_rd0_D_Bmux_sel_D = 5'd5;
+			GPR_TLEFT0_D = GPR_TNEW1_ME;
 		end
 		// W
 		else if (GPR_TNEW0_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_W && GPR_TNEW0_W<=GPR_TUSE0) begin
@@ -1420,23 +1464,28 @@ module controller (
 								   (insnCluster_CR_MOVE_W) ? 5'd16 :
 								   (insnCluster_LD_W) ? 5'd2 :
 								   5'd7;
+			GPR_TLEFT0_D = GPR_TNEW0_W;
 		end		
 		else if (GPR_TNEW1_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_W && GPR_TNEW1_W<=GPR_TUSE0) begin
 			// load or store with update, logical 
 			GPR_rd0_D_Bmux_sel_D = 5'd7;
+			GPR_TLEFT0_D = GPR_TNEW1_W;
 		end
 		
 		else begin
 			GPR_rd0_D_Bmux_sel_D = 5'd0;
+			GPR_TLEFT0_D = 3'd0;
 		end
 	end // end always
 	
 	/*********   Logic of GPR_rd1_D_Bmux_sel_D   *********/
+	reg [0:2] GPR_TLEFT1_D;
 	reg [0:4] GPR_rd1_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (GPR_TUSE1==`TSTG_MAX)) begin
 			GPR_rd1_D_Bmux_sel_D = 4'd0;
+			GPR_TLEFT1_D = 3'd0;
 		end
 		
 		/*** for bypassMux GPR_rd1_D_Bmux ***/
@@ -1447,10 +1496,12 @@ module controller (
 								   (insnCluster_MDU_E) ? 5'd3 :
 								   (insnCluster_CR_MOVE_E) ? 5'd4 :
 								   5'd2;
+			GPR_TLEFT1_D = GPR_TNEW0_E;
 		end
 		else if (GPR_TNEW1_E!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_E && GPR_TNEW1_E<=GPR_TUSE1) begin
 			// load or store with update, logical 
 			GPR_rd1_D_Bmux_sel_D = 5'd2;
+			GPR_TLEFT1_D = GPR_TNEW1_E;
 		end
 		// MB
 		else if (GPR_TNEW0_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_MB && GPR_TNEW0_MB<=GPR_TUSE1) begin
@@ -1459,10 +1510,12 @@ module controller (
 								   (insnCluster_MDU_MB) ? 5'd8 :
 								   (insnCluster_CR_MOVE_MB) ? 5'd9 :
 								   5'd6;
+			GPR_TLEFT1_D = GPR_TNEW0_MB;
 		end		
 		else if (GPR_TNEW1_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_MB && GPR_TNEW1_MB<=GPR_TUSE1) begin
 			// load or store with update, logical 
 			GPR_rd1_D_Bmux_sel_D = 5'd6;
+			GPR_TLEFT1_D = GPR_TNEW1_MB;
 		end
 		// ME
 		else if (GPR_TNEW0_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_ME && GPR_TNEW0_ME<=GPR_TUSE1) begin
@@ -1472,10 +1525,12 @@ module controller (
 								   (insnCluster_CR_MOVE_ME) ? 5'd10 :
 								   (insnCluster_LD_ME) ? 5'd1 :
 								   5'd5;
+			GPR_TLEFT1_D = GPR_TNEW0_ME;
 		end		
 		else if (GPR_TNEW1_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_ME && GPR_TNEW1_ME<=GPR_TUSE1) begin
 			// load or store with update, logical 
 			GPR_rd1_D_Bmux_sel_D = 5'd5;
+			GPR_TLEFT1_D = GPR_TNEW1_ME;
 		end
 		// W
 		else if (GPR_TNEW0_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_W && GPR_TNEW0_W<=GPR_TUSE1) begin
@@ -1485,23 +1540,28 @@ module controller (
 								   (insnCluster_CR_MOVE_W) ? 5'd16 :
 								   (insnCluster_LD_W) ? 5'd2 :
 								   5'd7;
+			GPR_TLEFT1_D = GPR_TNEW0_W;
 		end		
 		else if (GPR_TNEW1_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_W && GPR_TNEW1_W<=GPR_TUSE1) begin
 			// load or store with update, logical 
 			GPR_rd1_D_Bmux_sel_D = 5'd7;
+			GPR_TLEFT1_D = GPR_TNEW1_W;
 		end
 		
 		else begin
 			GPR_rd1_D_Bmux_sel_D = 5'd0;
+			GPR_TLEFT1_D = 3'd0;
 		end
 	end // end always
 	
 	/*********   Logic of GPR_rd2_D_Bmux_sel_D   *********/
+	reg [0:2] GPR_TLEFT2_D;
 	reg [0:4] GPR_rd2_D_Bmux_sel_D;
 	
 	always @(*) begin
 		if (~validInsn_D || (GPR_TUSE2==`TSTG_MAX)) begin
 			GPR_rd2_D_Bmux_sel_D = 4'd0;
+			GPR_TLEFT2_D = 3'd0;
 		end
 		
 		/*** for bypassMux GPR_rd2_D_Bmux ***/
@@ -1513,10 +1573,12 @@ module controller (
 								   (insnCluster_CR_MOVE_E) ? 5'd4 :
 								   (insnCluster_LD_E) ? 5'd1 :
 								   5'd2;
+			GPR_TLEFT2_D = GPR_TNEW0_E;
 		end
 		else if (GPR_TNEW1_E!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_E && GPR_TNEW1_E<=GPR_TUSE2) begin
 			// load or store with update, logical 
 			GPR_rd2_D_Bmux_sel_D = 5'd2;
+			GPR_TLEFT2_D = GPR_TNEW1_E;
 		end
 		// MB
 		else if (GPR_TNEW0_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_MB && GPR_TNEW0_MB<=GPR_TUSE2) begin
@@ -1526,10 +1588,12 @@ module controller (
 								   (insnCluster_CR_MOVE_MB) ? 5'd9 :
 								   (insnCluster_LD_MB) ? 5'd1 :
 								   5'd6;
+			GPR_TLEFT2_D = GPR_TNEW0_MB;
 		end		
 		else if (GPR_TNEW1_MB!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_MB && GPR_TNEW1_MB<=GPR_TUSE2) begin
 			// load or store with update, logical 
 			GPR_rd2_D_Bmux_sel_D = 5'd6;
+			GPR_TLEFT2_D = GPR_TNEW1_MB;
 		end
 		// ME
 		else if (GPR_TNEW0_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_ME && GPR_TNEW0_ME<=GPR_TUSE2) begin
@@ -1539,10 +1603,12 @@ module controller (
 								   (insnCluster_CR_MOVE_ME) ? 5'd10 :
 								   (insnCluster_LD_ME) ? 5'd1 :
 								   5'd5;
+			GPR_TLEFT2_D = GPR_TNEW0_ME;
 		end		
 		else if (GPR_TNEW1_ME!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_ME && GPR_TNEW1_ME<=GPR_TUSE2) begin
 			// load or store with update, logical 
 			GPR_rd2_D_Bmux_sel_D = 5'd5;
+			GPR_TLEFT2_D = GPR_TNEW1_ME;
 		end
 		// W
 		else if (GPR_TNEW0_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr0_W && GPR_TNEW0_W<=GPR_TUSE2) begin
@@ -1552,18 +1618,23 @@ module controller (
 								   (insnCluster_CR_MOVE_W) ? 5'd16 :
 								   (insnCluster_LD_W) ? 5'd2 :
 								   5'd7;
+			GPR_TLEFT2_D = GPR_TNEW0_W;
 		end		
 		else if (GPR_TNEW1_W!=`TSTG_MIN && gpr_raddr0_D==gpr_waddr1_W && GPR_TNEW1_W<=GPR_TUSE2) begin
 			// load or store with update, logical 
 			GPR_rd2_D_Bmux_sel_D = 5'd7;
+			GPR_TLEFT2_D = GPR_TNEW1_W;
 		end
 		
 		else begin
 			GPR_rd2_D_Bmux_sel_D = 5'd0;
+			GPR_TLEFT2_D = 3'd0;
 		end
 	end // end always
 	
 	
+	
+	/*********   Logic of GPR_rd0_E_Bmux_sel_E   *********/
 	reg [0:4] GPR_rd0_D_Bmux_sel_D_r;
 	
 	always @(posedge clk or negedge rst_n) begin
@@ -1575,8 +1646,11 @@ module controller (
 		end
 	end // end always
 	
-	assign GPR_rd0_E_Bmux_sel_E = (GPR_TNEW0_E==`TSTG_MIN) ? 2'd0 : GPR_rd0_D_Bmux_sel_D_r;
+	assign GPR_rd0_E_Bmux_sel_E = (GPR_TLEFT0_D==0) ? 2'd0 : GPR_rd0_D_Bmux_sel_D_r;
 	
+	
+	
+	/*********   Logic of GPR_rd1_E_Bmux_sel_E   *********/
 	reg [0:4] GPR_rd1_D_Bmux_sel_D_r;
 	
 	always @(posedge clk or negedge rst_n) begin
@@ -1588,7 +1662,23 @@ module controller (
 		end
 	end // end always
 	
-	assign GPR_rd1_E_Bmux_sel_E = (GPR_TNEW0_E==`TSTG_MIN) ? 2'd0 : GPR_rd1_D_Bmux_sel_D_r;
+	assign GPR_rd1_E_Bmux_sel_E = (GPR_TLEFT1_D==`TSTG_MIN) ? 2'd0 : GPR_rd1_D_Bmux_sel_D_r;
+	
+	
+	
+	/*********   Logic of GPR_rd2_E_Bmux_sel_[E,MB,ME]   *********/
+	reg [0:2] GPR_TLEFT2_E, GPR_TLEFT2_MB;
+	
+	always @(posedge clk or negedge rst_n) begin
+		if (~rst_n) begin
+			GPR_TLEFT2_E <= 3'd0;
+			GPR_TLEFT2_MB <= 3'd0;
+		end
+		else begin
+			GPR_TLEFT2_E <= (GPR_TLEFT2_D == 0) ? GPR_TLEFT2_D : (GPR_TLEFT2_D-3'd1);
+			GPR_TLEFT2_MB <= (GPR_TLEFT2_E == 0) ? GPR_TLEFT2_E : (GPR_TLEFT2_E-3'd1);
+		end
+	end // end always
 	
 	reg [0:4] GPR_rd2_D_Bmux_sel_D_r, GPR_rd2_E_Bmux_sel_E_r, GPR_rd2_MB_Bmux_sel_MB_r;
 	
@@ -1605,9 +1695,9 @@ module controller (
 		end
 	end // end always
 	
-	assign GPR_rd2_E_Bmux_sel_E = (GPR_TNEW0_E==`TSTG_MIN) ? 2'd0 : GPR_rd2_D_Bmux_sel_D_r;
-	assign GPR_rd2_MB_Bmux_sel_MB = (GPR_TNEW0_MB==`TSTG_MIN) ? 2'd0 : GPR_rd2_E_Bmux_sel_E_r;
-	assign GPR_rd2_ME_Bmux_sel_ME = (GPR_TNEW0_ME==`TSTG_MIN) ? 2'd0 : GPR_rd2_MB_Bmux_sel_MB_r;
+	assign GPR_rd2_E_Bmux_sel_E = (GPR_TLEFT2_D==0) ? 2'd0 : GPR_rd2_D_Bmux_sel_D_r;
+	assign GPR_rd2_MB_Bmux_sel_MB = (GPR_TLEFT2_E==0) ? 2'd0 : GPR_rd2_E_Bmux_sel_E_r;
+	assign GPR_rd2_ME_Bmux_sel_ME = (GPR_TLEFT2_MB==0) ? 2'd0 : GPR_rd2_MB_Bmux_sel_MB_r;
 	
 endmodule
  
