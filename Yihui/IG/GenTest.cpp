@@ -17,7 +17,9 @@ GenTest::GenTest(int n, string entry, vector<Insn*> rvc,  vector<Insn*> wvc):
 	// TODO Auto-generated constructor stub
 	perm = new Permutation(n);
 	init(rvc, wvc);
-	blk = new Block(n);
+	// using nopNum to control the number of NOP after the block.
+	int nopNum = 3;
+	blk = new Block(nopNum);
 }
 
 GenTest::GenTest(int n, string entry, vector<Insn*> rvc, vector<Insn*> wvc, int* C):
@@ -25,7 +27,9 @@ GenTest::GenTest(int n, string entry, vector<Insn*> rvc, vector<Insn*> wvc, int*
 	// TODO Auto-generated constructor stub
 	perm = new Permutation(n, C);
 	init(entry, rvc, wvc);
-	blk = new Block(n);
+	// using nopNum to control the number of NOP after the block.
+	int nopNum = 3;
+	blk = new Block(nopNum);
 }
 
 GenTest::~GenTest() {
@@ -187,7 +191,13 @@ void GenTest::updateBlock(const vi& vc) {
 	rep(i, 0, n) {
 		a = vc[i];
 		if (a == perm->NOP) {
-			blk->pb();
+			//blk->pb();
+			int tmpId = rand() % SZ(regvc);
+			while (tmpId == regid) {
+				tmpId = rand() % SZ(regvc);
+			}
+			insn = randrInsn(tmpId);
+			blk->pb(insn->dump(labeln, fflag=false));
 		} else if (a == perm->READ) {
 			insn = randrInsn(regid);
 			blk->pb(insn->dump(labeln, fflag=false));
@@ -214,7 +224,13 @@ void GenTest::updateBlock(const vi& vc, int& id) {
 	rep(i, 0, n) {
 		a = vc[i];
 		if (a == perm->NOP) {
-			blk->pb();
+			//blk->pb();
+			int tmpId = rand() % SZ(regvc);
+			while (tmpId == regid) {
+				tmpId = rand() % SZ(regvc);
+			}
+			insn = randrInsn(tmpId);
+			blk->pb(insn->dump(labeln, fflag=false));
 		} else if (a == perm->READ) {
 			insn = randrInsn(regid);
 			blk->pb(insn->dump(labeln, fflag=false));
@@ -243,7 +259,13 @@ Block GenTest::genBlock(const vi& vc) {
 	rep(i, 0, n) {
 		a = vc[i];
 		if (a == Permutation::NOP) {
-			blk.pb();
+			//blk->pb();
+			int tmpId = rand() % SZ(regvc);
+			while (tmpId == regid) {
+				tmpId = rand() % SZ(regvc);
+			}
+			insn = randrInsn(tmpId);
+			blk.pb(insn->dump(labeln, fflag=false));
 		} else if (a == Permutation::READ) {
 			insn = randrInsn(regid);
 			blk.pb(insn->dump(labeln, fflag=false));
