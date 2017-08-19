@@ -20,23 +20,23 @@ module SPR (
 	input  [0:`SPR_WIDTH-1] wd0, wd1;
 	output [0:`SPR_WIDTH-1] rd0, rd1;
 	
-	reg [0:`SPR_WIDTH-1] SPR[`SPR_SIZE-1:0];
+	reg [0:`SPR_WIDTH-1] SPR[31:0];
 	
 	integer i;
 	
-	always @( posedge clk or negedge rst_n ) begin
+	always @( posedge clk ) begin
 		if ( ~rst_n ) begin		
-			for (i=0; i<`SPR_SIZE; i=i+1)
+			for (i=0; i<32; i=i+1)
 				SPR[i] <= 0;
 		end
 		else begin
-			if ( wr0 )	SPR[waddr0] <= wd0;
-			if ( wr1 )	SPR[waddr1] <= wd1;
+			if ( wr0 )	SPR[waddr0[`SPR_DEPTH-5:`SPR_DEPTH-1]] <= wd0;
+			if ( wr1 )	SPR[waddr1[`SPR_DEPTH-5:`SPR_DEPTH-1]] <= wd1;
 		end
 	end // end always
 	
-	assign rd0 = SPR[raddr0];
-	assign rd1 = SPR[raddr1];
+	assign rd0 = SPR[raddr0[`SPR_DEPTH-5:`SPR_DEPTH-1]];
+	assign rd1 = SPR[raddr1[`SPR_DEPTH-5:`SPR_DEPTH-1]];
 	
 endmodule
 

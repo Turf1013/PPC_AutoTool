@@ -23,7 +23,7 @@ module CR (
 	
 	reg [0:`CR_WIDTH-1] CR;
 	
-	always @( posedge clk or negedge rst_n ) begin
+	always @( posedge clk) begin
 		if ( !rst_n ) begin
 			CR <= 0;
 		end
@@ -143,7 +143,7 @@ module CR_MOVE (
 	input [0:`CR_WIDTH-1] CRrd;
 	output [0:`CR_WIDTH-1] CRwd;
 	
-	wire rd;
+	wire [0:31] rd;
 	assign rd = CRrd;
 	
 	reg [0:`CR_WIDTH-1] wd;
@@ -153,7 +153,8 @@ module CR_MOVE (
 	assign ALU_CR0 = {ALU_D, 1'b0};
 	assign MDU_CR0 = {MDU_D, 1'b0};
 	assign cmpALU_CRX = {cmpALU_D, 1'b0};
-	assign MCRF_CRX = ((rd >> (5'd28-BFA)) & 32'hf)[3:0];
+	wire [27:0] MCRF_CRX_tmp27;
+	assign {MCRF_CRX_tmp27, MCRF_CRX} = ((rd >> (5'd28-BFA)) & 32'hf);
 	
 	always @( * ) begin
 		case ( Op )

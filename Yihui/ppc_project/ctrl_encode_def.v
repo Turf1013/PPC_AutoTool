@@ -54,6 +54,7 @@
 
 /**** About ALU ****/
 `define ALUOp_WIDTH	5
+`define ALUOp_NOP	5'd0
 `define ALUOp_MOVA	5'd0
 `define ALUOp_AND	5'd1
 `define ALUOp_ANDC	5'd2

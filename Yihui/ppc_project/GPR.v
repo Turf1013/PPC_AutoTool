@@ -59,8 +59,8 @@ module GPR (
 	
 	integer i;
 	
-	always @( posedge clk or negedge rst_n ) begin
-		if ( !rst_n ) begin
+	always @( posedge clk) begin
+		if ( ~rst_n ) begin
 			for (i=0; i<`GPR_SIZE; i=i+1)
 				GPR[i] <= 0;
 		end

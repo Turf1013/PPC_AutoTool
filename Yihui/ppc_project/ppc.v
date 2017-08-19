@@ -70,7 +70,7 @@ module ppc (
 	wire [0:`NPCOp_WIDTH-1] NPC_Op_D;
 	wire [0:`PC_WIDTH-1] NPC_PCB_D;
 	wire [0:`PC_WIDTH-1] PC_NPC_D;
-	wire [0:`PC_WIDTH-1] PC_PC_D;
+	reg [0:`PC_WIDTH-1] PC_PC_D;
 	wire [0:`SPR_DEPTH-1] SPR_raddr0_D_Pmux_dout_D;
 	wire [0:0] SPR_raddr0_D_Pmux_sel_D;
 	wire [0:`SPR_DEPTH-1] SPR_raddr1_D;
@@ -117,19 +117,19 @@ module ppc (
 	wire [0:`CR_WIDTH-1] CR_MOVE_rS_E;
 	reg [0:`CR_WIDTH-1] CR_rd_E;
 	wire [31:0] CR_rd_E_Bmux_dout_E;
-	wire [0:0] CR_rd_E_Bmux_sel_E;
+	wire [0:1] CR_rd_E_Bmux_sel_E;
 	wire [0:15] Ext_Imm16_E;
 	wire [0:31] Ext_Imm32_E;
 	wire [0:`ExtOp_WIDTH-1] Ext_Op_E;
 	reg [0:`GPR_WIDTH-1] GPR_rd0_E;
 	wire [31:0] GPR_rd0_E_Bmux_dout_E;
-	wire [2:0] GPR_rd0_E_Bmux_sel_E;
+	wire [4:0] GPR_rd0_E_Bmux_sel_E;
 	reg [0:`GPR_WIDTH-1] GPR_rd1_E;
 	wire [31:0] GPR_rd1_E_Bmux_dout_E;
-	wire [2:0] GPR_rd1_E_Bmux_sel_E;
+	wire [4:0] GPR_rd1_E_Bmux_sel_E;
 	reg [0:`GPR_WIDTH-1] GPR_rd2_E;
 	wire [0:`GPR_WIDTH-1] GPR_rd2_E_Bmux_dout_E;
-	wire [2:0] GPR_rd2_E_Bmux_sel_E;
+	wire [4:0] GPR_rd2_E_Bmux_sel_E;
 	reg [0:`INSTR_WIDTH-1] Instr_E;
 	wire [0:`ARCH_WIDTH-1] MDU_A_E;
 	wire [0:`ARCH_WIDTH-1] MDU_B_E_Pmux_dout_E;
@@ -155,7 +155,7 @@ module ppc (
 	reg [0:`CR_WIDTH-1] CR_MOVE_CRwd_MB;
 	reg [0:`GPR_WIDTH-1] GPR_rd2_MB;
 	wire [0:`GPR_WIDTH-1] GPR_rd2_MB_Bmux_dout_MB;
-	wire [0:0] GPR_rd2_MB_Bmux_sel_MB;
+	wire [4:0] GPR_rd2_MB_Bmux_sel_MB;
 	reg [0:`INSTR_WIDTH-1] Instr_MB;
 	reg [0:`ARCH_WIDTH-1] MDU_C_MB;
 	reg [0:`MSR_WIDTH-1] MSR_rd_MB;
@@ -182,7 +182,7 @@ module ppc (
 	wire [0:0] DM_wr_ME;
 	reg [0:`GPR_WIDTH-1] GPR_rd2_ME;
 	wire [0:`GPR_WIDTH-1] GPR_rd2_ME_Bmux_dout_ME;
-	wire [0:0] GPR_rd2_ME_Bmux_sel_ME;
+	wire [4:0] GPR_rd2_ME_Bmux_sel_ME;
 	reg [0:`INSTR_WIDTH-1] Instr_ME;
 	reg [0:`ARCH_WIDTH-1] MDU_C_ME;
 	reg [0:`MSR_WIDTH-1] MSR_rd_ME;
@@ -240,7 +240,7 @@ module ppc (
 		.rst_n(rst_n),
 		.wd(GPR_rd2_W),
 		.clk(clk),
-		.INT(0),
+		.INT(1'b0),
 		.rd(MSR_rd_D),
 		.wr(MSR_wr_W)
 	);
@@ -264,17 +264,17 @@ module ppc (
 		.D(cmpALU_D_E),
 		.Op(cmpALU_Op_E)
 	);
-
+	/*
 	ALU_DOut I_ALU_DOut (
-		.BF(0),
-		.D(0),
+		.BF(3'b0),
+		.D(3'b0),
 		.XERrd(0),
 		.CRrd(0),
 		.OE(0),
 		.XERwd(ALU_DOut_XERwd_E),
 		.Op(0)
 	);
-
+	*/
 	PC I_PC (
 		.PC(PC_PC_FB),
 		.rst_n(rst_n),
@@ -335,7 +335,8 @@ module ppc (
 		.rd1(GPR_rd1_D),
 		.rd0(GPR_rd0_D)
 	);
-
+	
+	/*
 	insnConverter I_insnConverter (
 		.rst_n(rst_n),
 		.din(orgInstr),
@@ -348,7 +349,9 @@ module ppc (
 		.stall_ext(stall_ext),
 		.latch(latch)
 	);
-
+	*/
+	assign newInstr = orgInstr;
+	
 	Ext I_Ext (
 		.Op(Ext_Op_E),
 		.Imm32(Ext_Imm32_E),
@@ -369,7 +372,7 @@ module ppc (
 		.LRwd(NPC_LRwd_D),
 		.Op(NPC_Op_D)
 	);
-
+	/*
 	trapComp I_trapComp (
 		.A(0),
 		.TO(0),
@@ -377,7 +380,7 @@ module ppc (
 		.B(0),
 		.Op(0)
 	);
-
+	*/
 	SPR I_SPR (
 		.rst_n(rst_n),
 		.raddr1(`LR_ADDR),
@@ -403,6 +406,8 @@ module ppc (
 	);
 
 	ALU I_ALU (
+		.clk(clk),
+		.rst_n(rst_n),
 		.A(ALU_AIn_dout_E),
 		.ME(Instr_E[26:30]),
 		.C(ALU_C_E),
@@ -573,7 +578,7 @@ module ppc (
 		.din2(ALU_C_MB),
 		.din1(DMOut_ME_dout_W),
 		.din0(GPR_rd0_E),
-		.sel(GPR_rd0_E_Bmux_sel_E)
+		.sel(GPR_rd0_E_Bmux_sel_E[2:0])
 	);
 
 	mux32 #(32) GPR_rd1_D_Bmux (
@@ -623,7 +628,7 @@ module ppc (
 		.din2(ALU_C_MB),
 		.din1(DMOut_ME_dout_W),
 		.din0(GPR_rd1_E),
-		.sel(GPR_rd1_E_Bmux_sel_E)
+		.sel(GPR_rd1_E_Bmux_sel_E[2:0])
 	);
 
 	mux32 #(32) GPR_rd2_D_Bmux (
@@ -673,18 +678,18 @@ module ppc (
 		.din2(ALU_C_MB),
 		.din1(DMOut_ME_dout_W),
 		.din0(GPR_rd2_E),
-		.sel(GPR_rd2_E_Bmux_sel_E)
+		.sel(GPR_rd2_E_Bmux_sel_E[2:0])
 	);
 
 	mux2 #(32) GPR_rd2_MB_Bmux (
-		.sel(GPR_rd2_MB_Bmux_sel_MB),
+		.sel(GPR_rd2_MB_Bmux_sel_MB[0:0]),
 		.dout(GPR_rd2_MB_Bmux_dout_MB),
 		.din1(DMOut_ME_dout_W),
 		.din0(GPR_rd2_MB)
 	);
 
 	mux2 #(32) GPR_rd2_ME_Bmux (
-		.sel(GPR_rd2_ME_Bmux_sel_ME),
+		.sel(GPR_rd2_ME_Bmux_sel_ME[0:0]),
 		.dout(GPR_rd2_ME_Bmux_dout_ME),
 		.din1(DMOut_ME_dout_W),
 		.din0(GPR_rd2_ME)
@@ -754,7 +759,7 @@ module ppc (
 	);
 
 	mux2 #(32) CR_rd_E_Bmux (
-		.sel(CR_rd_E_Bmux_sel_E),
+		.sel(CR_rd_E_Bmux_sel_E[0:0]),
 		.dout(CR_rd_E_Bmux_dout_E),
 		.din1(CR_MOVE_CRwd_MB),
 		.din0(CR_rd_E)
@@ -784,6 +789,7 @@ module ppc (
 
 
 	// Instance Controller
+	/*
 	control I_control (
 		.clk(clk),
 		.rst_n(rst_n),
@@ -849,6 +855,67 @@ module ppc (
 		.SPR_wr1_W(SPR_wr1_W),
 		.MSR_wr_W(MSR_wr_W)
 	);
+*/
+controller I_controller (
+	.clk(clk), 
+	.rst_n(rst_n),
+	.Instr_D(Instr_D), 
+	.Instr_E(Instr_E), 
+	.Instr_MB(Instr_MB), 
+	.Instr_ME(Instr_ME), 
+	.Instr_W(Instr_W),
+	.BrFlush_D(BrFlush_D), 
+	.SPR_raddr0_D_Pmux_sel_D(SPR_raddr0_D_Pmux_sel_D), 
+	.MDU_B_E_Pmux_sel_E(MDU_B_E_Pmux_sel_E), 
+	.ALU_B_E_Pmux_sel_E(ALU_B_E_Pmux_sel_E),
+	.ALU_AIn_din_E_Pmux_sel_E(ALU_AIn_din_E_Pmux_sel_E), 
+	.rotnIn_din_E_Pmux_sel_E(rotnIn_din_E_Pmux_sel_E), 
+	.ALU_rotn_E_Pmux_sel_E(ALU_rotn_E_Pmux_sel_E), 
+	.SPR_waddr0_W_Pmux_sel_W(SPR_waddr0_W_Pmux_sel_W),
+	.SPR_wd0_W_Pmux_sel_W(SPR_wd0_W_Pmux_sel_W), 
+	.GPR_wd0_W_Pmux_sel_W(GPR_wd0_W_Pmux_sel_W), 
+	.GPR_waddr0_W_Pmux_sel_W(GPR_waddr0_W_Pmux_sel_W), 
+	.NPC_Op_D(NPC_Op_D),
+	.Ext_Op_E(Ext_Op_E), 
+	.cmpALU_Op_E(cmpALU_Op_E), 
+	.ALU_Op_E(ALU_Op_E), 
+	.CR_MOVE_Op_E(CR_MOVE_Op_E),
+	.ALU_AIn_Op_E(ALU_AIn_Op_E), 
+	.MDU_Op_E(MDU_Op_E), 
+	.CR_ALU_Op_E(CR_ALU_Op_E), 
+	.DM_wr_ME(DM_wr_ME),
+	.DMOut_ME_Op_ME(DMOut_ME_Op_ME), 
+	.DMIn_BE_Op_ME(DMIn_BE_Op_ME), 
+	.CR_wr_W(CR_wr_W), 
+	.SPR_wr0_W(SPR_wr0_W),
+	.GPR_wr1_W(GPR_wr1_W), 
+	.GPR_wr0_W(GPR_wr0_W), 
+	.SPR_wr1_W(SPR_wr1_W), 
+	.MSR_wr_W(MSR_wr_W),
+	.valid_FE(valid_FE), 
+	.valid_FB(valid_FB), 
+	.valid_D(valid_D), 
+	.valid_E(valid_E), 
+	.valid_MB(valid_MB), 
+	.valid_ME(valid_ME), 
+	.valid_W(valid_W),
+	.PCWr(PCWr), 
+	.stall(stall), 
+	.cmpALU_B_E_Pmux_sel_E(cmpALU_B_E_Pmux_sel_E),
+	.CR_rd_D_Bmux_sel_D(CR_rd_D_Bmux_sel_D), 
+	.CR_rd_E_Bmux_sel_E(CR_rd_E_Bmux_sel_E),
+	.MSR_rd_D_Bmux_sel_D(MSR_rd_D_Bmux_sel_D), 
+	.SPR_rd0_D_Bmux_sel_D(SPR_rd0_D_Bmux_sel_D), 
+	.SPR_rd1_D_Bmux_sel_D(SPR_rd1_D_Bmux_sel_D), 
+	.GPR_rd0_D_Bmux_sel_D(GPR_rd0_D_Bmux_sel_D),
+	.GPR_rd0_E_Bmux_sel_E(GPR_rd0_E_Bmux_sel_E), 
+	.GPR_rd1_D_Bmux_sel_D(GPR_rd1_D_Bmux_sel_D), 
+	.GPR_rd1_E_Bmux_sel_E(GPR_rd1_E_Bmux_sel_E), 
+	.GPR_rd2_D_Bmux_sel_D(GPR_rd2_D_Bmux_sel_D),
+	.GPR_rd2_E_Bmux_sel_E(GPR_rd2_E_Bmux_sel_E), 
+	.GPR_rd2_MB_Bmux_sel_MB(GPR_rd2_MB_Bmux_sel_MB), 
+	.GPR_rd2_ME_Bmux_sel_ME(GPR_rd2_ME_Bmux_sel_ME)
+);
 
 
 
@@ -856,7 +923,7 @@ module ppc (
 
 	// Pipe Register
 	/*****     Pipe_FB     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			orgInstr <= `NOP;
 			PC_PC_FE <= `IM_BASE_ADDR;
@@ -876,23 +943,27 @@ module ppc (
 	end // end always
 
 	/*****     Pipe_FE     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			Instr_D <= `NOP;
+			PC_PC_D <= PC_PC_FE;
 		end
 		else if (stall) begin
 			Instr_D <= Instr_D;
+			PC_PC_D <= PC_PC_FE;
 		end
 		else if (BrFlush_D) begin
 			Instr_D <= `NOP;
+			PC_PC_D <= PC_PC_FE;
 		end
 		else begin
-			Instr_D <= Instr_FE;
+			Instr_D <= orgInstr;
+			PC_PC_D <= PC_PC_FE;
 		end
 	end // end always
 
 	/*****     Pipe_D     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			GPR_rd2_E <= 0;
 			GPR_rd0_E <= 0;
@@ -929,7 +1000,7 @@ module ppc (
 	end // end always
 
 	/*****     Pipe_E     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			SPR_rd0_MB <= 0;
 			NPC_LRwd_MB <= 0;
@@ -942,7 +1013,7 @@ module ppc (
 			CR_MOVE_CRwd_MB <= 0;
 			MDU_C_MB <= 0;
 		end
-		else if (clr_E && ~restore_mcInsn) begin
+		else if (clr_E) begin
 			SPR_rd0_MB <= SPR_rd0_E;
 			NPC_LRwd_MB <= NPC_LRwd_E;
 			MSR_rd_MB <= MSR_rd_E;
@@ -962,14 +1033,14 @@ module ppc (
 			NPC_CTRwd_MB <= NPC_CTRwd_E;
 			ALU_DOut_XERwd_MB <= ALU_DOut_XERwd_E;
 			ALU_C_MB <= ALU_C_E;
-			Instr_MB <= (restore_mcInsn) ? mcInsn : Instr_E;
+			Instr_MB <= Instr_E;
 			CR_MOVE_CRwd_MB <= CR_MOVE_CRwd_E;
 			MDU_C_MB <= MDU_C_E;
 		end
 	end // end always
 
 	/*****     Pipe_MB     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			MSR_rd_ME <= 0;
 			NPC_LRwd_ME <= 0;
@@ -1006,7 +1077,7 @@ module ppc (
 	end // end always
 
 	/*****     Pipe_ME     *****/
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			DMOut_ME_dout_W <= 0;
 			MDU_C_W <= 0;
@@ -1065,8 +1136,10 @@ module ppc (
 		Instr_FE = newInstr;
 	end // end always
 
-
-
+	assign clr_D = 1'b0;
+	assign clr_E = 1'b0;
+	assign clr_MB = 1'b0;
+	assign clr_ME = 1'b0;
 
 endmodule
 

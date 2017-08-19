@@ -52,7 +52,7 @@ module ALU (
 	A, B, Op, C, D, 
 	rotn, MB, ME
 );
-	
+	input clk, rst_n;
 	input 	[0:`ARCH_WIDTH-1]  	A, B;
 	input	[0:`ALUOp_WIDTH-1] 	Op;
 	input	[0:`ROTL_WIDTH-1]	rotn, MB, ME;
@@ -255,7 +255,7 @@ module ALU (
 	
 	assign CA = CA_r;
 	
-	always @(posedge clk or negedge rst_n) begin
+	always @(posedge clk) begin
 		if (~rst_n) begin
 			XER_CA <= 0;
 		end
@@ -277,7 +277,7 @@ module ALU (
 endmodule
 
 module cmpALU (
-	A, B, op, D
+	A, B, Op, D
 );
 	input 	[0:`ARCH_WIDTH-1]  	A, B;
 	input	[0:`cmpALUOp_WIDTH-1] 	Op;
@@ -293,11 +293,11 @@ module cmpALU (
 	always @( * ) begin
 		case ( Op )
 		
-			`ALUOp_NOP: begin
+			`cmpALUOp_NOP: begin
 				CRX_3 = 3'b000;
 			end
 		
-			`ALUOp_CMP: begin
+			`cmpALUOp_CMP: begin
 				if (srcA == srcB)
 					CRX_3 = 3'b001;
 				else if (srcA < srcB)
@@ -306,7 +306,7 @@ module cmpALU (
 					CRX_3 = 3'b010;
 			end
 			
-			`ALUOp_CMPL: begin
+			`cmpALUOp_CMPL: begin
 				if (srcA == srcB)
 					CRX_3 = 3'b001;
 				else if ({1'b0,srcA} < {1'b0,srcB})

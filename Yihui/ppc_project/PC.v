@@ -19,8 +19,8 @@ module PC (
 	
 	reg [0:`PC_WIDTH-1] PC;
 	
-	always @( posedge clk or negedge rst_n ) begin
-		if ( !rst_n )
+	always @( posedge clk ) begin
+		if ( ~rst_n )
 			PC <= `IM_BASE_ADDR;
 		else if ( wr )
 			PC <= NPC;

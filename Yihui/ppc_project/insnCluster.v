@@ -2,8 +2,8 @@
 	\author: 	Trasier
 	\date:		2017.7.16
 */
-`include "instruction_format_def.v"
 `include "instruction_def.v"
+`include "instruction_format_def.v"
 `include "arch_def.v"
 
 module insnCluster (
@@ -188,7 +188,7 @@ module insnCluster (
 								insn_B || insn_BC || insn_BCLR || insn_BCCTR
 							);
 							
-	assign insnCluster_CAL = (
+	assign insnCluster_LGC = (
 								insn_AND || insn_ANDC || insn_ANDIS_ || insn_ANDI_ || 
 								insn_CNTLZW || insn_EQV || insn_EXTSB || insn_EXTSH || 
 								insn_NAND || insn_NOR || insn_OR || insn_ORC || 
